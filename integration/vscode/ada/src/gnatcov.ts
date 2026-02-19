@@ -250,6 +250,7 @@ function attributeValueProcessor(name: string, value: string): unknown {
  */
 const INDEX_XML_ARRAY_PATHS = [
     'document.coverage_report.sources.source',
+    'document.coverage_report.sources.xi:include',
     'document.coverage_report.coverage_summary.metric',
     'document.coverage_report.coverage_summary.obligation_stats',
     'document.coverage_report.coverage_summary.obligation_stats.metric',
@@ -528,11 +529,18 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
 
                 return srcUri;
             }
-            const procs = process.env.PROCESSORS ? Number(process.env.PROCESSORS) : 0;
+            let procs = process.env.PROCESSORS ? Number(process.env.PROCESSORS) : 0;
+            if (!Number.isInteger(procs) || procs == 0) {
+                // If PROCESSORS is not set, or fails to convert to an integer,
+                // or is set to 0, use all available CPUs.
+                // Fallback to 1 if cpus() is undefined.
+                procs = cpus().length ?? 1;
+            }
             const fileCovs = (
                 await parallelize(
                     array,
-                    Math.min(procs == 0 ? cpus().length : procs, 8),
+                    // Make sure to use at least 1 and at most 8 threads
+                    Math.max(1, Math.min(procs, 8)),
                     async (file) => {
                         if (token.isCancellationRequested) {
                             throw new vscode.CancellationError();

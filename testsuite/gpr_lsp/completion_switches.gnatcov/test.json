@@ -1,0 +1,313 @@
+[
+   {
+      "comment": [
+         "Test switches completion for gnatcov ('Coverage' package in GPR files).",
+         "This test checks that the correct switches are offered ",
+         "for the 'run' and 'coverage' commands of gnatcov, in ",
+         "addition to the gnatcov common switches."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  package Coverage is\n    for Default_Switches (\"run\") use (  \n    for Default_Switches (\"coverage\") use (  \n    for Default_Switches (\"*\") use (  \n  end Coverage;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": ["'run' command index: expect base + run switches."]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 40
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "--kernel",
+                        "kind": 12,
+                        "detail": "gnatcov run",
+                        "documentation": "Specify which kernel to use",
+                        "insertText": "\"--kernel\""
+                     },
+                     {
+                        "label": "--shared-object",
+                        "kind": 12,
+                        "detail": "gnatcov run",
+                        "documentation": "Specify set of shared object files for coverage",
+                        "insertText": "\"--shared-object\""
+                     },
+                     {
+                        "label": "--level",
+                        "kind": 12,
+                        "detail": "gnatcov run",
+                        "documentation": "Specify coverage levels to assess",
+                        "insertText": "\"--level\""
+                     },
+                     {
+                        "label": "--quiet",
+                        "kind": 12,
+                        "detail": "gnatcov",
+                        "documentation": "Print nothing but errors/warnings",
+                        "insertText": "\"--quiet\""
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": ["'coverage' command index: expect base + coverage switches."]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 45
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "--annotate",
+                        "kind": 12,
+                        "detail": "gnatcov coverage",
+                        "documentation": "Generate a FORM report",
+                        "insertText": "\"--annotate\""
+                     },
+                     {
+                        "label": "--checkpoint",
+                        "kind": 12,
+                        "detail": "gnatcov coverage",
+                        "documentation": "Specify checkpointed coverage information to load",
+                        "insertText": "\"--checkpoint\""
+                     },
+                     {
+                        "label": "--keep-reading-traces",
+                        "kind": 12,
+                        "detail": "gnatcov coverage",
+                        "documentation": "Skip trace files and keep reading on error",
+                        "insertText": "\"--keep-reading-traces\""
+                     },
+                     {
+                        "label": "--quiet",
+                        "kind": 12,
+                        "detail": "gnatcov",
+                        "documentation": "Print nothing but errors/warnings",
+                        "insertText": "\"--quiet\""
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": [
+         "'*' command index: expect a concatenation of all command-specific",
+         " switches, without duplicates."
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 36
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "--kernel",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Specify which kernel to use",
+                        "insertText": "\"--kernel\""
+                     },
+                     {
+                        "label": "--exec",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Executable which generated trace data",
+                        "insertText": "\"--exec\""
+                     },
+                     {
+                        "label": "--annotate",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Generate a FORM report",
+                        "insertText": "\"--annotate\""
+                     },
+                     {
+                        "label": "--instrument-block",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Instrument statements as blocks",
+                        "insertText": "\"--instrument-block\""
+                     },
+                     {
+                        "label": "--split-extracted-traces",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Write every new trace to a separate file",
+                        "insertText": "\"--split-extracted-traces\""
+                     },
+                     {
+                        "label": "--exclude",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Exclude the symbols from the next object file",
+                        "insertText": "\"--exclude\""
+                     },
+                     {
+                        "label": "--prefix",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Installation prefix for the instrumentation runtime",
+                        "insertText": "\"--prefix\""
+                     },
+                     {
+                        "label": "--output-dir",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Place the output files into SUBDIR",
+                        "insertText": "\"--output-dir\""
+                     },
+                     {
+                        "label": "--annotation-id",
+                        "kind": 12,
+                        "detail": "gnatcov *",
+                        "documentation": "Unique identifier for the annotation",
+                        "insertText": "\"--annotation-id\""
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "id": 100,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 100,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

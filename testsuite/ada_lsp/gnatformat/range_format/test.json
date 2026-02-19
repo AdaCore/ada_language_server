@@ -80,7 +80,7 @@
                   "uri": "$URI{main.adb}",
                   "languageId": "ada",
                   "version": 1,
-                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n   procedure You_Say_Hello;\n   procedure You_Say_Hello is begin\n   Ada.Text_Io.Put_Line (\"Hello\");\n   end;\n\nbegin\n   Ada.Text_IO.Put_Line (\"Hello!\");\n   You_Say_Hello;\nend Main;"
+                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n   procedure You_Say_Hello;\n   procedure You_Say_Hello is begin\n   Ada.Text_Io.Put_Line (\"Hello\");\n   end;\n \nbegin\n   Ada.Text_IO.Put_Line (\"Hello!\");\n   You_Say_Hello;\nend Main;"
                }
             }
          },
@@ -123,7 +123,7 @@
                   {
                      "range": {
                         "start": {
-                           "line": 4,
+                           "line": 5,
                            "character": 0
                         },
                         "end": {
@@ -131,7 +131,20 @@
                            "character": 0
                         }
                      },
-                     "newText": "   procedure You_Say_Hello is\n   begin\n      Ada.Text_Io.Put_Line (\"Hello\");\n"
+                     "newText": "      Ada.Text_Io.Put_Line (\"Hello\");\n"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 0
+                        }
+                     },
+                     "newText": "\n"
                   }
                ]
             }

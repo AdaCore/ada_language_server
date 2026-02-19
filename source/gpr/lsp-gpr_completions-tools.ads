@@ -48,8 +48,17 @@ package LSP.GPR_Completions.Tools is
 
    procedure Get_Tool_Switches
      (Tool_Name : VSS.Strings.Virtual_String;
+      Index     : VSS.Strings.Virtual_String;
       Result    : in out LSP.Structures.CompletionItem_Vector);
-   --  Return completion items for all switches of the given tool,
-   --  as defined in the gnat_tools_help.json database.
+   --  Return the list of switches for the given tool and index, if any.
+   --  If Index is empty, return common switches for the given tool.
+   --  If Index is not empty, return command-specific switches for
+   --  the given tool and index
+   --  (e.g: for tool "gnatsas", if Index is "review", return switches specified
+   --  via "for Switches ("review") use (...);" in the Analyzer package).
+   --  For multi-word indices like "report text", tries full match first,
+   --  then falls back to just the first word ("report") if no full match exists.
+   --  This allows variants of a command (e.g., different report formats) to
+   --  share the same set of switches based on the base command.
 
 end LSP.GPR_Completions.Tools;

@@ -2072,7 +2072,6 @@ package body LSP.Ada_Handlers is
       Value : LSP.Structures.CompletionItem)
    is
       use VSS.Strings;
-      use all type Libadalang.Common.Ada_Node_Kind_Type;
 
       Context  : LSP.Ada_Context_Sets.Context_Access;
       Node : Libadalang.Analysis.Ada_Node;
@@ -2689,29 +2688,20 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.TextEdit_Vector_Or_Null;
       Error    : LSP.Errors.ResponseError;
       Success  : Boolean;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
 
    begin
       LSP.Ada_Handlers.Formatting.Format
         (Context  => Context.all,
          Document => Document,
-         Span     => LSP.Constants.Empty,
          Options  =>
            LSP.Ada_Handlers.Formatting.Get_Formatting_Options
              (Context.all, Value.options),
          Success  => Success,
          Response => Response,
-         Messages => Messages,
          Error    => Error);
 
       if Success then
          Self.Sender.On_Formatting_Response (Id, Response);
-
-         for Message of Messages loop
-            Self.Sender.On_ShowMessage_Notification
-              ((LSP.Enumerations.Info, Message));
-         end loop;
-
       else
          Self.Sender.On_Error_Response (Id, Error);
       end if;

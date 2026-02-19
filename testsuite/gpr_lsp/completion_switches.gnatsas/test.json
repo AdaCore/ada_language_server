@@ -52,7 +52,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "project Default is\n  package Analyzer is\n    for Default_Switches (\"review\") use (  \n    for Default_Switches (\"analyze\") use (  \n  end Analyzer;\nend Default;\n",
+                  "text": "project Default is\n  package Analyzer is\n    for Default_Switches (\"review\") use (  \n    for Default_Switches (\"analyze\") use (  \n    for Default_Switches (\"review csv\") use (  \n  end Analyzer;\nend Default;\n",
                   "version": 0,
                   "uri": "$URI{default.gpr}",
                   "languageId": "Gpr"
@@ -175,6 +175,65 @@
                         "documentation": "Timeline to use for the analysis.",
                         "insertText": "\"--timeline=${1:VAL}\"$0",
                         "insertTextFormat": 2
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": ["'review csv' command index: expect base + review switches."]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 45
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "--help[=FMT]",
+                        "kind": 12,
+                        "detail": "gnatsas",
+                        "documentation": "(default=auto) Show this help in format FMT. The value FMT must be one of auto, pager, groff or plain. With auto, the format is pager or plain whenever the TERM env var is dumb or undefined.",
+                        "insertText": "\"--help${1:[=FMT]}\"$0",
+                        "insertTextFormat": 2
+                     },
+                     {
+                        "detail": "gnatsas review",
+                        "documentation": "Import reviews from specified csv file",
+                        "insertText": "\"--from-csv=${1:VAL}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--from-csv=VAL"
+                     },
+                     {
+                        "detail": "gnatsas review",
+                        "documentation": "Import reviews from specified review file",
+                        "insertText": "\"--import=${1:VAL}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--import=VAL"
                      }
                   ]
                }

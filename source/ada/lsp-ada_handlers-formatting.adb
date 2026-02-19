@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,6 +14,15 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Characters.Wide_Wide_Latin_1;
+with Ada.Strings.Unbounded;
+
+with Langkit_Support.Diagnostics;
+with Langkit_Support.Token_Data_Handlers;
+with Langkit_Support.Types;
+
+with Libadalang.Lexer;
 
 with LSP.Enumerations;
 with VSS.Characters.Latin;
@@ -85,15 +94,10 @@ package body LSP.Ada_Handlers.Formatting is
    procedure Format
      (Context  : LSP.Ada_Contexts.Context;
       Document : not null LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector;
-      Error    : out LSP.Errors.ResponseError)
-   is
-      pragma Unreferenced (Messages);
-      use type LSP.Structures.A_Range;
+      Error    : out LSP.Errors.ResponseError) is
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
@@ -105,11 +109,7 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      if Span /= LSP.Constants.Empty then
-         Response := Document.Range_Format (Context, Span, Options);
-      else
-         Response := Document.Format (Context, Options);
-      end if;
+      Document.Format (Context, Options, Response);
       Success := True;
 
    exception
@@ -144,9 +144,8 @@ package body LSP.Ada_Handlers.Formatting is
 
          return;
       end if;
-      Response.Clear;
-      Response.Append
-        (Document.Range_Format (Context, Span, Options => Options));
+
+      Document.Range_Format (Context, Span, Options, Response);
       Success := True;
 
    exception
@@ -158,6 +157,389 @@ package body LSP.Ada_Handlers.Formatting is
               LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
             message => GNATformat_Exception_Found_Msg);
    end Range_Format;
+
+   -------------------------
+   -- Narrow_Range_Format --
+   -------------------------
+
+   procedure Narrow_Range_Format
+     (Unit    : Libadalang.Analysis.Analysis_Unit;
+      Span    : Langkit_Support.Slocs.Source_Location_Range;
+      Edit    : Gnatformat.Edits.Formatting_Edit_Type;
+      Result  : out VSS.Strings.Virtual_String;
+      Success : out Boolean)
+   is
+      use type Langkit_Support.Slocs.Column_Number;
+      use type Langkit_Support.Slocs.Source_Location;
+      use type Langkit_Support.Token_Data_Handlers.Token_Index;
+      use type Libadalang.Common.Token_Reference;
+      use all type Langkit_Support.Slocs.Relative_Position;
+
+      UTF_8 : constant Ada.Strings.Unbounded.Unbounded_String :=
+        Ada.Strings.Unbounded.To_Unbounded_String ("utf-8");
+
+      function Start_Sloc (Span : Langkit_Support.Slocs.Source_Location_Range)
+        return Langkit_Support.Slocs.Source_Location
+          renames Langkit_Support.Slocs.Start_Sloc;
+
+      function End_Sloc (Span : Langkit_Support.Slocs.Source_Location_Range)
+        return Langkit_Support.Slocs.Source_Location
+          renames Langkit_Support.Slocs.End_Sloc;
+
+      function Sloc_Range (Token : Libadalang.Common.Token_Reference)
+        return Langkit_Support.Slocs.Source_Location_Range is
+          (Libadalang.Common.Sloc_Range
+             (Libadalang.Common.Data (Token)));
+
+      function Start_Sloc (Token : Libadalang.Common.Token_Reference)
+        return Langkit_Support.Slocs.Source_Location is
+          (Start_Sloc (Sloc_Range (Token)));
+
+      function End_Sloc (Token : Libadalang.Common.Token_Reference)
+        return Langkit_Support.Slocs.Source_Location is
+          (End_Sloc (Sloc_Range (Token)));
+
+      function Is_Inside
+        (Sloc : Langkit_Support.Slocs.Source_Location;
+         Span : Langkit_Support.Slocs.Source_Location_Range) return Boolean is
+          (Langkit_Support.Slocs.Compare (Span, Sloc) = Inside);
+
+      function Index (Token : Libadalang.Common.Token_Reference)
+        return Langkit_Support.Token_Data_Handlers.Token_Index is
+          (Libadalang.Common.Index
+             (Libadalang.Common.Data (Token)));
+
+      function Get_Start_Token
+        (TDH : Langkit_Support.Token_Data_Handlers.Token_Data_Handler)
+          return Langkit_Support.Token_Data_Handlers.Token_Or_Trivia_Index;
+      --  Return the very first (non-trivia) token in TDH
+
+      function Get_First_Token
+        (From : Langkit_Support.Slocs.Source_Location)
+          return Libadalang.Common.Token_Reference;
+      --  Get first (non-trivia) token after From
+
+      function Get_Last_Token
+        (To : Langkit_Support.Slocs.Source_Location)
+          return Libadalang.Common.Token_Reference;
+      --  Get last (non-trivia) token before To
+
+      type Spacing is record
+         New_Line_Before : Boolean;
+         New_Line_After  : Boolean;
+      end record;
+
+      procedure Rewind_To_Begin_Of_Line
+        (TDH  : in out Langkit_Support.Token_Data_Handlers.Token_Data_Handler;
+         From : in out Positive;
+         Pad  : in out Boolean);
+      --  Rewind From to the beggining of the line and clean up all chars. This
+      --  way we drop extra tokens that gnatformat could put on the same line.
+      --  Example:
+      --
+      --  1 +
+      --  2 +   <-- selection is just this line
+      --  3;
+      --
+      --  gnatformat returns `1 + 2 + 3;`  but we change it to `    2 +\n`, so
+      --  result is
+      --  1 +       <-- kept unformatted (because outside of range)
+      --      2 +   <-- indent to position it has in `1 + 2 + 3;`
+      --  3;        <-- kept unformatted (because outside of range)
+      --
+      --  Use extra new line before the first line according to Pad parameter.
+
+      function Has_Comment
+        (Token : Libadalang.Common.Token_Reference;
+         Sloc  : Langkit_Support.Slocs.Source_Location) return Boolean;
+      --  Check is there is a comment between Token and Sloc.
+
+      function Has_Empty_Line
+        (Token : Libadalang.Common.Token_Reference;
+         Sloc  : Langkit_Support.Slocs.Source_Location) return Boolean;
+      --  Check is there is an empty line between Token and Sloc.
+
+      ---------------------
+      -- Get_First_Token --
+      ---------------------
+
+      function Get_First_Token
+        (From : Langkit_Support.Slocs.Source_Location)
+          return Libadalang.Common.Token_Reference
+      is
+         Result : Libadalang.Common.Token_Reference :=
+           Unit.Lookup_Token (From);
+      begin
+         while Result /= Libadalang.Common.No_Token and then
+           (Libadalang.Common.Is_Trivia (Result) or Start_Sloc (Result) < From)
+         loop
+            Result := Libadalang.Common.Next (@, True);
+         end loop;
+
+         return Result;
+      end Get_First_Token;
+
+      --------------------
+      -- Get_Last_Token --
+      --------------------
+
+      function Get_Last_Token
+        (To : Langkit_Support.Slocs.Source_Location)
+          return Libadalang.Common.Token_Reference
+      is
+         Result : Libadalang.Common.Token_Reference := Unit.Lookup_Token (To);
+      begin
+         while Result /= Libadalang.Common.No_Token and then
+           (Libadalang.Common.Is_Trivia (Result) or End_Sloc (Result) > To)
+         loop
+            Result := Libadalang.Common.Previous (@, True);
+         end loop;
+
+         return Result;
+      end Get_Last_Token;
+
+      ---------------------
+      -- Get_Start_Token --
+      ---------------------
+
+      function Get_Start_Token
+        (TDH : Langkit_Support.Token_Data_Handlers.Token_Data_Handler)
+          return Langkit_Support.Token_Data_Handlers.Token_Or_Trivia_Index
+      is
+         Result : Langkit_Support.Token_Data_Handlers.Token_Or_Trivia_Index :=
+           Langkit_Support.Token_Data_Handlers.First_Token_Or_Trivia (TDH);
+      begin
+         if Result.Token
+           = Langkit_Support.Token_Data_Handlers.No_Token_Index
+         then
+            Result :=
+              Langkit_Support.Token_Data_Handlers.Next (@, TDH, True);
+         end if;
+
+         return Result;
+      end Get_Start_Token;
+
+      --------------------
+      -- Has_Empty_Line --
+      --------------------
+
+      function Has_Empty_Line
+        (Token : Libadalang.Common.Token_Reference;
+         Sloc  : Langkit_Support.Slocs.Source_Location) return Boolean
+      is
+         use type Langkit_Support.Slocs.Line_Number;
+         Forward : constant Boolean := Start_Sloc (Token) < Sloc;
+      begin
+         if Forward then
+            --  Check at least one line after Token
+            return Start_Sloc (Token).Line + 1 < Sloc.Line;
+         else
+            --  Check at least one line before Token
+            return Start_Sloc (Token).Line /= Sloc.Line;
+         end if;
+      end Has_Empty_Line;
+
+      -----------------
+      -- Has_Comment --
+      -----------------
+
+      function Has_Comment
+        (Token : Libadalang.Common.Token_Reference;
+         Sloc  : Langkit_Support.Slocs.Source_Location) return Boolean
+      is
+         use all type Libadalang.Common.Token_Kind;
+
+         function Kind (Token : Libadalang.Common.Token_Reference)
+           return Libadalang.Common.Token_Kind is
+             (Libadalang.Common.Kind (Libadalang.Common.Data (Token)));
+
+         Next    : Libadalang.Common.Token_Reference := Token;
+         Forward : constant Boolean := Start_Sloc (Token) < Sloc;
+      begin
+         if Forward then
+            while Next /= Libadalang.Common.No_Token
+              and then Start_Sloc (Next) < Sloc
+            loop
+               if Kind (Next) = Ada_Comment then
+                  return True;
+               end if;
+
+               Next := Libadalang.Common.Next (Next);
+            end loop;
+         else
+            while Next /= Libadalang.Common.No_Token
+              and then Start_Sloc (Next) > Sloc
+            loop
+               if Kind (Next) = Ada_Comment then
+                  return True;
+               end if;
+
+               Next := Libadalang.Common.Previous (Next);
+            end loop;
+         end if;
+
+         return False;
+      end Has_Comment;
+
+      -----------------------------
+      -- Rewind_To_Begin_Of_Line --
+      -----------------------------
+
+      procedure Rewind_To_Begin_Of_Line
+        (TDH  : in out Langkit_Support.Token_Data_Handlers.Token_Data_Handler;
+         From : in out Positive;
+         Pad  : in out Boolean)
+      is
+         function Is_New_Line (Item : Wide_Wide_Character) return Boolean is
+           (Item in Ada.Characters.Wide_Wide_Latin_1.CR
+              | Ada.Characters.Wide_Wide_Latin_1.LF);
+
+      begin
+         for J in reverse TDH.Source_First .. From - 1 loop
+            exit when Is_New_Line (TDH.Source_Buffer (J));
+
+            TDH.Source_Buffer (J) := ' ';
+            From := J;
+         end loop;
+
+         if Pad and From > TDH.Source_First then
+            From := @ - 1;
+            TDH.Source_Buffer (From) := Ada.Characters.Wide_Wide_Latin_1.LF;
+            Pad := False;
+         end if;
+      end Rewind_To_Begin_Of_Line;
+
+      package Origin is
+         --  Values related to text before formatting
+
+         Start_Token : constant Libadalang.Common.Token_Reference :=
+           Edit.Formatted_Node.Token_Start;
+         --  The first (non-trivia) token returned by gnatformat
+
+         From : constant Langkit_Support.Slocs.Source_Location :=
+           Start_Sloc (Span);
+         --  Beginning of formatted range
+
+         To : constant Langkit_Support.Slocs.Source_Location :=
+           End_Sloc (Span);
+         --  End of formatted range
+
+         First_Token : constant Libadalang.Common.Token_Reference :=
+           Get_First_Token (From);
+         --  The first (non-trivia) token of formatted range
+
+         Last_Token : constant Libadalang.Common.Token_Reference :=
+           Get_Last_Token (To);
+         --  The last (non-trivia) token of formatted range
+      end Origin;
+
+      package Fix is
+         --  Values related to text after formatting (fix)
+
+         TDH : Langkit_Support.Token_Data_Handlers.Token_Data_Handler;
+         --  Token Data Handler
+
+         Start_Token :
+           Langkit_Support.Token_Data_Handlers.Token_Or_Trivia_Index;
+         --  The first (non-trivia) token returned by gnatformat
+
+         First_Token :
+           Langkit_Support.Token_Data_Handlers.Token_Or_Trivia_Index;
+         --  The first (non-trivia) token of formatted range
+
+         From : Positive;
+         --  Beginning of formatted range (position in bytes?)
+
+         Last_Token :
+           Langkit_Support.Token_Data_Handlers.Token_Or_Trivia_Index;
+         --  The last (non-trivia) token of formatted range
+
+         To : Natural;
+         --  End of formatted range (position in bytes?)
+      end Fix;
+
+      Padding : Spacing :=
+        (New_Line_Before =>
+           Has_Empty_Line (Origin.First_Token, Start_Sloc (Span)),
+         New_Line_After  =>
+           Has_Empty_Line (Origin.Last_Token, End_Sloc (Span)));
+
+      Ignore : Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
+   begin
+      if Libadalang.Common.No_Token in Origin.First_Token | Origin.Last_Token
+        or else not Is_Inside (Start_Sloc (Origin.First_Token), Span)
+        or else not Is_Inside (End_Sloc (Origin.Last_Token), Span)
+        or else Has_Comment (Origin.First_Token, Start_Sloc (Span))
+        or else Has_Comment (Origin.Last_Token, End_Sloc (Span))
+        or else Span.Start_Column /= 1
+        or else Span.End_Column /= 1
+      then
+         --  We can't proceed if
+         --  * there is no tokens in the range
+         --  * there is a comment in the range before the first token or
+         --    after the last token, if comment flow is reformated we don't
+         --    fine correct line bounds. Example:
+         --
+         --  -- Comment outside of range.
+         --  -- Comment in range.         <--  selection starts at this line
+         --  -- null;  --  some code
+         --  -- Comment in range.         <--  selection ends at this line
+         --  -- Comment outside of range.
+         --
+         --  if gnatformat returns:
+         --  -- Comment outside of range. Comment in range.
+         --  -- null;  --  some code
+         --  -- Comment in range. Comment outside of range.
+         --  The current algorithm can't handle this.
+
+         Success := False;
+         return;
+      end if;
+
+      Libadalang.Lexer.Extract_Tokens
+        (Input       =>
+           (Kind     => Langkit_Support.Types.Bytes_Buffer,
+            Read_BOM => False,
+            Bytes    => Edit.Text_Edit.Text,
+            Charset  => UTF_8),
+         With_Trivia => False,
+         TDH         => Fix.TDH,
+         Diagnostics => Ignore);
+
+      Fix.Start_Token := Get_Start_Token (Fix.TDH);
+
+      Fix.First_Token.Token := Fix.Start_Token.Token +
+        Index (Origin.First_Token) - Index (Origin.Start_Token);
+
+      Fix.Last_Token.Token := Fix.Start_Token.Token +
+        Index (Origin.Last_Token) - Index (Origin.Start_Token);
+
+      Fix.From := Langkit_Support.Token_Data_Handlers.Get_Token
+        (Fix.TDH, Fix.First_Token.Token).Source_First;
+
+      Fix.To := Langkit_Support.Token_Data_Handlers.Get_Token
+        (Fix.TDH, Fix.Last_Token.Token).Source_Last;
+
+      Rewind_To_Begin_Of_Line
+        (Fix.TDH,
+         Fix.From,
+         Padding.New_Line_Before);
+
+      Result := VSS.Strings.To_Virtual_String
+        (Fix.TDH.Source_Buffer (Fix.From .. Fix.To));
+
+      Result.Append (VSS.Characters.Latin.Line_Feed);
+
+      if Padding.New_Line_Before then
+         Result.Prepend (VSS.Characters.Latin.Line_Feed);
+      end if;
+
+      if Padding.New_Line_After then
+         Result.Append (VSS.Characters.Latin.Line_Feed);
+      end if;
+
+      Success := True;
+   end Narrow_Range_Format;
 
    ---------------------
    -- Get_Indentation --
@@ -198,10 +580,8 @@ package body LSP.Ada_Handlers.Formatting is
       Span     : LSP.Structures.A_Range := LSP.Text_Documents.Empty_Range;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
-      pragma Unreferenced (Messages);
       use LSP.Structures;
       use LSP.Text_Documents;
       use VSS.Strings;
