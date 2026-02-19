@@ -89,7 +89,7 @@ line 167: column  7 - 13: parameter     [declaration, readonly]          : Patte
 line 168: column  7 - 14: parameter     [declaration, readonly]          : Canceled
 line 168: column 41 - 47: enum          [static, defaultLibrary]         : Boolean
 line 169: column  7 - 12: parameter     [declaration]                    : Result
-line 172: column  4 - 14: variable      [declaration]                    : Empty_Token
+line 172: column  4 - 14: variable      [declaration, globalVariable]    : Empty_Token
 line 175: column  9 - 27: enum          [declaration, static]            : Load_Project_Status
 line 176: column  7 - 30: enumMember    [declaration, static]            : Valid_Project_Configured
 line 177: column  7 - 26: enumMember    [declaration, static]            : Single_Project_Found
@@ -116,7 +116,7 @@ line 227: column 14 - 45: struct                                         : Exper
 line 231: column  9 - 30: struct        [declaration]                    : Scenario_Variable_List
 line 232: column  7 - 11: property      [declaration]                    : Names
 line 233: column  7 - 12: property      [declaration]                    : Values
-line 236: column  4 - 23: variable      [declaration, readonly]          : No_Scenario_Variable
+line 236: column  4 - 23: variable      [declaration, readonly, globalVariable] : No_Scenario_Variable
 line 236: column 36 - 57: struct                                         : Scenario_Variable_List
 line 240: column  9 - 19: struct        [declaration]                    : Environment
 line 241: column  7 - 14: property      [declaration]                    : Filename
@@ -139,7 +139,7 @@ line 250: column  7 - 22: property      [declaration]                    : Absen
 line 251: column  7 - 19: property      [declaration]                    : Implicit_With
 line 253: column  7 - 19: property      [declaration]                    : Pre_Conf_Mode
 line 254: column  7 - 17: property      [declaration]                    : File_Reader
-line 258: column  4 - 20: variable      [declaration, readonly]          : Empty_Environment
+line 258: column  4 - 20: variable      [declaration, readonly, globalVariable] : Empty_Environment
 line 258: column 33 - 43: struct                                         : Environment
 line 260: column  9 - 23: type          [definition]                     : Message_Handler
 line 261: column  7 - 12: typeParameter [definition, readonly]           : Server
