@@ -128,6 +128,8 @@ package LSP.Ada_Configurations is
    --  invisible symbols.
 
    function Indent_Only (Self : Configuration'Class) return Boolean;
+   --  Whether to only indent the code on onTypeFormatting
+   --  requests, without formatting the previous line.
 
    function Range_Formatting_Fallback
      (Self : Configuration'Class) return Boolean;

@@ -84,7 +84,7 @@ prefixing each setting name with `ada.`, e.g.
     "ada.scenarioVariables": {
         "LIBRARY_TYPE": "static"
     },
-    "ada.onTypeFormatting.indentOnly": true,
+    "ada.onTypeFormatting.indentOnly": false,
 }
 ```
 
@@ -120,7 +120,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [followSymlinks](#followsymlinks)
 * [documentationStyle](#documentationstyle)
 * [onTypeFormatting.indentOnly](#ontypeformattingindentonly)
-* [rangeFormattingFallback](#rangeFormattingFallback)
+* [rangeFormattingFallback](#rangeformattingfallback)
 
 ----
 
@@ -396,8 +396,9 @@ For more information about documentation styles see GNATdoc User's Manual.
 ### onTypeFormatting.indentOnly
 
 This option controls if the `textDocument/onTypeFormatting` request only indents a new line, or if
-it additionally tries to format the previous node. By default, this option is enabled, that is,
-`textDocument/onTypeFormatting` only indents new lines.
+it additionally tries to format the previous node.
+
+By default, this option is disabled, that is, `textDocument/onTypeFormatting` will indent new lines and format the previous line.
 
 In ALS config files, this setting must be specified in a nested form:
 
