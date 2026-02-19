@@ -11,8 +11,6 @@ from drivers.pylsp import (
 
 EXPECTED = [
     'Unknown Ada setting "unknownAttr".',
-    'Ada settings are case sensitive: "USEGNATFORMAT" has been ignored '
-    + 'please set it to "useGnatformat".',
     'Invalid type for the Ada setting "logThreshold" please check the value.',
 ]
 
@@ -34,7 +32,6 @@ async def main(lsp: ALSLanguageClient) -> None:
     lsp.didChangeConfig(
         {
             "unknownAttr": "Hello",  # type: ignore
-            "USEGNATFORMAT": False,  # type: ignore
             "logThreshold": False,
             "insertWithClauses": True,
             "gprConfigurationFile": None,

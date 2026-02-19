@@ -432,11 +432,6 @@ package body LSP.Ada_Configurations is
             then
                Self.Range_Formatting_Fallback := JSON (Index).Boolean_Value;
 
-            elsif Check_Variable
-              (Name, JSON (Index).Kind, "useGnatformat", Boolean_Value)
-            then
-               Self.Use_Gnatformat := JSON (Index).Boolean_Value;
-
             elsif Name = "showNotificationsOnErrors"
             then
                --  This is a VS Code only setting, treated at the VS Code

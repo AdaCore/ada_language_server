@@ -26,14 +26,14 @@
                "method": "window/showMessage",
                "params": {
                   "type": 2,
-                  "message": "$URI{.als.json}: Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+                  "message": "$URI{.als.json}: Ada settings are case sensitive: \"DOCUMENTATIONSTYLE\" has been ignored please set it to \"documentationStyle\"."
                }
            },
            {
                "method": "window/logMessage",
                "params": {
                   "type": 2,
-                  "message": "$URI{.als.json}: Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+                  "message": "$URI{.als.json}: Ada settings are case sensitive: \"DOCUMENTATIONSTYLE\" has been ignored please set it to \"documentationStyle\"."
                }
            },
            {

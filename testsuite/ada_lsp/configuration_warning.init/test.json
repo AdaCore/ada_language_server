@@ -22,7 +22,6 @@
                "initializationOptions": {
                   "ada": {
                      "unknownAttr": "Hello",
-                     "USEGNATFORMAT": false,
                      "logThreshold": false,
                      "insertWithClauses": true
                   }
@@ -30,20 +29,6 @@
             }
          },
          "wait": [
-           {
-               "method": "window/showMessage",
-               "params": {
-                  "type": 2,
-                  "message": "Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
-               }
-           },
-           {
-               "method": "window/logMessage",
-               "params": {
-                  "type": 2,
-                  "message": "Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
-               }
-           },
            {
                "method": "window/showMessage",
                "params": {

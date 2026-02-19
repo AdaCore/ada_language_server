@@ -70,12 +70,6 @@ Log lalpp output if `yes`.
 
     ALS.LAL_PP_OUTPUT_ON_FORMATTING=yes
 
-### `ALS.GNATFORMAT` (default: no)
-
-Use GNATformat as format provider.
-
-    ALS.GNATFORMAT=yes
-
 ## Troubleshooting
 
 If the traces configuration file can't get parsed after customizing it (e.g: because it contains syntax errors), the Ada Language Server will use its own default traces configuration and log files will be produced in the directory from where the Ada Language Server is launched (i.e: the workspace's root directory in VS Code).

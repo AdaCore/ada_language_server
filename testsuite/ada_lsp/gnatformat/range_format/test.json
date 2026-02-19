@@ -61,8 +61,7 @@
                      "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
                      "adaFileDiagnostics": true,
                      "useCompletionSnippets": false,
-                     "renameInComments": false,
-                     "useGnatformat": true
+                     "renameInComments": false
                   }
                }
             }

@@ -55,8 +55,7 @@
                      "projectFile": "$URI{test.gpr}",
                      "scenarioVariables": {},
                      "adaFileDiagnostics": false,
-                     "defaultCharset": "ISO-8859-1",
-                     "useGnatformat": true
+                     "defaultCharset": "ISO-8859-1"
                   }
                }
             },
