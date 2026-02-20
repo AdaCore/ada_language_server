@@ -1,6 +1,6 @@
 {
-  "unknownAttr": "Hello",
-  "USEGNATFORMAT": false,
-  "logThreshold": false,
-  "insertWithClauses": true
+   "unknownAttr": "Hello",
+   "DOCUMENTATIONSTYLE": "gnat",
+   "logThreshold": false,
+   "insertWithClauses": true
 }

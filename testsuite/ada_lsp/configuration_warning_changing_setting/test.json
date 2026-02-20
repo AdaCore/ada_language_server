@@ -159,8 +159,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -187,8 +186,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -388,8 +386,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -503,8 +500,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -603,8 +599,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -718,8 +713,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": false,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -776,8 +770,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -884,8 +877,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": true,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }
@@ -984,8 +976,7 @@
                      "namedNotationThreshold": 3,
                      "projectDiagnostics": false,
                      "projectFile": "$URI{test.gpr}",
-                     "scenarioVariables": {},
-                     "useGnatformat": true
+                     "scenarioVariables": {}
                   }
                }
             }

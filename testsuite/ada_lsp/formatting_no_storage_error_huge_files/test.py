@@ -5,7 +5,6 @@ when formatting huge files.
 
 from drivers.pylsp import ALSLanguageClient, test
 from lsprotocol.types import (
-    DidChangeConfigurationParams,
     DocumentFormattingParams,
     FormattingOptions,
     HoverParams,
@@ -18,11 +17,6 @@ from lsprotocol.types import (
 async def test_called_by(lsp: ALSLanguageClient):
     # Send a didOpen for libadalang-analysis.adb
     uri = lsp.didOpenFile("libadalang-analysis.adb")
-
-    # Test with GNATformat formatting backend
-    lsp.workspace_did_change_configuration(
-        DidChangeConfigurationParams({"ada": {"useGnatformat": True}})
-    )
 
     # Send a textDocument/formatting request, on the whole file
     await sendFormattingRequest(lsp, uri)

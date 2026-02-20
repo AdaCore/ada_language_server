@@ -87,8 +87,7 @@
                      "adaFileDiagnostics": true,
                      "followSymlinks": false,
                      "documentationStyle": "gnat",
-                     "foldComments": false,
-                     "useGnatformat": false
+                     "foldComments": false
                   }
                }
             }

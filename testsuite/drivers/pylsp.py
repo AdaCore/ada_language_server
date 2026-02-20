@@ -243,7 +243,6 @@ class ALSSettings(
     rootDir: str | None
     scenarioVariables: dict[str, str] | None
     useCompletionSnippets: bool | None
-    useGnatformat: bool | None
     rangeFormattingFallback: bool | None
 
 

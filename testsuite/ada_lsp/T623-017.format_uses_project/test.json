@@ -41,9 +41,7 @@
             "method": "workspace/didChangeConfiguration",
             "params": {
                "settings": {
-                  "ada": {
-                     "useGnatformat": false
-                  }
+                  "ada": {}
                }
             }
          },
