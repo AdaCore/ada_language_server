@@ -390,15 +390,23 @@ package body LSP.Ada_Handlers.Formatting is
          From : in out Positive;
          Pad  : in out Boolean)
       is
+         use all type VSS.Characters.General_Category;
+
          function Is_New_Line (Item : Wide_Wide_Character) return Boolean is
            (Item in Ada.Characters.Wide_Wide_Latin_1.CR
               | Ada.Characters.Wide_Wide_Latin_1.LF);
+
+         function Is_Space (Item : Wide_Wide_Character) return Boolean is
+           (VSS.Characters.Get_General_Category
+              (VSS.Characters.Virtual_Character'Base (Item)) = Space_Separator
+            or Item = Ada.Characters.Wide_Wide_Latin_1.HT);
 
       begin
          for J in reverse TDH.Source_First .. From - 1 loop
             exit when Is_New_Line (TDH.Source_Buffer (J));
 
-            TDH.Source_Buffer (J) := ' ';
+            TDH.Source_Buffer (J) := (if Is_Space (@) then @ else ' ');
+            --  replace any non-space character by space
             From := J;
          end loop;
 
