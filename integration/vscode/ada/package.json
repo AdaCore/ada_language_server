@@ -1198,6 +1198,32 @@
                 "icon": "$(refresh)"
             },
             {
+                "command": "ada.openProjectFile",
+                "title": "Open Project File",
+                "category": "Ada",
+                "icon": "$(folder-opened)"
+            },
+            {
+                "command": "ada.editProjectFile",
+                "title": "Edit Project File",
+                "category": "Ada",
+                "icon": "$(pencil)"
+            },
+            {
+                "command": "ada.setProjectViewFilter",
+                "title": "Filter Project View",
+                "category": "Ada",
+                "icon": "$(filter)",
+                "when": "view == projectView && ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.unsetProjectViewFilter",
+                "title": "Filter Project View",
+                "category": "Ada",
+                "icon": "$(filter-filled)",
+                "when": "view == projectView && ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "als-open-project-file",
                 "title": "Edit current project file",
                 "category": "Ada"
@@ -1435,6 +1461,44 @@
                     "command": "ada.createNewGPRProjectFile",
                     "group": "ada"
                 }
+            ],
+            "view/title": [
+                {
+                    "command": "als-reload-project",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT",
+                    "icon": "$(refresh)"
+                },
+                {
+                    "command": "ada.openProjectFile",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT",
+                    "icon": "$(folder-opened)"
+                },
+                {
+                    "command": "ada.setProjectViewFilter",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT && !projectViewFilterActive",
+                    "icon": "$(filter)"
+                },
+                {
+                    "command": "ada.unsetProjectViewFilter",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT && projectViewFilterActive",
+                    "icon": "$(filter-filled)"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "ada.editProjectFile",
+                    "when": "view == projectView",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ada.editProjectFile",
+                    "when": "view == projectView",
+                    "group": "inline"
+                }
             ]
         },
         "configurationDefaults": {
@@ -1537,6 +1601,15 @@
                 ]
             }
         ],
+        "views": {
+            "explorer": [
+                {
+                    "id": "projectView",
+                    "name": "Project View",
+                    "icon": "$(project)"
+                }
+            ]
+        },
         "debuggers": [
             {
                 "type": "ada",
