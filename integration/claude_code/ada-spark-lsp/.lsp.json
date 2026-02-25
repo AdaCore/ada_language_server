@@ -1,0 +1,18 @@
+{
+  "ada": {
+    "command": "ada_language_server",
+    "args": [],
+    "extensionToLanguage": {
+        ".ads": "ada",
+        ".adb": "ada",
+        ".adc": "ada"
+    }
+  },
+  "gpr": {
+    "command": "ada_language_server",
+    "args": ["--language-gpr"],
+    "extensionToLanguage": {
+        ".gpr": "gpr"
+    }
+  }
+}
