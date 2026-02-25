@@ -34,7 +34,7 @@ function sparkTaskWrapper(taskPlainName: string, optionPicker = true) {
     return async () => {
         try {
             if (optionPicker) {
-                await commands.executeCommand(CMD_SPARK_ASK_OPTIONS);
+                await commands.executeCommand(CMD_SPARK_ASK_OPTIONS, 'taskWrapper');
             }
             await commands.executeCommand(
                 'workbench.action.tasks.runTask',
@@ -43,11 +43,11 @@ function sparkTaskWrapper(taskPlainName: string, optionPicker = true) {
         } catch (error) {
             if (error instanceof vscode.CancellationError) {
                 /**
-                 * We use a non-model error message to match the way
+                 * We use a non-modal error message to match the way
                  * cancellation is reported natively by VS Code when it occurs
                  * in CodeLens handlers.
                  */
-                vscode.window.showErrorMessage('Canceled');
+                void vscode.window.showErrorMessage('Canceled');
                 return;
             }
             throw error;
