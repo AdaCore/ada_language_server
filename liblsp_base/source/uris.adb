@@ -33,6 +33,13 @@ package body URIs is
       Segment : constant GNAT.Regpat.Pattern_Matcher :=
         GNAT.Regpat.Compile (Slash);
 
+      function Safe_URI_To_File
+        (URI : URI_String; Normalize : Boolean) return String;
+      --  Original URI-to-file conversion funcion. It accepts URI with no
+      --  unescaped characters, like spaces, non-ASCII characters, etc (see
+      --  URI_String predicate) and returns UTF-8 file name after decrypting
+      --  encoded characters.
+
       ---------------
       -- From_File --
       ---------------
@@ -95,11 +102,13 @@ package body URIs is
          return URI.To_String;
       end From_File;
 
-      -------------
-      -- To_File --
-      -------------
+      ----------------------
+      -- Safe_URI_To_File --
+      ----------------------
 
-      function To_File (URI : URI_String; Normalize : Boolean) return String is
+      function Safe_URI_To_File
+        (URI : URI_String; Normalize : Boolean) return String
+      is
 
          procedure Append_Path (Path : String);
          --  Append Path to Result
@@ -153,6 +162,33 @@ package body URIs is
               (Ada.Strings.Unbounded.To_String (Result));
          else
             return Ada.Strings.Unbounded.To_String (Result);
+         end if;
+      end Safe_URI_To_File;
+
+      -------------
+      -- To_File --
+      -------------
+
+      function To_File (URI : String; Normalize : Boolean) return String is
+         Prefix : constant String := "file://";
+         Suffix : constant String :=
+           (if URI'Length > Prefix'Length and then
+            URI (URI'First .. URI'First + Prefix'Length - 1) = Prefix
+            then URI (URI'First + Prefix'Length .. URI'Last)
+            else "");
+      begin
+         --  It looks like Claude Code just appends "file://" prefix to file
+         --  name instead of doing a real path-to-uri conversion.
+         --  Check this case:
+         if Suffix = "" or else
+           (not GNAT.OS_Lib.Is_Readable_File (Suffix) and then
+              not GNAT.OS_Lib.Is_Directory (Suffix))
+         then
+            return Safe_URI_To_File (URI, Normalize);
+         elsif Normalize then
+            return GNAT.OS_Lib.Normalize_Pathname (Suffix);
+         else
+            return Suffix;
          end if;
       end To_File;
 

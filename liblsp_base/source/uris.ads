@@ -107,7 +107,7 @@ package URIs is
       --  On Linux:
       --  "/tmp/ar" converted to "file:///tmp/ar"
 
-      function To_File (URI : URI_String; Normalize : Boolean) return String;
+      function To_File (URI : String; Normalize : Boolean) return String;
       --  Convert from file:// URI to file full path. If Normalize = True
       --  then convert result is independ on letter case and symlinks.
    end Conversions;

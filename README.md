@@ -54,6 +54,7 @@ extension at
     - [Integration with emacs lsp-mode](#integration-with-emacs-lsp-mode)
     - [Integration with QtCreator](#integration-with-qtcreator)
     - [Integration with IntelliJ](#integration-with-intellij)
+    - [Integration with Claude Code](#integration-with-claude-code)
   - [Refactoring Tools](#refactoring-tools)
   - [Authors \& Contributors](#authors--contributors)
   - [Contribute](#contribute)
@@ -278,6 +279,75 @@ The [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) IntelliJ plugin
 provides a template for Ada since version `0.14.0`, allowing users tu use the Ada Language Server from IntelliJ.
 
 Follow the [dedicated LSP4J documentation](https://github.com/redhat-developer/lsp4ij/blob/main/docs/user-defined-ls/ada_language_server.md) for more information.
+
+### Integration with Claude Code
+
+[Claude Code](https://claude.ai/claude-code) supports LSP servers via plugins, which allows it to use
+the Ada Language Server for code intelligence when working on Ada/SPARK projects.
+
+1. Create the plugin directory
+
+Create a directory named `ada-spark-lsp` with the following structure:
+
+```
+ada-spark-lsp/
+├── .claude-plugin/
+│   └── plugin.json
+└── .lsp.json
+```
+
+**`ada-spark-lsp/.claude-plugin/plugin.json`:**
+
+```json
+{
+  "name": "ada-spark-lsp",
+  "description": "LSP for Ada/SPARK",
+  "version": "0.0.1",
+  "author": {"name": "AdaCore"}
+}
+```
+
+**`ada-spark-lsp/.lsp.json`:**
+
+```json
+{
+  "ada": {
+    "command": "ada_language_server",
+    "args": [],
+    "extensionToLanguage": {
+      ".ads": "ada",
+      ".adb": "ada",
+      ".adc": "ada"
+    }
+  },
+  "gpr": {
+    "command": "ada_language_server",
+    "args": ["--language-gpr"],
+    "extensionToLanguage": {
+      ".gpr": "gpr"
+    }
+  }
+}
+```
+
+You can reuse [this folder](integration/claude_code/ada-spark-lsp/).
+
+Make sure `ada_language_server` is available in your `$PATH`.
+
+2. Launch Claude Code with LSP tools enabled
+
+```bash
+ENABLE_LSP_TOOL=1 claude --plugin-dir path-to/ada-spark-lsp/
+```
+
+3. Verify Ada LSP tools are available
+
+Once inside Claude Code, ask:
+
+> Do you have LSP tools for Ada?
+
+Claude will confirm it has access to LSP tools such as go-to-definition,
+find references, hover, and diagnostics for `.ads`, `.adb`, `.adc`, and `.gpr` files.
 
 ## Refactoring Tools
 
