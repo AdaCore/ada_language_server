@@ -1323,25 +1323,25 @@
                     "command": "ada.visualizeCalls",
                     "group": "0_navigation@4",
                     "title": "Show Call Hierarchy Graph",
-                    "when": "activeEditor && editorLangId && editorHasCallHierarchyProvider && config.ada.enableExperimentalFeatures"
+                    "when": "activeEditor && editorLangId && editorHasCallHierarchyProvider"
                 },
                 {
                     "command": "ada.visualizeTypes",
                     "group": "0_navigation@5",
                     "title": "Show Type Hierarchy Graph",
-                    "when": "activeEditor && editorLangId && editorHasTypeHierarchyProvider && config.ada.enableExperimentalFeatures"
+                    "when": "activeEditor && editorLangId && editorHasTypeHierarchyProvider"
                 },
                 {
                     "command": "ada.visualizeFiles",
                     "group": "0_navigation@6",
                     "title": "Show File Dependencies Graph",
-                    "when": "activeEditor && editorLangId == ada && config.ada.enableExperimentalFeatures"
+                    "when": "activeEditor && editorLangId == ada"
                 },
                 {
                     "command": "ada.visualizeGPR",
                     "group": "0_navigation@7",
                     "title": "Show GPR Dependencies Graph",
-                    "when": "activeEditor && editorLangId == gpr && config.ada.enableExperimentalFeatures"
+                    "when": "activeEditor && editorLangId == gpr"
                 }
             ],
             "editor/title/run": [
