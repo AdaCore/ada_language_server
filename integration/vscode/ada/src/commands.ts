@@ -13,9 +13,9 @@ import {
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
     CMD_GPR_PROJECT_ARGS,
+    CMD_OPEN_USERS_GUIDE,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
-    CMD_OPEN_USERS_GUIDE,
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
@@ -189,18 +189,40 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     context.subscriptions.push(
-        commands.registerCommand(CMD_SPARK_ASK_OPTIONS, async () => {
+        commands.registerCommand(CMD_SPARK_ASK_OPTIONS, async (context = 'command') => {
             return askSPARKOptions().catch((err) => {
                 if (err instanceof vscode.CancellationError) {
-                    /**
-                     * We use a non-model error message to match the way
-                     * cancellation is reported natively by VS Code when it
-                     * occurs in CodeLens handlers.
-                     */
-                    void vscode.window.showErrorMessage('Canceled');
-                } else {
-                    throw err;
+                    if (context === 'command') {
+                        /**
+                         * In the context of codelens handlers, exceptions are
+                         * reported natively by VS Code as non-modal error
+                         * messages.
+                         *
+                         * Conversely in the context of commands called from
+                         * the command palette, exceptions are reported
+                         * natively as modal error messages.
+                         *
+                         * To work around this difference, we introduce the
+                         * `context` parameter that allows us to determine if
+                         * the handler was called from the command palette or
+                         * from a different context (e.g. codelens or
+                         * taskWrapper).
+                         *
+                         * Thus, when called from the command palette, we use a
+                         * non-modal error message and don't forward the
+                         * exception to avoid the native modal message. We
+                         * return to end the handler gracefully.
+                         */
+                        void vscode.window.showErrorMessage('Canceled');
+                        return;
+                    }
                 }
+
+                /**
+                 * In all other cases we forward the exception to interrupt the
+                 * flow of the calling logic.
+                 */
+                throw err;
             });
         }),
     );
@@ -1197,7 +1219,7 @@ async function sparkProveSubprogram(
      * Ask for GNATprove options before resolving the task to take into account
      * the latest chosen options.
      */
-    await commands.executeCommand(CMD_SPARK_ASK_OPTIONS);
+    await commands.executeCommand(CMD_SPARK_ASK_OPTIONS, 'codelens');
 
     /**
      * Resolve the task.

@@ -1,0 +1,6 @@
+{
+ "name": "ada-spark-lsp",
+ "description": "LSP for Ada/SPARK",
+ "version": "0.0.1",
+ "author": {"name": "AdaCore"}
+}
