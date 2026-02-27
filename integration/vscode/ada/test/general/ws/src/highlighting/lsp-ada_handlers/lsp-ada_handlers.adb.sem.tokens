@@ -52,10 +52,10 @@ line  42: column 28 - 30: namespace                                      : LSP
 line  53: column 14 - 16: namespace                                      : LSP
 line  53: column 18 - 29: namespace     [definition]                     : Ada_Handlers
 line  55: column  9 - 24: type          [declaration, static]            : Cancel_Countdown
-line  58: column  4 - 33: variable      [declaration, readonly]          : Allow_Incremental_Text_Changes
-line  64: column  4 - 12: variable      [declaration, readonly]          : Is_Parent
-line  67: column  4 - 11: variable      [declaration, readonly]          : Is_Child
-line  72: column  4 - 12: variable      [declaration, readonly]          : Line_Feed
+line  58: column  4 - 33: variable      [declaration, readonly, globalVariable] : Allow_Incremental_Text_Changes
+line  64: column  4 - 12: variable      [declaration, readonly, globalVariable] : Is_Parent
+line  67: column  4 - 11: variable      [declaration, readonly, globalVariable] : Is_Child
+line  72: column  4 - 12: variable      [declaration, readonly, globalVariable] : Line_Feed
 line  72: column 61 - 62: variable      [readonly, static, defaultLibrary, globalVariable] : LF
 line  74: column 13 - 15: function      [declaration]                    : "+"
 line  74: column 18 - 21: parameter     [declaration, readonly]          : Text
@@ -160,7 +160,7 @@ line 326: column  8 - 27: function                                       : Relea
 line 332: column 14 - 20: function      [definition]                     : Cleanup
 line 332: column 23 - 26: parameter     [definition, readonly]           : Self
 line 332: column 37 - 51: type                                           : Message_Handler
-line 335: column 11 - 18: variable      [declaration]                    : Document
+line 335: column 11 - 18: variable      [declaration, localVariable]     : Document
 line 345: column  8 - 14: function                                       : Cleanup
 line 351: column 25 - 44: function      [definition]                     : On_Exit_Notification
 line 351: column 47 - 50: parameter     [definition, readonly]           : Self
@@ -170,14 +170,14 @@ line 360: column 14 - 41: function      [declaration]                    : Reloa
 line 360: column 44 - 47: parameter     [declaration, readonly]          : Self
 line 361: column  7 - 10: variable      [declaration]                    : Attr
 line 363: column  7 - 11: variable      [declaration]                    : Index
-line 366: column 11 - 13: variable      [declaration]                    : Dir
-line 377: column 11 - 11: variable      [declaration, readonly]          : J
+line 366: column 11 - 13: variable      [declaration, localVariable]     : Dir
+line 377: column 11 - 11: variable      [declaration, readonly, localVariable] : J
 line 380: column  8 - 35: function                                       : Reload_Implicit_Project_Dirs
 line 386: column 14 - 34: function      [declaration]                    : Load_Implicit_Project
 line 386: column 37 - 40: parameter     [declaration, readonly]          : Self
 line 387: column  7 -  7: variable      [declaration, readonly]          : C
 line 388: column  7 - 10: variable      [declaration]                    : Attr
-line 429: column 11 - 14: variable      [declaration]                    : File
+line 429: column 11 - 14: variable      [declaration, localVariable]     : File
 line 434: column  8 - 28: function                                       : Load_Implicit_Project
 line 440: column 14 - 34: function      [declaration]                    : Ensure_Project_Loaded
 line 441: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -187,7 +187,7 @@ line 444: column  7 - 16: variable      [declaration]                    : GPRs_
 line 444: column 20 - 26: type          [static, defaultLibrary]         : Natural
 line 445: column  7 - 11: variable      [declaration]                    : Files
 line 446: column  7 -  9: variable      [declaration]                    : GPR
-line 469: column 14 - 14: variable      [declaration]                    : X
+line 469: column 14 - 14: variable      [declaration, localVariable]     : X
 line 498: column  8 - 28: function                                       : Ensure_Project_Loaded
 line 504: column 24 - 44: function      [declaration]                    : On_Initialize_Request
 line 505: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -204,7 +204,7 @@ line 641: column 24 - 38: type                                           : Messa
 line 642: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 645: column 28 - 31: parameter     [readonly]                       : Self
 line 645: column 34 - 40: parameter     [readonly]                       : Request
-line 647: column 14 - 21: variable      [declaration]                    : Response
+line 647: column 14 - 21: variable      [declaration, localVariable]     : Response
 line 649: column  8 - 26: function                                       : On_Shutdown_Request
 line 655: column 24 - 44: function      [declaration]                    : On_CodeAction_Request
 line 656: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -233,7 +233,7 @@ line 699: column 16 - 43: function      [declaration]                    : Has_A
 line 700: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 700: column 62 - 68: enum          [static, defaultLibrary]         : Boolean
 line 702: column 10 - 14: variable      [declaration]                    : Found
-line 704: column 14 - 14: variable      [declaration]                    : J
+line 704: column 14 - 14: variable      [declaration, localVariable]     : J
 line 718: column 13 - 16: variable      [declaration, readonly]          : Expr
 line 719: column 13 - 16: variable      [declaration]                    : Name
 line 720: column 13 - 16: variable      [declaration]                    : Decl
@@ -270,7 +270,7 @@ line 851: column 11 - 28: function                                       : Analy
 line 853: column  7 - 14: variable      [declaration, readonly]          : Document
 line 856: column  7 - 14: variable      [declaration]                    : Response
 line 859: column  7 - 11: variable      [declaration]                    : Found
-line 866: column 11 - 11: variable      [declaration]                    : C
+line 866: column 11 - 11: variable      [declaration, localVariable]     : C
 line 873: column  8 - 28: function                                       : On_CodeAction_Request
 line 879: column 24 - 49: function      [declaration]                    : On_Execute_Command_Request
 line 880: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -288,7 +288,7 @@ line 925: column  7 - 14: variable      [declaration]                    : Posit
 line 927: column  7 - 14: variable      [declaration]                    : Response
 line 929: column  7 - 15: variable      [declaration]                    : Imprecise
 line 931: column  7 - 14: variable      [declaration, readonly]          : Document
-line 935: column 11 - 11: variable      [declaration]                    : C
+line 935: column 11 - 11: variable      [declaration, localVariable]     : C
 line 953: column  8 - 29: function                                       : On_Declaration_Request
 line 959: column 24 - 48: function      [declaration]                    : On_Implementation_Request
 line 960: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -315,10 +315,10 @@ line 1041: column 14 - 27: function                                       : List
 line 1043: column 10 - 19: variable      [declaration]                    : Definition
 line 1044: column 10 - 23: variable      [declaration]                    : This_Imprecise
 line 1045: column 10 - 13: variable      [declaration]                    : Decl
-line 1066: column 14 - 17: variable      [declaration]                    : Subp
-line 1072: column 14 - 17: variable      [declaration]                    : Subp
+line 1066: column 14 - 17: variable      [declaration, localVariable]     : Subp
+line 1072: column 14 - 17: variable      [declaration, localVariable]     : Subp
 line 1076: column 11 - 28: function                                       : Resolve_In_Context
-line 1079: column 11 - 11: variable      [declaration]                    : C
+line 1079: column 11 - 11: variable      [declaration, localVariable]     : C
 line 1093: column  8 - 32: function                                       : On_Implementation_Request
 line 1099: column 24 - 44: function      [declaration]                    : On_Definition_Request
 line 1100: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -340,10 +340,10 @@ line 1179: column 16 - 29: variable      [declaration]                    : Impr
 line 1180: column 16 - 29: variable      [declaration]                    : Imprecise_Base
 line 1181: column 16 - 31: variable      [declaration, readonly]          : Overriding_Subps
 line 1185: column 16 - 25: variable      [declaration, readonly]          : Base_Subps
-line 1190: column 20 - 23: variable      [declaration]                    : Subp
-line 1194: column 20 - 23: variable      [declaration]                    : Subp
+line 1190: column 20 - 23: variable      [declaration, localVariable]     : Subp
+line 1194: column 20 - 23: variable      [declaration, localVariable]     : Subp
 line 1201: column 11 - 28: function                                       : Resolve_In_Context
-line 1204: column 11 - 11: variable      [declaration]                    : C
+line 1204: column 11 - 11: variable      [declaration, localVariable]     : C
 line 1218: column  8 - 28: function                                       : On_Definition_Request
 line 1224: column 24 - 49: function      [declaration]                    : On_Type_Definition_Request
 line 1225: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -362,7 +362,7 @@ line 1251: column 10 - 18: variable      [declaration]                    : Type
 line 1261: column 16 - 23: variable      [declaration, readonly]          : Def_Name
 line 1263: column 16 - 24: variable      [declaration, readonly]          : Type_Expr
 line 1287: column 11 - 28: function                                       : Resolve_In_Context
-line 1290: column 11 - 11: variable      [declaration]                    : C
+line 1290: column 11 - 11: variable      [declaration, localVariable]     : C
 line 1297: column  8 - 33: function                                       : On_Type_Definition_Request
 line 1303: column 25 - 61: function      [declaration]                    : On_DidChangeTextDocument_Notification
 line 1304: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -379,7 +379,7 @@ line 1341: column 11 - 25: function                                       : Skip
 line 1343: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1345: column  7 - 10: variable      [declaration]                    : Diag
 line 1346: column  7 - 29: variable      [declaration]                    : Diags_Already_Published
-line 1373: column 11 - 17: variable      [declaration]                    : Context
+line 1373: column 11 - 17: variable      [declaration, localVariable]     : Context
 line 1386: column  8 - 44: function                                       : On_DidChangeTextDocument_Notification
 line 1392: column 25 - 60: function      [declaration]                    : On_DidCloseTextDocument_Notification
 line 1393: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -399,7 +399,7 @@ line 1439: column 41 - 60: function      [defaultLibrary]                 : Cont
 line 1451: column 13 - 15: variable      [declaration, readonly]          : Dir
 line 1463: column 10 - 13: variable      [declaration]                    : Diag
 line 1464: column 10 - 32: variable      [declaration]                    : Diags_Already_Published
-line 1466: column 14 - 20: variable      [declaration]                    : Context
+line 1466: column 14 - 20: variable      [declaration, localVariable]     : Context
 line 1484: column  8 - 42: function                                       : On_DidOpenTextDocument_Notification
 line 1490: column 24 - 47: function      [declaration]                    : On_Folding_Range_Request
 line 1491: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -409,8 +409,8 @@ line 1495: column  7 - 11: variable      [declaration]                    : Valu
 line 1498: column  7 - 13: variable      [declaration, readonly]          : Context
 line 1500: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1502: column  7 - 12: variable      [declaration]                    : Result
-line 1509: column 17 - 24: variable      [declaration]                    : Response
-line 1516: column 17 - 24: variable      [declaration]                    : Response
+line 1509: column 17 - 24: variable      [declaration, localVariable]     : Response
+line 1516: column 17 - 24: variable      [declaration, localVariable]     : Response
 line 1526: column  8 - 31: function                                       : On_Folding_Range_Request
 line 1532: column 24 - 49: function      [declaration]                    : On_Selection_Range_Request
 line 1533: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -470,9 +470,9 @@ line 1775: column 10 - 19: variable      [declaration]                    : Defi
 line 1784: column 13 - 17: variable      [declaration]                    : Count
 line 1785: column 13 - 26: variable      [declaration]                    : This_Imprecise
 line 1786: column 13 - 22: variable      [declaration, readonly]          : References
-line 1791: column 17 - 20: variable      [declaration]                    : Node
+line 1791: column 17 - 20: variable      [declaration, localVariable]     : Node
 line 1811: column 11 - 25: function                                       : Process_Context
-line 1814: column 11 - 11: variable      [declaration]                    : C
+line 1814: column 11 - 11: variable      [declaration, localVariable]     : C
 line 1828: column  8 - 28: function                                       : On_References_Request
 line 1834: column 24 - 47: function      [declaration]                    : On_ALS_Called_By_Request
 line 1835: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -500,21 +500,21 @@ line 1908: column 13 - 13: variable      [declaration]                    : C
 line 1916: column 19 - 22: variable      [declaration, readonly]          : Node
 line 1917: column 19 - 22: variable      [declaration, readonly]          : Refs
 line 1919: column 19 - 31: variable      [declaration]                    : Subp_And_Refs
-line 1925: column 23 - 25: variable      [declaration]                    : Ref
+line 1925: column 23 - 25: variable      [declaration, localVariable]     : Ref
 line 1938: column 11 - 25: function                                       : Process_Context
 line 1944: column 17 - 30: function      [declaration]                    : Add_Subprogram
 line 1945: column 10 - 13: parameter     [declaration, readonly]          : Subp
-line 1949: column 14 - 16: variable      [declaration]                    : Cur
+line 1949: column 14 - 16: variable      [declaration, localVariable]     : Cur
 line 1956: column 11 - 24: function                                       : Add_Subprogram
-line 1960: column 11 - 11: variable      [declaration]                    : C
-line 1972: column 11 - 13: variable      [declaration]                    : Loc
+line 1960: column 11 - 11: variable      [declaration, localVariable]     : C
+line 1972: column 11 - 13: variable      [declaration, localVariable]     : Loc
 line 1976: column  8 - 31: function                                       : On_ALS_Called_By_Request
 line 1982: column 24 - 43: function      [declaration]                    : On_ALS_Debug_Request
 line 1983: column  7 - 10: parameter     [declaration, readonly]          : Self
 line 1983: column 24 - 38: type                                           : Message_Handler
 line 1984: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 1990: column 16 - 20: variable      [declaration, readonly]          : Limit
-line 1998: column 14 - 21: variable      [declaration]                    : Response
+line 1998: column 14 - 21: variable      [declaration, localVariable]     : Response
 line 2000: column  8 - 27: function                                       : On_ALS_Debug_Request
 line 2006: column 24 - 48: function      [declaration]                    : On_Signature_Help_Request
 line 2007: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -589,7 +589,7 @@ line 2183: column 13 - 20: variable      [declaration, readonly]          : Box_
 line 2185: column 22 - 32: function      [declaration]                    : Process_Box
 line 2193: column 22 - 32: function      [declaration]                    : Process_Box
 line 2208: column 25 - 29: variable      [declaration, readonly]          : Value
-line 2210: column 29 - 31: variable      [declaration, readonly]          : Idx
+line 2210: column 29 - 31: variable      [declaration, readonly, localVariable] : Idx
 line 2219: column 31 - 34: variable      [declaration, readonly]          : Sloc
 line 2222: column 31 - 34: variable      [declaration, readonly]          : Line
 line 2224: column 31 - 35: variable      [declaration, readonly]          : Start
@@ -600,11 +600,11 @@ line 2268: column 17 - 27: function                                       : Proc
 line 2308: column 14 - 29: function                                       : Process_Comments
 line 2330: column 13 - 17: variable      [declaration]                    : Count
 line 2331: column 13 - 22: variable      [declaration, readonly]          : References
-line 2343: column 17 - 20: variable      [declaration]                    : Node
+line 2343: column 17 - 20: variable      [declaration, localVariable]     : Node
 line 2345: column 19 - 26: variable      [declaration, readonly]          : Location
 line 2347: column 19 - 22: variable      [declaration, readonly]          : Item
 line 2378: column 11 - 25: function                                       : Process_Context
-line 2381: column 11 - 11: variable      [declaration]                    : C
+line 2381: column 11 - 11: variable      [declaration, localVariable]     : C
 line 2387: column  8 - 24: function                                       : On_Rename_Request
 line 2393: column 25 - 62: function      [declaration]                    : On_DidChangeConfiguration_Notification
 line 2394: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -655,13 +655,13 @@ line 2520: column 17 - 48: function      [declaration]                    : Crea
 line 2520: column 51 - 51: parameter     [declaration, readonly]          : P
 line 2521: column 10 - 10: variable      [declaration, readonly]          : C
 line 2528: column 11 - 42: function                                       : Create_Context_For_Non_Aggregate
-line 2553: column 14 - 17: variable      [declaration]                    : File
+line 2553: column 14 - 17: variable      [declaration, localVariable]     : File
 line 2558: column 16 - 25: variable      [declaration]                    : Aggregated
-line 2561: column 20 - 20: variable      [declaration]                    : X
+line 2561: column 20 - 20: variable      [declaration, localVariable]     : X
 line 2570: column 15 - 15: variable      [declaration, readonly]          : E
-line 2589: column 14 - 17: variable      [declaration]                    : Line
-line 2597: column 11 - 18: variable      [declaration]                    : Document
-line 2598: column 14 - 20: variable      [declaration]                    : Context
+line 2589: column 14 - 17: variable      [declaration, localVariable]     : Line
+line 2597: column 11 - 18: variable      [declaration, localVariable]     : Document
+line 2598: column 14 - 20: variable      [declaration, localVariable]     : Context
 line 2605: column  8 - 19: function                                       : Load_Project
 line 2611: column 13 - 37: function      [declaration]                    : Get_Unique_Progress_Token
 line 2612: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -698,8 +698,8 @@ line 2696: column  7 - 18: variable      [declaration]                    : Last
 line 2696: column 25 - 31: type          [static, defaultLibrary]         : Natural
 line 2697: column  7 - 21: variable      [declaration]                    : Current_Percent
 line 2697: column 25 - 31: type          [static, defaultLibrary]         : Natural
-line 2707: column 11 - 17: variable      [declaration]                    : Context
-line 2708: column 14 - 14: variable      [declaration]                    : F
+line 2707: column 11 - 17: variable      [declaration, localVariable]     : Context
+line 2708: column 14 - 14: variable      [declaration, localVariable]     : F
 line 2732: column  8 - 18: function                                       : Index_Files
 line 2738: column 24 - 59: function      [declaration]                    : On_Workspace_Execute_Command_Request
 line 2739: column  7 - 10: parameter     [declaration, readonly]          : Self

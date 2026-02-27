@@ -1,5 +1,5 @@
 line   3: column 14 - 26: namespace     [declaration]                    : PkgBodyNoSpec
-line   4: column  4 - 10: variable      [declaration]                    : Global1
+line   4: column  4 - 10: variable      [declaration, globalVariable]    : Global1
 line   6: column 14 - 18: function      [declaration]                    : Proc1
 line   6: column 21 - 24: parameter     [declaration, readonly]          : Arg1
 line   6: column 27 - 30: parameter     [declaration, readonly]          : Arg2
