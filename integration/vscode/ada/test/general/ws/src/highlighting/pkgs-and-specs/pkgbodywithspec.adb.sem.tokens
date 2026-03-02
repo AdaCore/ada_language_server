@@ -1,5 +1,5 @@
 line   1: column 14 - 28: namespace     [definition]                     : PkgBodyWithSpec
-line   2: column  4 - 10: variable      [declaration]                    : Global1
+line   2: column  4 - 10: variable      [declaration, globalVariable]    : Global1
 line   2: column 14 - 20: type          [static, defaultLibrary]         : Integer
 line   4: column 14 - 18: function      [declaration]                    : Proc1
 line   4: column 21 - 24: parameter     [declaration, readonly]          : Arg1

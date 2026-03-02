@@ -500,8 +500,12 @@ package body LSP.Ada_Highlighters is
       function Is_Predefined (Decl : Libadalang.Analysis.Basic_Decl)
         return Boolean;
 
-      procedure Get_Variable_Modifiers (Decl : Libadalang.Analysis.Basic_Decl);
-      --  Add variable's modifiers if Decl is a variable
+      procedure Get_Variable_Modifiers
+        (Decl        : Libadalang.Analysis.Basic_Decl;
+         Only_Global : Boolean);
+      --  Add variable's modifiers if Decl is a variable.
+      --  Add only global modifier if Only_Global = True. It is needed for
+      --  variables declarations
 
       ------------------
       -- Has_Abstract --
@@ -752,7 +756,8 @@ package body LSP.Ada_Highlighters is
       ----------------------------
 
       procedure Get_Variable_Modifiers
-        (Decl : Libadalang.Analysis.Basic_Decl)
+        (Decl        : Libadalang.Analysis.Basic_Decl;
+         Only_Global : Boolean)
       is
          --------------------------
          -- Investigate_Variable --
@@ -772,9 +777,10 @@ package body LSP.Ada_Highlighters is
                if Parent.Kind in Ada_Subp_Body_Range
                  or else Parent.Kind in Ada_Entry_Body
                then
-                  if Compare
-                    (Node_Enclosing_Declarative_Part.Sloc_Range,
-                     Decl.Sloc_Range.Start_Sloc) = Inside
+                  if not Only_Global
+                    and then Compare
+                      (Node_Enclosing_Declarative_Part.Sloc_Range,
+                       Decl.Sloc_Range.Start_Sloc) = Inside
                   then
                      Highlight_Token (Node.Token_Start, localVariable);
                   end if;
@@ -858,12 +864,11 @@ package body LSP.Ada_Highlighters is
                Highlight_Token (Node.Token_Start, Kind);
             end if;
 
-            if Kind = variable
-              --  not a declaration itself
-              and then Laltools.Common.
-                Find_First_Common_Parent (Decl, Node, True) /= Decl
-            then
-               Get_Variable_Modifiers (Decl);
+            if Kind = variable then
+               Get_Variable_Modifiers
+                 (Decl        => Decl,
+                  Only_Global => Laltools.Common.Find_First_Common_Parent
+                    (Decl, Node, True) = Decl);
             end if;
 
             begin

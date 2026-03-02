@@ -1,0 +1,183 @@
+[
+   {
+      "comment": [
+         "Tests that we add globalVariable modificator to global variable declaration"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 59345,
+               "rootUri": "$URI{.}",
+               "initializationOptions": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}"
+                  }
+               },
+               "capabilities": {
+                  "textDocument": {
+                     "semanticTokens": {
+                        "requests": {
+                           "range": true,
+                           "full": {}
+                        },
+                        "tokenTypes": [
+                           "namespace",
+                           "type",
+                           "class",
+                           "enum",
+                           "interface",
+                           "struct",
+                           "typeParameter",
+                           "parameter",
+                           "variable",
+                           "property",
+                           "enumMember",
+                           "function",
+                           "keyword",
+                           "modifier",
+                           "comment",
+                           "string",
+                           "number",
+                           "operator"
+                        ],
+                        "tokenModifiers": [
+                           "declaration",
+                           "definition",
+                           "readonly",
+                           "static",
+                           "deprecated",
+                           "abstract",
+                           "modification",
+                           "documentation",
+                           "defaultLibrary",
+                           "globalVariable",
+                           "localVariable"
+                        ],
+                        "formats": [
+                           "relative"
+                        ]
+                     }
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkgbodywithspec.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Text_IO;\n\npackage body PkgBodyWithSpec is\n\n   Msg : constant String := \"Hello\";\n\n   procedure Hello is\n   begin\n      Ada.Text_IO.Put_Line (Msg);\n   end Hello;\n\nend PkgBodyWithSpec;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "textDocument/semanticTokens/range",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkgbodywithspec.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 12,
+                     "character": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 16,
+               "result": {
+                  "data": [
+                              0,
+                              5,
+                              3,
+                              0,
+                              256,
+                              0,
+                              4,
+                              7,
+                              0,
+                              256,
+                              2,
+                              13,
+                              15,
+                              0,
+                              1,
+                              2,
+                              3,
+                              3,
+                              8,
+                              525,
+                              2,
+                              13,
+                              5,
+                              11,
+                              1,
+                              2,
+                              28,
+                              3,
+                              8,
+                              524,
+                              1,
+                              7,
+                              5,
+                              11,
+                              0,
+                              2,
+                              4,
+                              15,
+                              0,
+                              0
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
