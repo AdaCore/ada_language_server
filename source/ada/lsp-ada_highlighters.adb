@@ -936,7 +936,9 @@ package body LSP.Ada_Highlighters is
       Holder : in out Highlights_Holder;
       Node   : Libadalang.Analysis.Ada_Node'Class) is
    begin
-      if Is_Ghost_Root_Node (Node) then
+      if Is_Ghost_Root_Node (Node)
+        and Self.Token_Modifiers.Contains (LSP.Enumerations.documentation)
+      then
          --  Mark all tokens in a ghost element as `documentation`
          Holder.Value.Set_Token_Modifier
            (Node.Token_Start, Node.Token_End, LSP.Enumerations.documentation);
