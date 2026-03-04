@@ -219,8 +219,8 @@
                            "edits": [
                               {
                                  "range": {
-                                    "start": { "line": 2, "character": 0 },
-                                    "end": { "line": 2, "character": 0 }
+                                    "start": { "line": 5, "character": 0 },
+                                    "end": { "line": 5, "character": 0 }
                                  },
                                  "newText": "\n   function Square (X : Integer) return Natural\n   is\n   begin\n      \n   end Square;\n",
                                  "annotationId": ""
