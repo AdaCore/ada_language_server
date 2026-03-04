@@ -51,7 +51,7 @@ Demo source is `named_parameters//` in [Code Samples](https://github.com/AdaCore
 
 See `src/lal_refactor-subprogram_signature.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
-Demo source is `add_parameter//` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
+Demo source is `add_parameter/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
 ![add_parameter](media/add_parameter.gif)
 
@@ -155,18 +155,15 @@ See `src/lal_refactor-extract_variable.ads` in [LAL Refactor repository](https:/
 
 **Command name:** `als-refactor-generate-package-body`
 
-* Refactoring available if package spec includes subprogram declarations
-* Only offered when cursor is in `package Spec is`, `private`, or `end Spec` lines
-* Checks whether a matching package body already exists:
-  * **Generate Package Body** if none found:
-    * create new file in same directory
-    * fill with subprogram body stubs for top-level declarations
-  * **Update Package Body** if one found
-    * if package body found *and* is missing any subprogram implementations
-    * update with new subprogram body stubs
-* Not available for `generic` declarations
-* Package body must be locatable by project otherwise will not be found.
-* If file exists but is empty or lacks a package declaration, refactoring will fail.
+* When package specification declares unimplemented subprograms, generate matching subprogram stubs in package body.
+* Only available when cursor is inside package declaration text: `package Spec is`, `private`, or `end Spec`.
+* Tool checks project locations for package body and offers one of these modes:
+  * **Generate Package Body** when no package body is found
+    * Create new file in same directory (e.g. `project_dir/spec.ads` matched with `project_dir/spec.adb`)
+    * Fill with subprogram body stubs for top-level declarations
+  * **Update Package Body** when package body exists in project
+    * Update with new subprogram body stubs
+    * Try to insert these in a similar order to package spec declarations.
 
 Source: `src/lal_refactor-generate_package.ads` in [LAL Refactor](https://github.com/AdaCore/lal-refactor).
 
@@ -178,9 +175,9 @@ Source: `src/lal_refactor-generate_package.ads` in [LAL Refactor](https://github
 
 * Action title: **Generate Procedure Body** or **Generate Function Body**
 * Identifies subprogram declaration without an implementation in the same scope
-* Generates new empty subprogram body on line directly below declaration
-* Only available for nested subprogram declarations. Public declarations in packages handled by [Generate Package Body](#generate-package-body).
-* Available for `overriding` subprograms but not `generic`.
+* Generates new empty subprogram body and tries to insert near similarly declared subprograms
+* Available for nested or top-level package subprogram declarations.
+* Not available for `generic` subprograms.
 
 Source: `src/lal_refactor-generate_subprogram.ads` in [LAL Refactor](https://github.com/AdaCore/lal-refactor).
 

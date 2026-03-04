@@ -1084,8 +1084,6 @@ package body LSP.Ada_Handlers is
                     VSS.Strings.Conversions.To_Virtual_String
                       (Get_Body_Path (Spec)),
                   New_File        => not Package_Body_Exists (Spec));
-               --  Note: we call Get_Body_Path twice; once here,
-               --  once in LAL_Refactor.Build_Package_Generator
                Found := True;
             else
                return;

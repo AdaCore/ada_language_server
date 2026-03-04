@@ -282,7 +282,7 @@ Follow the [dedicated LSP4J documentation](https://github.com/redhat-developer/l
 
 ### Integration with Claude Code
 
-[Claude Code](https://claude.ai/claude-code) supports LSP servers via plugins, which allows it to use
+[Claude Code](https://claude.com/product/claude-code) supports LSP servers via plugins, which allows it to use
 the Ada Language Server for code intelligence when working on Ada/SPARK projects.
 
 1. Create the plugin directory
@@ -361,7 +361,7 @@ See [corresponding document](doc/refactoring_tools.md).
 
 ## Contribute
 
-Feel free to dive in! Read the [developer's guide](doc/HACKING.md).
+Feel free to dive in! Read the [developer's guide](doc/devel/HACKING.md).
 
 Don't hesitate to [open an issue](https://github.com/AdaCore/ada_language_server/issues/new) or submit PRs.
 

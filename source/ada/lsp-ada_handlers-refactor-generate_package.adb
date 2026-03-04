@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2025, AdaCore                  --
+--                      Copyright (C) 2025-2026, AdaCore                    --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -145,7 +145,7 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
                Handler.From_LSP_Range (Node.Unit, Self.Spec_Loc.a_range)));
       else
          Edits :=
-           Build_Package_Generator (Spec).Refactor
+           Create_Package_Generator (Spec).Refactor
              (Analysis_Units'Access);
       end if;
    end Refactor;
