@@ -1,6 +1,4 @@
-How to Extend the Protocol for Ada
-==================================
-
+# How to Extend the Protocol for Ada
 
 The Ada Language Server (ALS) supports some features that are not in the official
 [Language Server Protocol](https://microsoft.github.io/language-server-protocol)
