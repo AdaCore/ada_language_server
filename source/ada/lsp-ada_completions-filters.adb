@@ -350,4 +350,24 @@ package body LSP.Ada_Completions.Filters is
       return Self.Is_Open_Parenthesis.Value;
    end Is_Open_Parenthesis;
 
+   ----------------
+   -- Is_Comment --
+   ----------------
+
+   function Is_Comment (Self : in out Filter'Class) return Boolean is
+   begin
+      if not Self.Is_Comment.Is_Set then
+         declare
+            use all type Libadalang.Common.Token_Kind;
+
+            Token_Kind : constant Libadalang.Common.Token_Kind :=
+              Kind (Self.Token);
+         begin
+            Self.Is_Comment := (True, Token_Kind = Ada_Comment);
+         end;
+      end if;
+
+      return Self.Is_Comment.Value;
+   end Is_Comment;
+
 end LSP.Ada_Completions.Filters;

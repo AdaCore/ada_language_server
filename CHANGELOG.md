@@ -7,6 +7,7 @@ section below it for the last release. -->
 * Implementation `textDocument/linkedEditingRange` for defining names
 * Support `textDocument/definition` for source file references in GPR files
 * Display fully qualified names in the `labelDetails` and `detail` field of completion items
+* Do not propose completion after a `.` in Ada comments
 
 ## 2026.1.202601121
 

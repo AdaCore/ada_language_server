@@ -56,6 +56,9 @@ package LSP.Ada_Completions.Filters is
    --  (e.g: whitespace), the first previous non-trivia token ill be
    --  checked too.
 
+   function Is_Comment (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete inside a comment
+
 private
 
    type Filter is tagged limited record
@@ -68,6 +71,7 @@ private
       Is_Semicolon        : LSP.Structures.Boolean_Optional;
       Is_Comma            : LSP.Structures.Boolean_Optional;
       Is_Open_Parenthesis : LSP.Structures.Boolean_Optional;
+      Is_Comment          : LSP.Structures.Boolean_Optional;
    end record;
 
 end LSP.Ada_Completions.Filters;

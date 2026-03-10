@@ -1,0 +1,251 @@
+[
+   {
+      "comment": [
+         "This test checks that we don't propose any completion",
+         "when triggered inside Ada comments"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": ["plaintext", "markdown"],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "signatureHelp": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {}
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\n   X : Integer;\nbegin\n   --  This is a comment with Ada.Text_IO inside\n   X := 1;  -- inline comment Ada.\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "Test completion right after 'Ada.' in a full-line comment (line 4)",
+         "   --  This is a comment with Ada.Text_IO inside",
+         "                                  ^-- position 34 (right after the dot)"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 34
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "comment-line3-31",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "comment-line3-31",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": [
+         "Test completion right after 'Ada.' in an inline comment (line 5)",
+         "   X := 1;  -- inline comment Ada.",
+         "                                  ^-- position 34 (right after the dot)"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 34
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "comment-line4-33",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "comment-line4-33",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": [
+         "Test completion in the middle of a comment (line 4)",
+         "   --  This is a comment with Ada.Text_IO inside",
+         "            ^-- position 12"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 12
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "comment-line3-12",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "comment-line3-12",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 100,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 100,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "exit"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
