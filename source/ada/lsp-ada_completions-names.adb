@@ -116,13 +116,14 @@ package body LSP.Ada_Completions.Names is
          return;
       end if;
 
-      --  Don't complete numeric literals, attributes, end labels, aspects
-      --  or right after typing an open parenthesis
+      --  Don't complete numeric literals, attributes, end labels, aspects,
+      --  comments or right after typing an open parenthesis
       if Filter.Is_Numeric_Literal
         or else Filter.Is_Attribute_Ref
         or else Filter.Is_Aspect
         or else Filter.Is_End_Label
         or else Filter.Is_Open_Parenthesis
+        or else Filter.Is_Comment
       then
          return;
       end if;

@@ -99,9 +99,10 @@ package body LSP.Ada_Handlers.Invisibles is
         or else Filter.Is_Attribute_Ref
         or else Filter.Is_Aspect
         or else Filter.Is_End_Label
+        or else Filter.Is_Comment
       then
-         --  Don't complete numeric literals, attributes nor end labels
-         --  or aspects
+         --  Don't complete numeric literals, attributes, end labels,
+         --  aspects or comments
          return;
       end if;
 
