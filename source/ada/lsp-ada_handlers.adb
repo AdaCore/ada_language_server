@@ -221,6 +221,25 @@ package body LSP.Ada_Handlers is
       return Self.Configuration.Ada_File_Diagnostics_Enabled;
    end Ada_File_Diagnostics_Enabled;
 
+   ---------------------------
+   -- All_Source_Extensions --
+   ---------------------------
+
+   function All_Source_Extensions
+     (Self : Message_Handler'Class)
+      return LSP.Ada_File_Sets.Extension_Sets.Set
+   is
+      Result : LSP.Ada_File_Sets.Extension_Sets.Set;
+   begin
+      for Context of Self.Contexts.Each_Context loop
+         for Ext of Context.List_Source_Extensions loop
+            Result.Include (Ext);
+         end loop;
+      end loop;
+
+      return Result;
+   end All_Source_Extensions;
+
    -----------------------------
    -- Allocate_Progress_Token --
    -----------------------------

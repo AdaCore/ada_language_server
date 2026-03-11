@@ -1,0 +1,9 @@
+project Default is
+    for Languages use ("Ada");
+    for Source_Dirs use (".");
+    for Source_Files use ("main.adb_spec", "main.adb_body");
+    package Naming is
+        for Spec_Suffix ("Ada") use ".adb_spec";
+        for Body_Suffix ("Ada") use ".adb_body";
+    end Naming;
+end Default;
