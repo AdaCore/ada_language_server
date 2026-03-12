@@ -176,7 +176,7 @@
                         "language": "ada",
                         "value": "type Integer is range -16#8000_0000# .. 16#7fff_ffff#;"
                      },
-                     "at __standard (6:4)"
+                     "at __standard (8:4)"
                   ]
                }
             }
