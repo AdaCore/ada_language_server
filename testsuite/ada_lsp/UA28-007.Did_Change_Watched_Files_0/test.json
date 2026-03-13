@@ -342,7 +342,6 @@
                         "method": "workspace/didChangeWatchedFiles",
                         "registerOptions": {
                            "watchers": [
-                              "<HAS>",
                               {
                                  "globPattern": "${DIR}${DIR_SEP}*.ads",
                                  "kind": 7
