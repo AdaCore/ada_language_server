@@ -158,6 +158,12 @@ package LSP.Ada_Handlers is
    --  Indicates whether a project has been successfully loaded and
    --  how.
 
+   function All_Source_Extensions
+     (Self : Message_Handler'Class)
+      return LSP.Ada_File_Sets.Extension_Sets.Set;
+   --  Return the set of all Ada source file extensions across all loaded
+   --  project contexts.
+
 private
    type Project_Stamp is mod 2**32;
    No_Project_Stamp : constant Project_Stamp := 0;

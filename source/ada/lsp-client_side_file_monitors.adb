@@ -18,6 +18,7 @@
 with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
 
+with LSP.Ada_File_Sets;
 with LSP.Enumerations;
 with LSP.Servers;
 with LSP.Structures.LSPAny_Vectors;
@@ -75,25 +76,45 @@ package body LSP.Client_Side_File_Monitors is
         (VSS.JSON.Streams.JSON_Stream_Element'
            (Kind => VSS.JSON.Streams.Start_Array));
 
-      for Dir of Directories loop
-         declare
-            Full_Name : constant String := Dir.Display_Full_Name;
+      --  Collect all Ada source extensions from all loaded contexts
+      declare
+         Extensions : constant LSP.Ada_File_Sets.Extension_Sets.Set :=
+           Self.Handler.All_Source_Extensions;
+      begin
 
-            Pattern : constant LSP.Structures.Pattern :=
-              (VSS.Strings.Conversions.To_Virtual_String (Full_Name & '*')
-                 with null record);
+         --  Create one watcher per (directory, extension) pair so that
+         --  only Ada source files are monitored, avoiding spurious
+         --  notifications for .ali and object files produced under
+         --  source directories.
+         for Dir of Directories loop
+            declare
+               Full_Name : constant String := Dir.Display_Full_Name;
+            begin
+               for Ext of Extensions loop
+                  declare
+                     Ext_Str : constant String :=
+                       VSS.Strings.Conversions.To_UTF_8_String (Ext);
 
-            Glob : constant LSP.Structures.GlobPattern :=
-              (Is_Pattern => True, Pattern => Pattern);
+                     Pattern : constant LSP.Structures.Pattern :=
+                       (VSS.Strings.Conversions.To_Virtual_String
+                          (Full_Name & '*' & Ext_Str)
+                        with null record);
 
-            Watcher : constant LSP.Structures.FileSystemWatcher :=
-              (kind => (Is_Set => True, Value => Create_Change_Delete),
-               globPattern => Glob);
+                     Glob : constant LSP.Structures.GlobPattern :=
+                       (Is_Pattern => True, Pattern => Pattern);
 
-         begin
-            LSP.Structures.LSPAny_Vectors.To_Any (Watcher, Options);
-         end;
-      end loop;
+                     Watcher : constant LSP.Structures.FileSystemWatcher :=
+                       (kind => (Is_Set => True,
+                                 Value => Create_Change_Delete),
+                        globPattern => Glob);
+                  begin
+                     LSP.Structures.LSPAny_Vectors.To_Any
+                       (Watcher, Options);
+                  end;
+               end loop;
+            end;
+         end loop;
+      end;
 
       Options.Append
         (VSS.JSON.Streams.JSON_Stream_Element'
