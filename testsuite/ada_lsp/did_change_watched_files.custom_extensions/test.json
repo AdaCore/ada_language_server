@@ -101,13 +101,20 @@
                         "method": "workspace/didChangeWatchedFiles",
                         "registerOptions": {
                            "watchers": [
-                              "<HAS>",
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*.ads",
+                                 "kind": 7
+                              },
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*.adb_body",
+                                 "kind": 7
+                              },
                               {
                                  "globPattern": "${DIR}${DIR_SEP}*.adb_spec",
                                  "kind": 7
                               },
                               {
-                                 "globPattern": "${DIR}${DIR_SEP}*.adb_body",
+                                 "globPattern": "${DIR}${DIR_SEP}*.adb",
                                  "kind": 7
                               }
                            ]
