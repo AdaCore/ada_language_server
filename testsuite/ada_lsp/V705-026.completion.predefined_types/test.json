@@ -191,7 +191,7 @@
                      },
                      {
                         "detail": "Standard.Integer\n\ntype Integer is range -16#8000_0000# .. 16#7fff_ffff#;",
-                        "documentation": "at __standard (6:4)",
+                        "documentation": "at __standard (8:4)",
                         "kind": 7,
                         "label": "Integer",
                         "sortText": "00&00002Integer"
