@@ -1,0 +1,159 @@
+[
+   {
+      "comment": [
+         "Test that file watchers use project-specific source extensions",
+         "rather than the default .ads/.adb extensions."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1234,
+               "rootPath": "${DIR}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "didChangeConfiguration": {
+                        "dynamicRegistration": true
+                     },
+                     "didChangeWatchedFiles": {
+                        "dynamicRegistration": true
+                     },
+                     "workspaceFolders": true
+                  },
+                  "textDocument": {
+                     "definition": {
+                        "dynamicRegistration": true,
+                        "linkSupport": true
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               },
+               "trace": "off",
+               "workspaceFolders": [
+                  {
+                     "uri": "$URI{.}",
+                     "name": "did_change_watched_files.custom_extensions"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "definitionProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "adaFileDiagnostics": false,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "client/registerCapability",
+               "params": {
+                  "registrations": [
+                     {
+                        "id": "1",
+                        "method": "workspace/didChangeWatchedFiles",
+                        "registerOptions": {
+                           "watchers": [
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*.ads",
+                                 "kind": 7
+                              },
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*.adb_body",
+                                 "kind": 7
+                              },
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*.adb_spec",
+                                 "kind": 7
+                              },
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*.adb",
+                                 "kind": 7
+                              }
+                           ]
+                        }
+                     }
+                  ]
+               }
+            },
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
