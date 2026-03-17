@@ -54,6 +54,12 @@ package body LSP.Ada_Highlighters is
       Node   : Libadalang.Analysis.Name'Class);
    --  Highlight given name with token Kind
 
+   procedure Highlight_Token
+     (Self   : Ada_Highlighter'Class;
+      Holder : in out Highlights_Holders.Highlights_Holder;
+      Token  : Libadalang.Common.Token_Reference;
+      Kind   : LSP.Enumerations.SemanticTokenTypes);
+
    procedure Get_Result
      (Self       : Ada_Highlighter'Class;
       Holder     : Highlights_Holders.Highlights_Holder;
@@ -273,6 +279,10 @@ package body LSP.Ada_Highlighters is
          case Node.Kind is
             when Libadalang.Common.Ada_Name =>
                Self.Highlight_Name (Holder, Node.As_Name);
+
+            when Libadalang.Common.Ada_Finally_Part =>
+               Self.Highlight_Token
+                  (Holder, Node.Token_Start, LSP.Enumerations.keyword);
 
             when others =>
                null;
@@ -533,12 +543,7 @@ package body LSP.Ada_Highlighters is
         (Token : Libadalang.Common.Token_Reference;
          Kind  : LSP.Enumerations.SemanticTokenTypes) is
       begin
-         if not Self.Token_Types.Contains (Kind) then
-            --  Skip unsupported tokens
-            return;
-         end if;
-
-         Holder.Set_Token_Kind (Token, Kind);
+         Self.Highlight_Token (Holder, Token, Kind);
       end Highlight_Token;
 
       ---------------------
@@ -941,6 +946,10 @@ package body LSP.Ada_Highlighters is
          when Libadalang.Common.Ada_Name =>
             Self.Highlight_Name (Holder.Value, Node.As_Name);
 
+         when Libadalang.Common.Ada_Finally_Part =>
+            Self.Highlight_Token
+              (Holder.Value, Node.Token_Start, LSP.Enumerations.keyword);
+
          when others =>
             null;
       end case;
@@ -949,6 +958,24 @@ package body LSP.Ada_Highlighters is
       when Libadalang.Common.Property_Error =>
          null;
    end Highlight_Node;
+
+   ---------------------
+   -- Highlight_Token --
+   ---------------------
+
+   procedure Highlight_Token
+     (Self   : Ada_Highlighter'Class;
+      Holder : in out Highlights_Holders.Highlights_Holder;
+      Token  : Libadalang.Common.Token_Reference;
+      Kind   : LSP.Enumerations.SemanticTokenTypes) is
+   begin
+      if not Self.Token_Types.Contains (Kind) then
+         --  Skip unsupported tokens
+         return;
+      end if;
+
+      Holder.Set_Token_Kind (Token, Kind);
+   end Highlight_Token;
 
    ----------------
    -- Initialize --
@@ -1102,7 +1129,8 @@ package body LSP.Ada_Highlighters is
    begin
       return Libadalang.Iterators.Kind_In
         (Libadalang.Common.Ada_Name'First, Libadalang.Common.Ada_Name'Last)
-          or Is_Ghost_Root;
+          or Is_Ghost_Root
+          or Libadalang.Iterators.Kind_Is (Libadalang.Common.Ada_Finally_Part);
    end Need_Highlighting;
 
    ------------
