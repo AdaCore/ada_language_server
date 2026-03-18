@@ -451,15 +451,12 @@ package body LSP.Ada_Formatter is
             end if;
 
             Response.Append
-              (New_Item =>
-                 LSP.Structures.TextEdit'
-                   (a_range =>
-                      (start => Value.position, an_end => Value.position),
-                    newText =>
-                      LSP.Ada_Handlers.Formatting.Handle_Tabs
-                        (Filename => Context.URI_To_File (Document.URI),
-                         Options  => Full_Options,
-                         S        => Indentation * ' ')));
+              (LSP.Ada_Handlers.Formatting.Reindent_Line
+                 (Filename   => Context.URI_To_File (Document.URI),
+                  Line       => Document.Get_Line (Value.position.line),
+                  Pos        => (Value.position.line, 0),
+                  Options    => Full_Options,
+                  New_Indent => Indent_Array (Value.position.line)));
          end;
       end Handle_Document_Without_Diagnostics;
 
