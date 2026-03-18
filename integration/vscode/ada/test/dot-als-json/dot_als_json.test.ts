@@ -1,5 +1,7 @@
 import assert from 'assert';
+import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
+import * as vscode from 'vscode';
 import { ConfigurationTarget, workspace } from 'vscode';
 import { adaExtState } from '../../src/extension';
 import { activate } from '../utils';
@@ -102,6 +104,57 @@ suite('dot-als-json', function () {
                     initial == null ? undefined : initial,
                     ConfigurationTarget.Workspace,
                 );
+        }
+    });
+
+    test('als-json-file-change-clears-caches', async function () {
+        const wsFolder = workspace.workspaceFolders?.[0];
+        assert.ok(wsFolder, 'No workspace folder found');
+
+        const alsJsonPath = path.join(wsFolder.uri.fsPath, '.als.json');
+        const originalContent = readFileSync(alsJsonPath, 'utf-8');
+
+        // Stub showWarningMessage to simulate the user clicking
+        // "Restart Language Servers" in the popup.
+        const originalShowWarningMessage = vscode.window.showWarningMessage;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const win: any = vscode.window;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        win.showWarningMessage = (...args: string[]) => {
+            return Promise.resolve(args.find((a) => a !== args[0]));
+        };
+
+        try {
+            // Populate caches by querying the object dir
+            await adaExtState.getObjectDir();
+            assert.notStrictEqual(
+                adaExtState.cachedObjectDir,
+                undefined,
+                'cachedObjectDir should be populated after getObjectDir()',
+            );
+
+            // Modify .als.json to trigger the file watcher
+            const modified = JSON.parse(originalContent) as Record<string, unknown>;
+            modified['scenarioVariables'] = { Var: 'als-dot-json-value' };
+            writeFileSync(alsJsonPath, JSON.stringify(modified, undefined, 2));
+
+            // Wait for the file watcher to fire and the stub to resolve,
+            // clearing the caches.
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            // Verify that the cache was cleared, because the user accepted
+            // the restart popup.
+            assert.strictEqual(
+                adaExtState.cachedObjectDir,
+                undefined,
+                'cachedObjectDir should be cleared after .als.json change',
+            );
+        } finally {
+            // Restore the original .als.json content and the original
+            // showWarningMessage function.
+            writeFileSync(alsJsonPath, originalContent);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            win.showWarningMessage = originalShowWarningMessage;
         }
     });
 });
