@@ -132,16 +132,8 @@ export function startVisualize(context: vscode.ExtensionContext, hierarchy: Hier
                     const panel = panels[hierarchy];
                     // Make sure the webView was created and initialized.
                     if (panel) {
-                        // Wait for the webView to notify the end of it's rendering
-                        const receive = panel.webview.onDidReceiveMessage((message: Message) => {
-                            if (message.command === 'rendered') {
-                                // Remove the listener as it will not be used after sending
-                                // the initial request.
-                                sendMessage(middleNode.id, hierarchy);
-                                receive.dispose();
-                            }
-                        });
-                        // Check if the client has already been rendered.
+                        // Ask the webView if it's already rendered. When it responds
+                        // with 'rendered', handleMessage will re-send the graph data.
                         panel.webview.postMessage({ command: 'isRendered' } as IsRenderedMessage);
                     }
                 }
@@ -184,8 +176,9 @@ function getProgressLabel(hierarchy: Hierarchy, onCreate: boolean = false): stri
  * depending on its command.
  *
  * @param message - The message received from the server.
+ * @param hierarchy - The hierarchy type associated with the panel that sent the message.
  */
-function handleMessage(message: Message) {
+function handleMessage(message: Message, hierarchy: Hierarchy) {
     switch (message.command) {
         // Add new nodes to the graph or fold/unfold.
         case 'requestHierarchy': {
@@ -239,10 +232,15 @@ function handleMessage(message: Message) {
             stopProcess = true;
             break;
         }
-        // This message is not handled here, but it is caught here to avoid falling into
-        // the default case.
-        case 'rendered':
+        // The webview has (re-)rendered, e.g. after being moved to another window.
+        // Re-send existing graph data so the view is restored.
+        case 'rendered': {
+            const rootNode = NodesSingleton.rootNodes.find((n) => n.hierarchy === hierarchy);
+            if (rootNode) {
+                sendMessage(rootNode.id, hierarchy);
+            }
             break;
+        }
         // The client finished rendering the last batch of data and is ready to receive more.
         case 'canSendNextData':
             canSendNextData = true;
@@ -709,7 +707,7 @@ function setupWebView(context: vscode.ExtensionContext, hierarchy: Hierarchy) {
 
     // Setup the event listener to get messages and call the right functions.
     panel.webview.onDidReceiveMessage((message: Message) => {
-        void handleMessage(message);
+        void handleMessage(message, hierarchy);
     });
 
     // On panel suppression, clear the symbol map of all the related symbols.
