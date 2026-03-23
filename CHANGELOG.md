@@ -9,6 +9,7 @@ section below it for the last release. -->
 * Display fully qualified names in the `labelDetails` and `detail` field of completion items
 * Do not propose completion after a `.` in Ada comments
 * Highlight `finally` keyword (from Ada extension) with semantic tokens.
+* Prompt the user to restart the Ada Language Server when the workspace `.als.json` configuration file is modified
 
 ## 2026.1.202601121
 
