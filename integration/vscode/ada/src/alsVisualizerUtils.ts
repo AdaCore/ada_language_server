@@ -192,7 +192,7 @@ export async function createNodeHierarchy(
             }
         }
     } else hasParent = false;
-    const position = `Ln ${range.start.line},` + `Col ${range.start.character}`;
+    const position = `Ln ${range.start.line + 1},` + `Col ${range.start.character + 1}`;
 
     const location = new vscode.Location(uri, range);
     const handler = createHandler(languageId);
@@ -242,8 +242,8 @@ export function convertHierarchyToData(nodeHierarchy: NodeHierarchy) {
         string_location: {
             path: nodeHierarchy.location.uri.fsPath,
             position:
-                `Ln ${nodeHierarchy.location.range.start.line}, ` +
-                `Col ${nodeHierarchy.location.range.start.character}`,
+                `Ln ${nodeHierarchy.location.range.start.line + 1}, ` +
+                `Col ${nodeHierarchy.location.range.start.character + 1}`,
         },
         newPosition: nodeHierarchy.newPosition,
         hierarchy: nodeHierarchy.hierarchy,

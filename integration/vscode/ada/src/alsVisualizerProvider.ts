@@ -410,13 +410,16 @@ export class VisualizerHandler {
                 if (!stringLocationsMap.has(symbolLocation[2]))
                     stringLocationsMap.set(symbolLocation[2], []);
                 // Add the location to the array pointed by the key.
+                // VS Code uses 0-based index for line and character but
+                // it is more user-friendly to display them with a 1-based index,
+                // so we add 1 to both of them when we create the string location.
                 stringLocationsMap.get(symbolLocation[2])?.push({
                     path: location.uri.fsPath,
                     range_start: location.range.start,
                     range_end: location.range.end,
                     string_location:
-                        `Ln ${location.range.start.line}, ` +
-                        `Col ${location.range.start.character}`,
+                        `Ln ${location.range.start.line + 1}, ` +
+                        `Col ${location.range.start.character + 1}`,
                 } as StringLocation);
             }
         }
