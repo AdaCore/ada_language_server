@@ -317,23 +317,38 @@ export class ExtensionState {
 
     /**
      * Show a popup asking the user to restart the Ada and GPR language
-     * servers when some changes are made in the VS Code environment
-     * settings (e.g: terminal.integrated.env.linux).
+     * servers when some changes are made that require a restart
+     * (e.g: terminal environment settings, .als.json configuration).
+     * If clearCachesOnRestart is set to true, the extension's caches will also be
+     * cleared if the servers get restarted.
+     * @param reason - optional description of what changed; defaults to
+     * a generic workspace-environment message.
+     * @param clearCachesOnRestart - whether to clear the extension's caches when
+     * restarting the servers.
      */
-    public showRestartLanguageServersPopup = async () => {
+    public async showRestartLanguageServersPopup(
+        reason: string = 'The workspace environment has changed',
+        clearCachesOnRestart: boolean = false,
+    ): Promise<void> {
+        const restartLabel = 'Restart Language Servers';
+
         const selection = await vscode.window.showWarningMessage(
-            `The workspace environment has changed: the Ada Language Server instances
-            need to be restarted in order to take the
-            new environment into account.
-            Do you want to restart the Ada Language Server instances?`,
-            'Restart Language Servers',
+            `${reason}: the Ada Language Server instances ` +
+                `need to be restarted in order to take the ` +
+                `changes into account. ` +
+                `Do you want to restart the Ada Language Server instances?`,
+            restartLabel,
         );
 
         // Restart the Ada and GPR language servers if the user asks for it
-        if (selection == 'Restart Language Servers') {
+        // and clear the extension's caches if asked.
+        if (selection == restartLabel) {
+            if (clearCachesOnRestart) {
+                this.clearCacheAndTasks(`${reason}: clearing caches and tasks`);
+            }
             void vscode.commands.executeCommand(CMD_RESTART_LANG_SERVERS);
         }
-    };
+    }
 
     //  React to changes in configuration to recompute predefined tasks if the user
     //  changes scenario variables' values.

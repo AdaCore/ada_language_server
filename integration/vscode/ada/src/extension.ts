@@ -157,6 +157,22 @@ async function activateExtension(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged),
     );
 
+    // Watch for changes to .als.json files which contain ALS-specific settings.
+    // React similarly to VS Code configuration changes: clear caches and propose
+    // a server restart.
+    const alsJsonWatcher = vscode.workspace.createFileSystemWatcher('**/.als.json');
+    const onAlsJsonChanged = () => {
+        logger.info('.als.json file changed: proposing server restart and clearing caches');
+        void adaExtState.showRestartLanguageServersPopup(
+            'The .als.json configuration file has changed',
+            true,
+        );
+    };
+    alsJsonWatcher.onDidChange(onAlsJsonChanged);
+    alsJsonWatcher.onDidCreate(onAlsJsonChanged);
+    alsJsonWatcher.onDidDelete(onAlsJsonChanged);
+    context.subscriptions.push(alsJsonWatcher);
+
     // Subscribe to the didChangeActiveTextEditor event to update the status bar
     // item's visibility
     context.subscriptions.push(
