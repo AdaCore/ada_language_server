@@ -30,6 +30,7 @@ import {
     createAdaTaskProvider,
     createSparkTaskProvider,
 } from './taskProviders';
+import { isGNATmetricTask } from '../test/utils';
 
 /**
  * Return type of the 'als-source-dirs' LSP request.
@@ -152,9 +153,15 @@ export class ExtensionState {
             vscode.tasks.registerTaskProvider(TASK_TYPE_ADA, this.adaTaskProvider),
             vscode.tasks.registerTaskProvider(TASK_TYPE_SPARK, this.sparkTaskProvider),
 
-            //  Add a listener on tasks to open the SARIF Viewer when the
-            //  task that ends outputs a SARIF file.
+            // Add a listener on tasks to open the SARIF Viewer when the
+            // task that ends outputs a SARIF file.
             vscode.tasks.onDidEndTaskProcess(openSARIFViewerIfNeeded),
+
+            // Add a listener on tasks end to update the metrics decorations when a
+            // task that might have updated the metrics XML files ends
+            // (e.g: gnatmetric tasks).
+            vscode.tasks.onDidEndTaskProcess(updateMetricsIfNeeded),
+
             /**
              * Add a listener on tasks start to close SARIF report that might
              * be overwritten, to avoid parse errors from the SARIF extension
@@ -776,6 +783,18 @@ function isGnatSASCompoundSarifTask(task: vscode.Task): boolean {
             t.includes(TASK_GNATSAS_REPORT.label),
         )
     );
+}
+
+/**
+ * Refresh the metrics code lenses when a task that might have updated the
+ * metrics XML files ends (i.e: gnatmetric tasks).
+ */
+function updateMetricsIfNeeded(e: vscode.TaskProcessEndEvent) {
+    const task = e.execution.task;
+
+    if (isGNATmetricTask(task)) {
+        adaExtState.codelensProvider.refresh();
+    }
 }
 
 /**
