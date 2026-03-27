@@ -67,7 +67,9 @@ package body LSP.Search.Approximate is
          while P.Forward loop
             C := P.Element;
 
-            Mask (C) := Mask (C) or 2 ** Natural (P.Character_Index - 2);
+            --  min Character_Index is 1 but Mask (bitmask) starts from 0, so
+            --  decreasing Character_Index by 1
+            Mask (C) := Mask (C) or 2 ** Natural (P.Character_Index - 1);
          end loop;
       end;
 
