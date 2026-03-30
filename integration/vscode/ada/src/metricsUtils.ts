@@ -20,6 +20,103 @@ export interface UnitMetricsDict {
 export type MetricDisplayNames = { [key: string]: string };
 
 /**
+ * Get the thresholds for metrics from VS Code settings.
+ * If no user-defined thresholds are set, it returns an empty object,
+ * meaning no thresholds will be applied.
+ */
+export function getMetricsThresholds(): Record<string, { warn?: number; error?: number }> {
+    const config = vscode.workspace.getConfiguration('ada');
+    const userThresholds =
+        config.get<Record<string, { warn?: number; error?: number }>>('metricThresholds');
+    // Merge user settings with defaults (user overrides default)
+    return userThresholds || {};
+}
+
+/**
+ * Formats a metric value with an appropriate label and color based on predefined thresholds.
+ * The function checks if the given metric key has defined thresholds for warning and error levels.
+ * If the value exceeds the error threshold, it is prefixed with a red circle emoji; if it exceeds
+ * the warning threshold, it is prefixed with an orange circle emoji. If no thresholds are defined
+ * for the metric key, it simply returns the label and value without any emoji.
+ * @param key - The key of the metric to be formatted (e.g., "cyclomatic_complexity").
+ * @param label - The display label for the metric (e.g., "Cyclomatic Complexity").
+ * @param value - The numeric value of the metric to be formatted.
+ * @returns A formatted string representing the metric, potentially with an emoji
+ * indicating its severity.
+ */
+export function formatMetric(key: string, label: string, value: number): string {
+    const thresholds = getMetricsThresholds();
+    const t = thresholds[key];
+    if (!t) return `${label}: ${value}`;
+
+    if (t.error !== undefined && value >= t.error) {
+        return `🔴 ${label}: ${value}`;
+    }
+    if (t.warn !== undefined && value >= t.warn) {
+        return `🟠 ${label}: ${value}`;
+    }
+    return `${label}: ${value}`;
+}
+
+/**
+ * Creates a VS Code Diagnostic for a metric threshold violation.
+ * Returns undefined if no threshold is violated.
+ *
+ * @param metricName - The name of the metric (e.g., "cyclomatic_complexity").
+ * @param value - The numeric value of the metric to be checked against thresholds.
+ * @param sloc - The source location (line and column) where the metric is defined.
+ * @param displayNames - A dictionary mapping metric names to their display labels.
+ * @returns A vscode.Diagnostic object if the metric value exceeds the
+ * configured threshold, otherwise undefined.
+ */
+export function createMetricDiagnostic(
+    metricName: string,
+    value: number,
+    sloc: vscode.Position,
+    displayNames: Record<string, string>,
+): vscode.Diagnostic | undefined {
+    const metricsThresholds = getMetricsThresholds();
+
+    function makeDiagnostic(
+        threshold: number | undefined,
+        thresholdType: 'error' | 'warning',
+        severity: vscode.DiagnosticSeverity,
+    ): vscode.Diagnostic | undefined {
+        // Check if the metric exceeds the specified threshold and
+        // create a diagnostic if it does
+        if (metricName in metricsThresholds && threshold !== undefined && value > threshold) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(sloc, sloc),
+                `${displayNames[metricName] ?? metricName} metric value (${value}) exceeds` +
+                    ` the configured ${thresholdType} threshold (${threshold})`,
+                severity,
+            );
+            diagnostic.source = metricName;
+            return diagnostic;
+        }
+
+        // If the metric does not exceed the threshold, return undefined
+        return undefined;
+    }
+
+    // First check for error threshold violation, then for warning violation: we
+    // don't want to create a warning diagnostic if the value already
+    // exceeds the error threshold
+    return (
+        makeDiagnostic(
+            metricsThresholds[metricName]?.error,
+            'error',
+            vscode.DiagnosticSeverity.Error,
+        ) ||
+        makeDiagnostic(
+            metricsThresholds[metricName]?.warn,
+            'warning',
+            vscode.DiagnosticSeverity.Warning,
+        )
+    );
+}
+
+/**
  * Finds the metrics XML file corresponding to a given source file. The
  * function assumes that the metrics XML file is named after the source file (without
  * extension) and is located in the specified object directory.

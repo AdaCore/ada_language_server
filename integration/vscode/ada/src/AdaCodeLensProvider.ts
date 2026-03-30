@@ -19,7 +19,7 @@ import {
     CMD_SPARK_PROVE_SUBP,
 } from './constants';
 import { envHasExec, getSymbols } from './helpers';
-import { findMetricsXmlForSource, parseMetricsXml } from './metricsUtils';
+import { findMetricsXmlForSource, formatMetric, parseMetricsXml } from './metricsUtils';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
 
@@ -73,6 +73,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                 }
             }
         }
+
         // --- Metrics CodeLens ---
         const objectDir = await adaExtState.getObjectDir();
         const metricsXml = findMetricsXmlForSource(document.uri.fsPath, objectDir);
@@ -85,7 +86,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                         const metrics: string[] = [];
                         for (const [key, value] of Object.entries(unit.metrics)) {
                             const label = displayNames[key] || key;
-                            metrics.push(`${label}: ${value}`);
+                            metrics.push(formatMetric(key, label, Number(value)));
                         }
                         if (metrics.length > 0) {
                             const summary = `$(graph) Metrics: ${metrics.join(', ')}`;

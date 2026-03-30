@@ -158,7 +158,7 @@ const adaTasks: PredefinedTask[] = [
     {
         label: 'Compute metrics for current file',
         description:
-            'Run gnatmetric on the current file and produce a metrics XML in the object directory',
+            'Run `gnatmetric` on the current file and produce a metrics XML in the object directory',
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnatmetric',
