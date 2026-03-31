@@ -1,0 +1,224 @@
+[
+   {
+      "comment": [
+         "Test that workspace/symbol approximate filtration works"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 40561,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "executeCommand": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "references": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeLens": {},
+                     "colorProvider": {},
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "selectionRange": {},
+                     "linkedEditingRange": {},
+                     "callHierarchy": {},
+                     "moniker": {}
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "workspaceSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{search.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "adaFileDiagnostics": false,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{aaa.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Aaa is\n\n   type Symbol_Request is null record;\n\n   procedure Proc (Z : in out Integer);\nend Aaa;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Aaa;\nwith Bbb;\n\nprocedure Main is\n   Val : Integer := 2;\nbegin\n   Aaa.Proc (Val);\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "workspace/symbol",
+            "params": {
+               "query": "Symbol_Request",
+               "case_sensitive": false,
+               "whole_word": true,
+               "negate": false,
+               "kind": 3
+            }
+         },
+         "wait": [
+            {
+                "id": 12,
+                "jsonrpc": "2.0",
+                "result": [
+                {
+                    "kind": 23,
+                    "location": {
+                    "range": {
+                        "end": {
+                        "character": 31,
+                        "line": 2
+                        },
+                        "start": {
+                        "character": 8,
+                        "line": 2
+                        }
+                    },
+                    "uri": "$URI{bbb.ads}"
+                    },
+                    "name": "Abstruct_Symbol_Request"
+                }
+                ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 16,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
