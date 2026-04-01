@@ -100,11 +100,8 @@ These measures were taken using both Resident Set Size and [Valgrind massif](htt
 
 ### Known Problems and Workarounds
 
-In case a file can be compile successfully and references/navigations requests
-are failing because of a Property_Error, it can indicates an internal [Libadalang](https://github.com/AdaCore/libadalang) issue
-and it may block requests across the entire project. We recommend to [open an issue](https://github.com/AdaCore/ada_language_server/issues/new)
-and as a workaround, you can exclude the problematic file from analysis by
-adding it to the `IDE'Excluded_Source_Files` list attribute in your project configuration.
+If a file compiles successfully but references and navigation requests fail with a `Property_Error` exception in the [Ada Language Server logs](doc/traces.md), this likely indicates an internal [Libadalang](https://github.com/AdaCore/libadalang) issue that may block requests across the entire project. We recommend [opening an issue](doc/vscode-ug.md#bug-reporting). 
+As a workaround, you can exclude the problematic file from analysis by adding it to the `IDE'Excluded_Source_Files` list attribute in your project configuration. 
 
 ## Supported LSP Server Requests
 
