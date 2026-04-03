@@ -98,6 +98,11 @@ Please note that some Ada structures like generics and tagged types might
 increase the memory usage. This is also the case when using aggregate projects.
 These measures were taken using both Resident Set Size and [Valgrind massif](https://valgrind.org/docs/manual/ms-manual.html) on Ubuntu 22.04LTS.
 
+### Known Problems and Workarounds
+
+If a file compiles successfully but references and navigation requests fail with a `Property_Error` exception in the [Ada Language Server logs](doc/traces.md), this likely indicates an internal [Libadalang](https://github.com/AdaCore/libadalang) issue that may block requests across the entire project. We recommend [opening an issue](doc/vscode-ug.md#bug-reporting). 
+As a workaround, you can exclude the problematic file from analysis by adding it to the `IDE'Excluded_Source_Files` list attribute in your project configuration. 
+
 ## Supported LSP Server Requests
 
 See [WiKi page](https://github.com/AdaCore/ada_language_server/wiki/Supported-LSP-requests)
