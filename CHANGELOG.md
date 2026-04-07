@@ -11,6 +11,7 @@ section below it for the last release. -->
 * Highlight `finally` keyword (from Ada extension) with semantic tokens
 * Prompt the user to restart the Ada Language Server when the workspace `.als.json` configuration file is modified
 * Two color themes **GNAT Studio Light** and **GNAT Studio Dark**
+* Add a predefined task to compute file metrics and display them automatically via CodeLenses
 
 ## 2026.1.202601121
 

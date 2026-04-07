@@ -1,6 +1,7 @@
 import { existsSync } from 'fs';
 import path, { isAbsolute } from 'path';
 import * as vscode from 'vscode';
+import { createMetricDiagnostic } from './metricsUtils';
 import {
     Disposable,
     ExecuteCommandParams,
@@ -30,6 +31,8 @@ import {
     createAdaTaskProvider,
     createSparkTaskProvider,
 } from './taskProviders';
+import { isGNATmetricTask } from '../test/utils';
+import { findMetricsXmlForSource, parseMetricsXml, getMetricsThresholds } from './metricsUtils';
 
 /**
  * Return type of the 'als-source-dirs' LSP request.
@@ -65,6 +68,8 @@ export class ExtensionState {
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
+
+    public readonly metricDiagnostics = vscode.languages.createDiagnosticCollection('gnatmetric');
 
     /**
      * The following fields are caches for ALS requests or costly properties.
@@ -129,6 +134,33 @@ export class ExtensionState {
             vscode.languages.registerCodeLensProvider('ada', this.codelensProvider),
         );
         this.updateStatusBarVisibility(undefined);
+
+        // Update metrics diagnostics when a document is opened,
+        // closed or when the metrics thresholds configuration changes.
+        this.context.subscriptions.push(
+            vscode.workspace.onDidOpenTextDocument(async (doc) => {
+                await updateMetricsDiagnostics(doc);
+            }),
+        );
+        this.context.subscriptions.push(
+            vscode.workspace.onDidCloseTextDocument((doc) => {
+                adaExtState.metricDiagnostics.delete(doc.uri);
+            }),
+        );
+        this.context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(async (e) => {
+                if (e.affectsConfiguration('ada.metricsThresholds')) {
+                    for (const doc of vscode.workspace.textDocuments) {
+                        await updateMetricsDiagnostics(doc);
+                    }
+                }
+            }),
+        );
+
+        // Also refresh for all already-open documents at startup
+        for (const doc of vscode.workspace.textDocuments) {
+            await updateMetricsDiagnostics(doc);
+        }
     };
 
     public dispose = () => {
@@ -152,9 +184,15 @@ export class ExtensionState {
             vscode.tasks.registerTaskProvider(TASK_TYPE_ADA, this.adaTaskProvider),
             vscode.tasks.registerTaskProvider(TASK_TYPE_SPARK, this.sparkTaskProvider),
 
-            //  Add a listener on tasks to open the SARIF Viewer when the
-            //  task that ends outputs a SARIF file.
+            // Add a listener on tasks to open the SARIF Viewer when the
+            // task that ends outputs a SARIF file.
             vscode.tasks.onDidEndTaskProcess(openSARIFViewerIfNeeded),
+
+            // Add a listener on tasks end to update the metrics decorations when a
+            // task that might have updated the metrics XML files ends
+            // (e.g: gnatmetric tasks).
+            vscode.tasks.onDidEndTaskProcess(updateMetricsIfNeeded),
+
             /**
              * Add a listener on tasks start to close SARIF report that might
              * be overwritten, to avoid parse errors from the SARIF extension
@@ -776,6 +814,71 @@ function isGnatSASCompoundSarifTask(task: vscode.Task): boolean {
             t.includes(TASK_GNATSAS_REPORT.label),
         )
     );
+}
+
+async function updateMetricsDiagnostics(document: vscode.TextDocument): Promise<void> {
+    // Only update diagnostics for Ada source files
+    if (document.languageId === 'ada') {
+        const metricsThresholds = getMetricsThresholds();
+
+        // If no thresholds are configured, we don't need to compute diagnostics,
+        // but clear existing ones if any.
+        if (!metricsThresholds) {
+            adaExtState.metricDiagnostics.delete(document.uri);
+            return;
+        }
+
+        adaExtState.metricDiagnostics.delete(document.uri);
+        const objectDir = await adaExtState.getObjectDir();
+        const metricsXml = findMetricsXmlForSource(document.uri.fsPath, objectDir);
+        const diagnostics: vscode.Diagnostic[] = [];
+
+        if (metricsXml) {
+            const parsed = await parseMetricsXml(metricsXml);
+            if (parsed && Array.isArray(parsed.units)) {
+                const { units, displayNames } = parsed;
+
+                // Iterate over the metrics of each compilation unit and create diagnostics for
+                // those exceeding the configured thresholds
+                for (const unit of units) {
+                    if (unit.sloc) {
+                        for (const [key, value] of Object.entries(unit.metrics)) {
+                            if (unit.sloc) {
+                                // Create a diagnostic for this metric if it
+                                // exceeds the configured threshold
+                                const diagnostic: vscode.Diagnostic | undefined =
+                                    createMetricDiagnostic(key, value, unit.sloc, displayNames);
+
+                                // Only create a diagnostic if the metric value
+                                // exceeds the configured threshold
+                                if (diagnostic) {
+                                    diagnostics.push(diagnostic);
+                                }
+                            }
+                        }
+                    }
+                }
+                // Update the diagnostics collection for this document with
+                // the new diagnostics
+                adaExtState.metricDiagnostics.set(document.uri, diagnostics);
+            }
+        }
+    }
+}
+
+/**
+ * Refresh the metrics code lenses when a task that might have updated the
+ * metrics XML files ends (i.e: gnatmetric tasks).
+ */
+async function updateMetricsIfNeeded(e: vscode.TaskProcessEndEvent) {
+    const task = e.execution.task;
+    if (isGNATmetricTask(task)) {
+        adaExtState.codelensProvider.refresh();
+        // Refresh metrics diagnostics for all open Ada documents
+        for (const doc of vscode.workspace.textDocuments) {
+            await updateMetricsDiagnostics(doc);
+        }
+    }
 }
 
 /**

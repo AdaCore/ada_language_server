@@ -50,6 +50,15 @@ export const CMD_GPR_PROJECT_ARGS = 'ada.gprProjectArgs';
  */
 export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
 
+/**
+ * Identifier for a hidden command that returns the path to the object directory used for
+ * storing compiled files and metrics XML. The command is used by the CodeLens provider
+ * to locate the metrics XML corresponding to a source file.
+ * The object directory is either `"$\{config:ada.objectDir\}"` if that setting is configured,
+ * or otherwise a default value (e.g., "obj").
+ */
+export const CMD_GET_OBJECT_DIR = 'ada.getObjectDir';
+
 export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';

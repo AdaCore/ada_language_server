@@ -7,7 +7,9 @@ import { CodeLens, Uri, window, workspace } from 'vscode';
 import { adaExtState } from '../src/extension';
 import { getArgValue, setTerminalEnvironment } from '../src/helpers';
 import {
+    SimpleTaskDef,
     SimpleTaskProvider,
+    TASK_TYPE_ADA,
     findTaskByName,
     getConventionalTaskLabel,
     runTaskAndGetResult,
@@ -290,6 +292,16 @@ export function rangeToStr(range: vscode.Range): string {
 }
 
 /**
+ * Utility filter for selecting GNATmetric tasks.
+ */
+export function isGNATmetricTask(t: vscode.Task) {
+    return (
+        t.definition.type == TASK_TYPE_ADA &&
+        (t.definition as SimpleTaskDef).command == 'gnatmetric'
+    );
+}
+
+/**
  * Utility filter for selecting GNAT SAS tasks.
  */
 export function isGNATSASTask(t: vscode.Task): boolean {
@@ -315,19 +327,27 @@ export function and<T extends unknown[]>(...predicates: ((...args: T) => boolean
 /**
  * Utility filter for selecting GNATtest tasks.
  */
-export function isGNATTestTask(t: vscode.Task): boolean {
+export function isGNATtestTask(t: vscode.Task): boolean {
     return t.name.toLowerCase().includes('gnattest');
 }
 
+/**
+ * Utility filter for selecting GNATcoverage tasks.
+ */
 function isGNATcovTask(t: vscode.Task): boolean {
     return t.name.toLowerCase().includes('gnatcov');
 }
 
 /**
  * Utility filter for selecting core tasks that are not related to other tools
- * such as GNAT SAS or GNATtest.
+ * such as GNAT SAS, GNATtest, GNATcoverage or GNATmetric.
  */
-export const isCoreTask = and(negate(isGNATSASTask), negate(isGNATTestTask), negate(isGNATcovTask));
+export const isCoreTask = and(
+    negate(isGNATSASTask),
+    negate(isGNATtestTask),
+    negate(isGNATcovTask),
+    negate(isGNATmetricTask),
+);
 
 /**
  * Waits for the diagnostics of a given file to match the expected messages

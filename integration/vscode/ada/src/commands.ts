@@ -12,6 +12,7 @@ import {
     CMD_BUILD_AND_DEBUG_MAIN,
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
+    CMD_GET_OBJECT_DIR,
     CMD_GPR_PROJECT_ARGS,
     CMD_OPEN_USERS_GUIDE,
     CMD_RELOAD_PROJECT,
@@ -177,6 +178,12 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            CMD_GET_OBJECT_DIR,
+            async () => await adaExtState.getObjectDir(),
+        ),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_LIMIT_SUBP_ARG, sparkLimitSubpArg),
