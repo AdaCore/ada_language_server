@@ -152,6 +152,10 @@ package LSP.Ada_Configurations is
    --  Convert Self.Relocate_Build_Tree, Self.Relocate_Root & File to
    --  GPR2.Project.Tree.Load procedures Build_Path parameter.
 
+   function Workspace_Search
+     (Self : Configuration'Class) return LSP.Enumerations.AlsSearchKind;
+   --  Workspace symbol search matching method
+
    function Context (Self : Configuration'Class) return GPR2.Context.Object;
    --  Convert Configuration scenario variables to
    --  GPR2.Project.Tree.Load procedures Context parameter.
@@ -200,6 +204,9 @@ private
 
       Variables_Names  : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values : VSS.String_Vectors.Virtual_String_Vector;
+
+      Workspace_Search : LSP.Enumerations.AlsSearchKind :=
+        LSP.Enumerations.Fuzzy;
 
       Context : GPR2.Context.Object;
    end record;
@@ -295,6 +302,10 @@ private
      return LSP.Structures.DocumentOnTypeFormattingOptions is
      (firstTriggerCharacter => 1 * VSS.Characters.Latin.Line_Feed,
       moreTriggerCharacter  => <>);
+
+   function Workspace_Search
+     (Self : Configuration'Class) return LSP.Enumerations.AlsSearchKind is
+       (Self.Workspace_Search);
 
    function Context (Self : Configuration'Class) return GPR2.Context.Object
    is (Self.Context);

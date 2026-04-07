@@ -3644,7 +3644,6 @@ package body LSP.Ada_Handlers is
       Value : LSP.Structures.WorkspaceSymbolParams)
    is
       use type Ada.Containers.Count_Type;
-      use type LSP.Search.Search_Kind;
 
       procedure Send_Partial_Response;
 
@@ -3715,7 +3714,7 @@ package body LSP.Ada_Handlers is
            Kind           =>
              (if Value.kind.Is_Set
               then Value.kind.Value
-              else LSP.Enumerations.Start_Word_Text));
+              else Self.Configuration.Workspace_Search));
 
       Response : LSP.Structures.Symbol_Result (LSP.Structures.Variant_1);
 

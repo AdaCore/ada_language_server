@@ -683,6 +683,19 @@
                 "type": "object",
                 "title": "Miscellaneous",
                 "properties": {
+                    "ada.workspaceSearch": {
+                        "scope": "window",
+                        "enum": [
+                            "fuzzy",
+                            "startWord"
+                        ],
+                        "markdownEnumDescriptions": [
+                            "Fuzzy search",
+                            "Start word search"
+                        ],
+                        "default": "fuzzy",
+                        "markdownDescription": "Workspace symbol search method."
+                    },
                     "ada.enableIndexing": {
                         "scope": "window",
                         "enum": [
