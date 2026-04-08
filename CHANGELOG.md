@@ -8,8 +8,10 @@ section below it for the last release. -->
 * Support `textDocument/definition` for source file references in GPR files
 * Display fully qualified names in the `labelDetails` and `detail` field of completion items
 * Do not propose completion after a `.` in Ada comments
-* Highlight `finally` keyword (from Ada extension) with semantic tokens.
+* Highlight `finally` keyword (from Ada extension) with semantic tokens
 * Prompt the user to restart the Ada Language Server when the workspace `.als.json` configuration file is modified
+* Two color themes **GNAT Studio Light** and **GNAT Studio Dark**
+* Add a predefined task to compute file metrics and display them automatically via CodeLenses
 
 ## 2026.1.202601121
 

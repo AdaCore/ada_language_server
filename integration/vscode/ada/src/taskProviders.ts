@@ -21,6 +21,7 @@ import { existsSync } from 'fs';
 import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import {
+    CMD_GET_OBJECT_DIR,
     CMD_GPR_PROJECT_ARGS,
     CMD_SPARK_CURRENT_GNATPROVE_OPTIONS,
     CMD_SPARK_LIMIT_REGION_ARG,
@@ -154,6 +155,24 @@ const adaTasks: PredefinedTask[] = [
      */
     TASK_CLEAN_PROJECT,
     TASK_BUILD_PROJECT,
+    {
+        label: 'Compute metrics for current file',
+        description:
+            'Run `gnatmetric` on the current file and produce a metrics XML in the object directory',
+        taskDef: {
+            type: TASK_TYPE_ADA,
+            command: 'gnatmetric',
+            args: [
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                '--complexity-cyclomatic',
+                '--construct-nesting',
+                '--lines-code',
+                `--xml-file-name=\${command:${CMD_GET_OBJECT_DIR}}/\${fileBasenameNoExtension}.metrics.xml`,
+                '${file}',
+            ],
+        },
+        problemMatchers: [],
+    },
     {
         label: 'Check current file',
         taskDef: {

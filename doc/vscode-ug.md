@@ -27,6 +27,7 @@ This extension **does not include a compiler nor additional tools**. Nonetheless
 | | Code Coverage       | ✅ |
 | **GNAT SAS** | | |
 | | Static Analysis     |       ✅            |
+| | Metrics             |       ✅            |
 | **SPARK** | | |
 | | Formal Proof        |       ✅          |
 
@@ -314,6 +315,18 @@ The GNATtest integration in VS Code also supports running tests in coverage mode
 
 Integrating the steps of source instrumentation and test harness build into the test execution workflow allows for a quick feedback loop: run a test, observe results and coverage, edit the test or the tested code, repeat... In this context invoking the VS Code commands `Test: Rerun Last Run` and `Test: Rerun Last Run with Coverage` with their respective keyboard shortcuts can be valuable.
 
+## GNAT Metrics Support
+
+The extension provides a predefined task called `Compute metrics for current file`, which runs `gnatmetric` and displays file metrics directly in the editor using CodeLenses.
+
+![GNAT Metrics CodeLenses](media/gnatmetric-vscode.gif)
+
+By default, the displayed metrics include code complexity and lines of code. You can customize which metrics are shown by adjusting the command-line options for `gnatmetric` in the task configuration.
+
+You can configure thresholds for specific metrics to highlight when they are exceeded via the `ada.metricThresholds` [VS Code setting](./settings.md#metricthresholds). The extension will display warning or error diagnostics for each violation, and the corresponding CodeLenses will show warning or error icons as appropriate.
+
+![GNAT Metrics Thresholds](media/gnatmetric-thresholds.png)
+
 ## Cross and Embedded Support
 
 This section provides some guidance to work on cross or embedded projects. It assumes
@@ -489,7 +502,7 @@ The VS Code extension has a few limitations and some differences compared to [GN
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
 
-* **Tooling support**: we currently provide support for some _SPARK_, _GNATtest_, _GNATcoverage_, _GNAT SAS_ and _GNATemulator_ [Tasks](#tasks), but some workflows may not be supported yet.
+* **Tooling support**: we currently provide support for some _SPARK_, _GNATtest_, _GNATcoverage_, _GNAT SAS_, _GNATmetric_ and _GNATemulator_ [Tasks](#tasks), but some workflows may not be supported yet.
 
 * **Alire support**: if the root folder contains an `alire.toml` file and
   there is `alr` executable in the `PATH`, then the language server fetches
@@ -497,7 +510,7 @@ formatting might no succeed on incomplete/illegal code.
   name from the crate description. [Tasks](#tasks) are also automatically
   invoked with Alire in this case.
 
-* **Project support**: there is no `Scenario` view: users should configure scenarios via the _ada.scenarioVariables* setting (see the settings list available [here](./settings.md)). Saving the settings file after changing the values will automatically reload the project and update the
+* **Project support**: there is no `Scenario` view: users should configure scenarios via the `ada.scenarioVariables` setting (see the settings list available [here](./settings.md)). Saving the settings file after changing the values will automatically reload the project and update the
 predefined tasks to take into account the new scenario values.
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.

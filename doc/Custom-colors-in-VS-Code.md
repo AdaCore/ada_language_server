@@ -1,4 +1,16 @@
-# Custom colors
+# Color Themes and Highlighting Customization
+
+The primary method for colorizing Ada code in the VS Code extension is
+selecting a color theme.
+Two custom color themes, **GNAT Studio Light** and **GNAT Studio Dark**,
+are available in the extension.
+These themes are designed to visually resemble the light and dark themes
+available in GNAT Studio.
+
+For extended customization and configuration, the extension leverages
+standard VS Code mechanisms for semantic and syntax highlighting:
+
+## Semantic Highlighting
 
 Since 23.0.6 Ada Language Server provides
 [Semantic token provider](https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide).
@@ -9,6 +21,7 @@ But not all token types and modifier combination are visually distinguishable th
 
 Users are welcome to [customize colors](https://code.visualstudio.com/docs/getstarted/themes#_customizing-a-color-theme) to visualize more token types and modifier combinations. This guide provides more details for this and a customization example.
 
+## Syntax Highlighting
 In addition to semantic highlighting, users can customize syntax highlighting for keywords, strings, comments or numbers: syntax highlighting will be used for those when the corresponding tokens are not associated with any modifier. Syntax highlighting customization should be made via TextMate rules, which associate _scopes_ and a given style (color, font etc.). 
 
 You can use the [Developer: Inspect editor tokens and scopes](https://www.youtube.com/watch?v=mC_htrJ1QPg&ab_channel=Code2020) command to know the scope of a given token (see the screenshot below). 
