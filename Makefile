@@ -121,7 +121,7 @@ endif
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH_PLATFORM)
-	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
+	cp -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
 endif
 
 generate:
