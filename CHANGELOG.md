@@ -4,7 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
-## ## 2026.2.202604091
+## 2026.2.202604091
 
 * Implementation `textDocument/linkedEditingRange` for defining names
 * Support `textDocument/definition` for source file references in GPR files
