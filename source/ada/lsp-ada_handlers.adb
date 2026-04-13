@@ -26,6 +26,7 @@ with GNAT.OS_Lib;
 with LAL_Refactor.Generate_Package;
 with LAL_Refactor.Sort_Case;
 with LSP.Ada_Indexing;
+with LSP.Ada_Semantic_Diagnostics;
 with LSP.Env;
 with VSS.Characters.Latin;
 with VSS.Strings;
@@ -282,6 +283,7 @@ package body LSP.Ada_Handlers is
       if Self.Configuration.Ada_File_Diagnostics_Enabled
         or else Self.Configuration.Source_Info_Diagnostics_Enabled
         or else Self.Configuration.Project_Diagnostics_Enabled
+        or else Self.Configuration.Semantic_Diagnostics_Enabled
       then
          Diag.uri := Document.URI;
          Self.Sender.On_PublishDiagnostics_Notification (Diag);
@@ -401,6 +403,24 @@ package body LSP.Ada_Handlers is
          Index_Runtime   => False,
          Report_Progress => False);
    end Enqueue_Indexing;
+
+   -----------------------------------
+   -- Enqueue_Semantic_Diagnostics --
+   -----------------------------------
+
+   overriding
+   procedure Enqueue_Semantic_Diagnostics
+     (Self     : in out Message_Handler;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Ranges   : LSP.Structures.Range_Vector)
+   is
+   begin
+      LSP.Ada_Semantic_Diagnostics.Schedule_Semantic_Diagnostics_For_Change
+        (Server   => Self.Server,
+         Handler  => Self'Unchecked_Access,
+         Document => Document,
+         Ranges   => Ranges);
+   end Enqueue_Semantic_Diagnostics;
 
    ----------
    -- Free --
@@ -2541,6 +2561,13 @@ package body LSP.Ada_Handlers is
       --  Emit diagnostics
       Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
 
+      --  Schedule a full-document semantic diagnostics pass in the background.
+      Self.Enqueue_Semantic_Diagnostics
+        (Document => LSP.Ada_Documents.Document_Access (Object),
+         Ranges   =>
+           LSP.Structures.Range_Vector'
+             (LSP.Structures.Range_Vectors.Empty_Vector with null record));
+
       Self.Log_Method_Out ("Text_Document_Did_Open");
    end On_DidOpen_Notification;
 
@@ -4084,6 +4111,16 @@ package body LSP.Ada_Handlers is
 
       return Definition;
    end Resolve_Name;
+
+   ----------------------------------
+   -- Semantic_Diagnostics_Enabled --
+   ----------------------------------
+
+   function Semantic_Diagnostics_Enabled
+     (Self : Message_Handler'Class) return Boolean is
+   begin
+      return Self.Configuration.Semantic_Diagnostics_Enabled;
+   end Semantic_Diagnostics_Enabled;
 
    -------------------
    -- Send_Messages --

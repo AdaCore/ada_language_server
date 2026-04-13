@@ -115,6 +115,10 @@ package LSP.Ada_Handlers is
      (Self : Message_Handler'Class) return Boolean;
    --  Return True when source information diagnostics are enabled.
 
+   function Semantic_Diagnostics_Enabled
+     (Self : Message_Handler'Class) return Boolean;
+   --  Return True when semantic (name resolution) diagnostics are enabled.
+
    -----------------------------
    --  Open Document Manager  --
    -----------------------------
@@ -423,6 +427,13 @@ private
    procedure Enqueue_Indexing
      (Self : in out Message_Handler; File : GNATCOLL.VFS.Virtual_File);
    --  Reindex files and clear document.
+
+   overriding
+   procedure Enqueue_Semantic_Diagnostics
+     (Self     : in out Message_Handler;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Ranges   : LSP.Structures.Range_Vector);
+   --  Enqueue a Changed_Range semantic diagnostics job for Document.
 
    procedure Publish_Diagnostics
      (Self : in out Message_Handler; Force : Boolean := False);

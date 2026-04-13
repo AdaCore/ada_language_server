@@ -95,6 +95,11 @@
             "default": true,
             "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of Ada files."
         },
+        "semanticDiagnostics": {
+            "type": "boolean",
+            "default": true,
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the semantic analysis of Ada files."
+        },
         "gprFileDiagnostics": {
             "type": "boolean",
             "default": true,

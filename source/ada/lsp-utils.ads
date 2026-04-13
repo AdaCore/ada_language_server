@@ -75,6 +75,17 @@ package LSP.Utils is
    function Is_Empty_Range (Value : LSP.Structures.A_Range) return Boolean;
    --  Check if range is empty
 
+   function Overlaps (Left, Right : LSP.Structures.A_Range) return Boolean;
+   --  Return True when Left and Right share at least one point.
+   --  Two ranges overlap unless one ends strictly before the other begins.
+   --  A point P is contained in range R iff
+   --  Overlaps ((start => P, an_end => P), R).
+
+   function In_Range
+     (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
+      return Boolean;
+   --  Return True when Position is contained in Span's range.
+
    function Get_Location
      (Unit : Libadalang.Analysis.Analysis_Unit;
       Span : Langkit_Support.Slocs.Source_Location_Range)

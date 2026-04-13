@@ -96,6 +96,11 @@ package LSP.Ada_Configurations is
      (Self : Configuration'Class) return Boolean;
    --  Whether to publish source information diagnostics
 
+   function Semantic_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish semantic (name resolution) diagnostics.
+   --  Disabled by default pending production validation.
+
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
    --  Whether to publish diagnostics related to GPR files' edition. This
@@ -185,6 +190,7 @@ private
       GPR_File_Diagnostics_Enabled    : Boolean := True;
       Project_Diagnostics_Enabled     : Boolean := True;
       Source_Info_Diagnostics_Enabled : Boolean := True;
+      Semantic_Diagnostics_Enabled    : Boolean := True;
       Alire_Diagnostics_Enabled       : Boolean := True;
       Indexing_Enabled                : Boolean := True;
       Rename_In_Comments              : Boolean := False;
@@ -240,6 +246,11 @@ private
      (Self : Configuration'Class)
       return Boolean is
       (Self.Source_Info_Diagnostics_Enabled);
+
+   function Semantic_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is
+      (Self.Semantic_Diagnostics_Enabled);
 
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class)

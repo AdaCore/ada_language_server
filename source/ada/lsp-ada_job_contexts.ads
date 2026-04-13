@@ -118,6 +118,14 @@ package LSP.Ada_Job_Contexts is
      (Self : in out Ada_Job_Context;
       File : GNATCOLL.VFS.Virtual_File) is abstract;
 
+   procedure Enqueue_Semantic_Diagnostics
+     (Self     : in out Ada_Job_Context;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Ranges   : LSP.Structures.Range_Vector)
+        is abstract;
+   --  Enqueue a Changed_Range semantic diagnostics job for Document,
+   --  restricting analysis to the given changed ranges.
+
    function Contexts_For_File
      (Self : Ada_Job_Context;
       File : GNATCOLL.VFS.Virtual_File)

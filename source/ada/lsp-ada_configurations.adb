@@ -347,6 +347,11 @@ package body LSP.Ada_Configurations is
                Self.Source_Info_Diagnostics_Enabled := JSON (Index).Boolean_Value;
 
             elsif Check_Variable
+              (Name, JSON (Index).Kind, "semanticDiagnostics", Boolean_Value)
+            then
+               Self.Semantic_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
               (Name, JSON (Index).Kind, "adaFileDiagnostics", Boolean_Value)
             then
                Self.Ada_File_Diagnostics_Enabled := JSON (Index).Boolean_Value;

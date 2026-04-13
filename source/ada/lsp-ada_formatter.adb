@@ -332,17 +332,6 @@ package body LSP.Ada_Formatter is
 
          use Libadalang.Common;
 
-         function Is_Between
-           (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
-            return Boolean
-         is ((Position.line = Span.start.line
-              and then Position.character >= Span.start.character)
-             or else (Position.line = Span.an_end.line
-                      and then Position.character <= Span.an_end.character)
-             or else (Position.line > Span.start.line
-                      and then Position.line < Span.an_end.line));
-         --  Checks if Position is between Span
-
          function Sloc_Range
            (Token : Libadalang.Common.Token_Reference)
             return Langkit_Support.Slocs.Source_Location_Range is
@@ -406,7 +395,7 @@ package body LSP.Ada_Formatter is
          --  however, we can only do this if the cursor is not between the
          --  Formatting_Span nor we have a line between the cursor and span.
 
-         if Is_Between (Value.position, Formatting_Span)
+         if LSP.Utils.In_Range (Value.position, Formatting_Span)
            or else Too_Far_Away (Previous_NWNC_Token, Value.position.line)
          then
             Self.Parent.Context.Get_Trace_Handle.Trace
