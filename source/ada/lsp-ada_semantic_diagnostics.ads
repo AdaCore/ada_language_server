@@ -60,15 +60,12 @@ private
       --  Used to detect if the project was reloaded during execution,
       --  in which case results are discarded and the job is terminated.
 
-      Document      : LSP.Ada_Documents.Document_Access;
+      Document         : LSP.Ada_Documents.Document_Access;
       --  The document to analyze.
 
-<<<<<<< Updated upstream
-=======
       Document_Version : LSP.Structures.Integer_Or_Null;
       --  The document version at the time the job was enqueued.
 
->>>>>>> Stashed changes
       Ranges        : LSP.Structures.Range_Vector;
       --  The set of changed ranges to process.
 

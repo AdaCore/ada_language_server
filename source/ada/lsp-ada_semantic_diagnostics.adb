@@ -52,6 +52,7 @@ package body LSP.Ada_Semantic_Diagnostics is
       use Langkit_Support.Slocs;
       use Libadalang.Analysis;
       use Libadalang.Iterators;
+      use LSP.Structures;
       use type LSP.Ada_Handlers.Project_Stamp;
 
       procedure Process_Node (Node : Ada_Node);
@@ -135,6 +136,21 @@ package body LSP.Ada_Semantic_Diagnostics is
         or else Self.Handler.Is_Shutdown
       then
          --  Project was reloaded or the server is shutting down.
+         Free (Self.Cursor);
+         Status := LSP.Server_Jobs.Done;
+         return;
+      end if;
+
+      if Self.Ranges.Is_Empty
+        and then Self.Document.Identifier.version /= Self.Document_Version
+      then
+         --  This is a full-document traversal job, but the document has been
+         --  edited since it was enqueued.  A newer full-document job will
+         --  already be (or will soon be) in the queue, so discard this one to
+         --  avoid wasting CPU on a result that will be immediately superseded.
+         --  Per-range jobs are not cancelled here: each covers a distinct
+         --  changed region and should always run, even if other edits arrived
+         --  at different locations in the meantime.
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
          return;
@@ -250,17 +266,11 @@ package body LSP.Ada_Semantic_Diagnostics is
            new Semantic_Diagnostics_Job (Handler => Handler);
          Job_Access : LSP.Server_Jobs.Server_Job_Access;
       begin
-         Job.Project_Stamp := Handler.Get_Project_Stamp;
-<<<<<<< Updated upstream
-         Job.Document      := Document;
-         Job.Ranges        := Ranges;
-         Job_Access        := LSP.Server_Jobs.Server_Job_Access (Job);
-=======
-         Job.Document := Document;
+         Job.Project_Stamp    := Handler.Get_Project_Stamp;
+         Job.Document         := Document;
          Job.Document_Version := Document.Identifier.version;
-         Job.Ranges := Ranges;
-         Job_Access := LSP.Server_Jobs.Server_Job_Access (Job);
->>>>>>> Stashed changes
+         Job.Ranges           := Ranges;
+         Job_Access           := LSP.Server_Jobs.Server_Job_Access (Job);
          Server.Enqueue (Job_Access);
       end;
    end Schedule_Semantic_Diagnostics_For_Change;
