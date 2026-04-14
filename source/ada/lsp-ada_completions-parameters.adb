@@ -234,7 +234,7 @@ package body LSP.Ada_Completions.Parameters is
                                not (Is_First_Param and then Is_Dotted_Name)
                            then
                               Assoc.Param_Types.Include
-                                (Id,
+                                (Id.As_Ada_Node,
                                  (Node     => Param_Type.As_Ada_Node,
                                   Is_Value => False));
                               Assoc.Param_Vector.Append (Id.As_Ada_Node);
@@ -394,9 +394,9 @@ package body LSP.Ada_Completions.Parameters is
               --  or if the node is already present
               and then not Assoc.Param_Vector.Contains (Id.As_Ada_Node)
             then
-               if not Assoc.Param_Types.Contains (Id) then
+               if not Assoc.Param_Types.Contains (Id.As_Ada_Node) then
                   Assoc.Param_Types.Include
-                    (Id,
+                    (Id.As_Ada_Node,
                      (Node     => Param_Type.As_Ada_Node,
                       Is_Value => False));
                end if;
@@ -450,12 +450,12 @@ package body LSP.Ada_Completions.Parameters is
          end Is_Basic_Value;
       begin
          Assoc.Param_Vector.Append (Id.As_Ada_Node);
-         if not Assoc.Param_Types.Contains (Id) then
+         if not Assoc.Param_Types.Contains (Id.As_Ada_Node) then
             declare
                Disc_Values : constant Alternatives_List'Class := Values (Disc);
             begin
                Assoc.Param_Types.Include
-                 (Id,
+                 (Id.As_Ada_Node,
                   (Node     => Disc_Values.As_Ada_Node,
                    Is_Value => Is_Basic_Value (Disc_Values)));
             end;
@@ -692,7 +692,7 @@ package body LSP.Ada_Completions.Parameters is
                           Gen_Formal.F_Decl.P_Defining_Name.F_Name;
                      begin
                         Assoc.Param_Types.Include
-                          (Gen_Formal.F_Decl.P_Defining_Name.F_Name,
+                          (Gen_Formal.F_Decl.P_Defining_Name.F_Name.As_Ada_Node,
                            (Node     => Gen_Formal.As_Ada_Node,
                             Is_Value => False));
                         Assoc.Param_Vector.Append (Param_Name.As_Ada_Node);
