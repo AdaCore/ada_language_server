@@ -454,6 +454,11 @@ When this threshold is reached, old trace files get deleted automatically.
 The default number of preserved trace files is `10`.
 See the documentation on [ALS Traces](traces.md) for more information.
 
+### workspaceSearch
+
+Controls algorithm for workspace symbol search. Default is `fuzzy`. Other values are `startWord`,
+`approximate`, `regexp`, `fullText`. VS Code supports only `fuzzy` and `startWord` search.
+
 ### enableExperimentalFeatures
 
 This option enable the use of experimental features which are still under development.

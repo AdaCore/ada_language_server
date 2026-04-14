@@ -135,6 +135,19 @@
             "default": true,
             "description": "Controls the Ada Language Server normalizes the file paths received from the client."
         },
+        "workspaceSearch": {
+            "type": "string",
+            "enum": ["fuzzy", "startWord", "approximate", "regexp", "fullText"],
+            "enumDescriptions": [
+                "Fuzzy search (default)",
+                "Start word search",
+                "Approximate search",
+                "Regular expression search",
+                "Full text match search"
+            ],
+            "default": "fuzzy",
+            "description": "Controls algorithm for workspace symbol search."
+        },
         "logThreshold": {
             "type": "integer",
             "default": 10,
