@@ -49,6 +49,10 @@ package body LSP.Ada_Configurations is
         => VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).Transform
           (VSS.Transformers.Casing.To_Lowercase)];
 
+   Workspace_Search_Values :
+    constant VSS.String_Vectors.Virtual_String_Vector :=
+      ["fullText", "regexp", "fuzzy", "approximate", "startWord"];
+
    function "+" (X : VSS.Strings.Virtual_String'Class) return String renames
      VSS.Strings.Conversions.To_UTF_8_String;
 
@@ -75,6 +79,10 @@ package body LSP.Ada_Configurations is
       Messages : out VSS.String_Vectors.Virtual_String_Vector);
    --  Parse custom Ada configuration.
    --  Messages will contains warnings related to unknown configuration.
+
+   function Find
+     (List : VSS.String_Vectors.Virtual_String_Vector;
+      Item : VSS.Strings.Virtual_String) return Positive;
 
    ----------------
    -- Build_Path --
@@ -432,7 +440,20 @@ package body LSP.Ada_Configurations is
             then
                Self.Range_Formatting_Fallback := JSON (Index).Boolean_Value;
 
-            elsif Name = "showNotificationsOnErrors" or else Name = "metricThresholds"
+            elsif Check_Variable
+              (Name, JSON (Index).Kind,
+               "workspaceSearch", String_Value)
+            then
+               if Workspace_Search_Values.Contains (JSON (Index).String_Value)
+               then
+                  Self.Workspace_Search := LSP.Enumerations.AlsSearchKind'Val
+                     (Find
+                        (Workspace_Search_Values, JSON (Index).String_Value)
+                          - 1);
+               end if;
+
+            elsif Name = "showNotificationsOnErrors"
+              or else Name = "metricThresholds"
             then
                --  These are VS Code only settings, treated at the VS Code
                --  extension's level. We still include them here to mark them as
@@ -656,6 +677,21 @@ package body LSP.Ada_Configurations is
          return False;
       end if;
    end Diff;
+
+   ----------
+   -- Find --
+   ----------
+
+   function Find
+     (List : VSS.String_Vectors.Virtual_String_Vector;
+      Item : VSS.Strings.Virtual_String) return Positive is
+   begin
+      for J in 1 .. List.Last_Index when List (J) = Item loop
+         return J;
+      end loop;
+
+      raise Constraint_Error;
+   end Find;
 
    ------------------
    -- Needs_Reload --

@@ -3,6 +3,7 @@
 <!-- Do not change the title of this section. After a release create a new
 section below it for the last release. -->
 ## \<next>
+* Switch workspace symbol search to fuzzy search by default. The search algorithm can be changed through the `workspaceSearch` setting.
 
 ## 2026.2.202604091
 
