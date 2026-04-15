@@ -415,11 +415,43 @@ package body LSP.Ada_Handlers is
       Ranges   : LSP.Structures.Range_Vector)
    is
    begin
+      --  Always enqueue a job for the changed document.  When Ranges is
+      --  non-empty this is the "quick" job that gives fast local feedback.
       LSP.Ada_Semantic_Diagnostics.Schedule_Semantic_Diagnostics_For_Change
         (Server   => Self.Server,
          Handler  => Self'Unchecked_Access,
          Document => Document,
          Ranges   => Ranges);
+
+      if not Ranges.Is_Empty then
+         --  Follow up with a full re-check of the changed document to catch
+         --  cross-scope errors (e.g. return-type change that breaks callers
+         --  in the same file).
+         LSP.Ada_Semantic_Diagnostics.Schedule_Semantic_Diagnostics_For_Change
+           (Server   => Self.Server,
+            Handler  => Self'Unchecked_Access,
+            Document => Document);
+
+         --  Also schedule a full re-check of every other open document so
+         --  that call-sites in other files report errors too (e.g. changing
+         --  a subprogram parameter type).
+         for Cursor in Self.Open_Documents.Iterate loop
+            declare
+               use LSP.Ada_Documents;
+               Other_Opened_Doc : constant LSP.Ada_Documents.Document_Access :=
+                 LSP.Ada_Documents.Document_Access
+                   (Document_Maps.Element (Cursor));
+            begin
+               if Other_Opened_Doc /= Document then
+                  LSP.Ada_Semantic_Diagnostics
+                    .Schedule_Semantic_Diagnostics_For_Change
+                      (Server   => Self.Server,
+                       Handler  => Self'Unchecked_Access,
+                       Document => Other_Opened_Doc);
+               end if;
+            end;
+         end loop;
+      end if;
    end Enqueue_Semantic_Diagnostics;
 
    ----------

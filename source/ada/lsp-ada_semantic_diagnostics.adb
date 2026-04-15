@@ -29,7 +29,6 @@ with GNATCOLL.VFS;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents.Semantic_Diagnostics;
 with LSP.Servers;
-with LSP.Utils;
 
 package body LSP.Ada_Semantic_Diagnostics is
 
@@ -70,21 +69,6 @@ package body LSP.Ada_Semantic_Diagnostics is
          --  can have semantic diagnostics attached.
          if not Node.P_Xref_Entry_Point then
             return;
-         end if;
-
-         --  When processing specific changed ranges, skip nodes that do not
-         --  overlap any of those ranges.
-         if not Self.Ranges.Is_Empty then
-            declare
-               Node_Range : constant LSP.Structures.A_Range :=
-                 LSP.Utils.To_Range (Node.Sloc_Range);
-            begin
-               if not (for some R of Self.Ranges =>
-                         LSP.Utils.Overlaps (Node_Range, R))
-               then
-                  return;
-               end if;
-            end;
          end if;
 
          --  Process this xref entry point.
@@ -190,6 +174,7 @@ package body LSP.Ada_Semantic_Diagnostics is
                      Start := Node.Parent;
                   end if;
                end;
+
             end if;
 
             Self.Cursor := new Traverse_Iterator'Class'(Traverse (Start));
@@ -204,6 +189,12 @@ package body LSP.Ada_Semantic_Diagnostics is
          begin
             if not Self.Cursor.Next (Node) then
                --  Iterator exhausted: deposit accumulated results and publish.
+               --  Pass Self.Traversal_Range as the eviction boundary:
+               --  - not set (full-document job) → the cache is fully replaced;
+               --  - set (per-range job) → only diagnostics inside the
+               --    traversal root's extent are evicted and replaced, which
+               --    correctly covers nodes larger than the original didChange
+               --    Ranges.
                declare
                   Semantic_Diags_Source :
                     constant LSP
@@ -217,7 +208,8 @@ package body LSP.Ada_Semantic_Diagnostics is
                            (Self.Document.Semantic_Diagnostic_Source);
                begin
                   Semantic_Diags_Source.Update_Diagnostics
-                    (Self.Errors, Self.Ranges);
+                    (Errors => Self.Errors,
+                     Eviction_Range => Self.Traversal_Range);
                   Self.Handler.Publish_Diagnostics (Self.Document);
                end;
 
@@ -254,7 +246,7 @@ package body LSP.Ada_Semantic_Diagnostics is
      (Server   : not null access LSP.Servers.Server'Class;
       Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Document : not null LSP.Ada_Documents.Document_Access;
-      Ranges   : LSP.Structures.Range_Vector) is
+      Ranges   : LSP.Structures.Range_Vector := []) is
    begin
       if not Handler.Semantic_Diagnostics_Enabled or else Handler.Is_Shutdown
       then

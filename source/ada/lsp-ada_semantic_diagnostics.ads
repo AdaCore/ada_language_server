@@ -34,7 +34,7 @@ package LSP.Ada_Semantic_Diagnostics is
      (Server   : not null access LSP.Servers.Server'Class;
       Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Document : not null LSP.Ada_Documents.Document_Access;
-      Ranges   : LSP.Structures.Range_Vector);
+      Ranges   : LSP.Structures.Range_Vector := []);
    --  Create and enqueue a semantic diagnostics job for Document.
    --  When Ranges is empty the entire document is (re)computed and the cache
    --  is replaced. Otherwise only nodes overlapping Ranges are visited and
@@ -60,20 +60,25 @@ private
       --  Used to detect if the project was reloaded during execution,
       --  in which case results are discarded and the job is terminated.
 
-      Document         : LSP.Ada_Documents.Document_Access;
+      Document : LSP.Ada_Documents.Document_Access;
       --  The document to analyze.
 
       Document_Version : LSP.Structures.Integer_Or_Null;
       --  The document version at the time the job was enqueued.
 
-      Ranges        : LSP.Structures.Range_Vector;
+      Ranges : LSP.Structures.Range_Vector;
       --  The set of changed ranges to process.
 
-      Cursor        : Traverse_Iterator_Access := null;
+      Cursor : Traverse_Iterator_Access := null;
       --  Iterator tracking the current node being processed.
 
-      Errors        : LSP.Structures.Diagnostic_Vector;
+      Errors : LSP.Structures.Diagnostic_Vector;
       --  Diagnostics accumulated across Execute calls.
+
+      Traversal_Range : LSP.Structures.A_Range_Optional;
+      --  The LSP range of the traversal root node (only set for per-range
+      --  jobs).  All xref entry-points inside this range are re-checked, so
+      --  it is also the correct eviction boundary for the diagnostic cache.
    end record;
 
    overriding function Priority

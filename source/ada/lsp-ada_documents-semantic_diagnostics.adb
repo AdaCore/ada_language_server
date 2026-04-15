@@ -62,22 +62,21 @@ package body LSP.Ada_Documents.Semantic_Diagnostics is
    -------------------------
 
    procedure Update_Diagnostics
-     (Self   : in out Diagnostic_Source;
-      Errors : LSP.Structures.Diagnostic_Vector;
-      Ranges : LSP.Structures.Range_Vector)
+     (Self           : in out Diagnostic_Source;
+      Errors         : LSP.Structures.Diagnostic_Vector;
+      Eviction_Range : LSP.Structures.A_Range_Optional)
    is
    begin
-      if Ranges.Is_Empty then
+      if not Eviction_Range.Is_Set then
          Self.Cached_Errors := Errors;
       else
-         --  Evict cached diagnostics that fall within any changed range,
-         --  then append the newly computed ones for those ranges.
+         --  Evict cached diagnostics that overlap the traversal range,
+         --  then append the newly computed ones.
          declare
             New_Cache : LSP.Structures.Diagnostic_Vector;
          begin
             for Diag of Self.Cached_Errors loop
-               if not (for some R of Ranges =>
-                         LSP.Utils.Overlaps (Diag.a_range, R))
+               if not LSP.Utils.Overlaps (Diag.a_range, Eviction_Range.Value)
                then
                   New_Cache.Append (Diag);
                end if;
