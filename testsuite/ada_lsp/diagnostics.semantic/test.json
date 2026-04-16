@@ -162,6 +162,71 @@
       }
    },
    {
+      "comment": "Disable semantic diagnostics, expect diagnostics cleared"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Re-enable semantic diagnostics, expect diagnostics republished"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 18 },
+                           "end": { "line": 1, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
       "send": {
          "request": {
             "jsonrpc": "2.0",

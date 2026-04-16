@@ -30,8 +30,13 @@ package body LSP.Ada_Documents.Semantic_Diagnostics is
    is
       pragma Unreferenced (Context);
    begin
-      Errors.Append_Vector (Self.Cached_Errors);
-      Self.Has_Unpublished_Results := False;
+      if Self.Is_Enabled then
+         Errors.Append_Vector (Self.Cached_Errors);
+         Self.Has_Unpublished_Results := False;
+      else
+         Self.Cached_Errors := [];
+         Self.Has_Unpublished_Results := False;
+      end if;
    end Get_Diagnostics;
 
    ------------------------
@@ -42,8 +47,17 @@ package body LSP.Ada_Documents.Semantic_Diagnostics is
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context) return Boolean
    is
-      pragma Unreferenced (Context);
+      Is_Enabled : constant Boolean :=
+        Self.Handler.Semantic_Diagnostics_Enabled;
    begin
+      --  The 'semanticDiagnostics' option has just changed: always return
+      --  True in this case (e.g: to clear any existing diagnostic when the
+      --  option gets disabled)
+      if Self.Enabled /= Is_Enabled then
+         Self.Enabled := Is_Enabled;
+         Self.Has_Unpublished_Results := True;
+      end if;
+
       return Self.Has_Unpublished_Results;
    end Has_New_Diagnostic;
 

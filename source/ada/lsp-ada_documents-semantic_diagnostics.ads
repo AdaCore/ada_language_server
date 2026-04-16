@@ -71,6 +71,10 @@ private
       --  Set to True by background jobs when they deposit new results, and
       --  reset to False by when the client gets the diagnostics to publish
       --  them.
+
+      Enabled : Boolean := True;
+      --  Used to keep track of the 'semanticDiagnostics' option, which
+      --  enables/disables semantic diagnostics.
    end record;
 
 end LSP.Ada_Documents.Semantic_Diagnostics;
