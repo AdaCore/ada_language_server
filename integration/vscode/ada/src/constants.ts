@@ -66,6 +66,12 @@ export const CMD_SPARK_ASK_OPTIONS = 'ada.spark.askGNATproveOptions';
 export const CMD_SPARK_CURRENT_GNATPROVE_OPTIONS = 'ada.spark.gnatproveOptions';
 
 /**
+ * Identifier for a hidden command that deletes the metrics XML file for a specific source file.
+ * The command accepts a parameter which is the URI of the source file.
+ */
+export const CMD_DELETE_METRICS_FOR_FILE = 'ada.deleteMetricsForFile';
+
+/**
  * Identifier for the command that opens the extension's user's guide.
  */
 export const CMD_OPEN_USERS_GUIDE = 'ada.openUsersGuide';

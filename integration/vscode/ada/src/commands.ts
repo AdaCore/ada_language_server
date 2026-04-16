@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, unlinkSync } from 'fs';
 import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind, commands } from 'vscode';
@@ -14,6 +14,7 @@ import {
     CMD_BUILD_AND_RUN_MAIN,
     CMD_GET_OBJECT_DIR,
     CMD_GPR_PROJECT_ARGS,
+    CMD_DELETE_METRICS_FOR_FILE,
     CMD_OPEN_USERS_GUIDE,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
@@ -30,6 +31,7 @@ import {
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { loadGnatCoverageReport } from './gnattest';
+import { findMetricsXmlForSource } from './metricsUtils';
 import {
     findAdaMain,
     getProjectFileRelPath,
@@ -193,6 +195,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_DELETE_METRICS_FOR_FILE, deleteMetricsForFile),
     );
 
     context.subscriptions.push(
@@ -1258,5 +1263,28 @@ async function loadGnatCovXMLReport() {
             );
         }
         await loadGnatCoverageReport(path);
+    }
+}
+
+/**
+ * This is a command handler that deletes the metrics XML file for the specified source file.
+ * Also clears any associated diagnostics and refreshes the CodeLenses.
+ *
+ * @param fileUri - the URI of the source file whose metrics should be deleted
+ */
+async function deleteMetricsForFile(fileUri: vscode.Uri) {
+    const objectDir = await adaExtState.getObjectDir();
+    const metricsXml = findMetricsXmlForSource(fileUri.fsPath, objectDir);
+
+    if (metricsXml && existsSync(metricsXml)) {
+        try {
+            unlinkSync(metricsXml);
+            adaExtState.metricDiagnostics.delete(fileUri);
+            adaExtState.codelensProvider.refresh();
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to delete metrics file: ${(error as Error).message}`,
+            );
+        }
     }
 }

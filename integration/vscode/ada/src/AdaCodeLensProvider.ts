@@ -17,6 +17,7 @@ import {
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
     CMD_SPARK_PROVE_SUBP,
+    CMD_DELETE_METRICS_FOR_FILE,
 } from './constants';
 import { envHasExec, getSymbols } from './helpers';
 import { findMetricsXmlForSource, formatMetric, parseMetricsXml } from './metricsUtils';
@@ -81,6 +82,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
             const parsed = await parseMetricsXml(metricsXml);
             if (parsed && Array.isArray(parsed.units)) {
                 const { units, displayNames } = parsed;
+
                 for (const unit of units) {
                     if (unit.sloc) {
                         const metrics: string[] = [];
@@ -94,6 +96,13 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                                 new CodeLens(new vscode.Range(unit.sloc, unit.sloc), {
                                     title: summary,
                                     command: '',
+                                }),
+                            );
+                            codeLenses.push(
+                                new CodeLens(new vscode.Range(unit.sloc, unit.sloc), {
+                                    title: '$(trash)',
+                                    command: CMD_DELETE_METRICS_FOR_FILE,
+                                    arguments: [document.uri],
                                 }),
                             );
                         }
