@@ -15,9 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Hashed_Maps;
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
-with Ada.Containers.Indefinite_Vectors;
+with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Vectors;
 with Laltools.Common;
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 with Libadalang.Analysis;   use Libadalang.Analysis;
@@ -25,7 +25,7 @@ with VSS.Strings;           use VSS.Strings;
 
 package LSP.Ada_Completions.Generic_Assoc_Utils is
 
-   type Param (Is_Named : Boolean) is record
+   type Param (Is_Named : Boolean := False) is record
       case Is_Named is
          when True =>
             --  Node containing the name of the param
@@ -36,15 +36,10 @@ package LSP.Ada_Completions.Generic_Assoc_Utils is
       end case;
    end record;
 
-   package Param_Vectors is new Ada.Containers.Indefinite_Vectors
+   package Param_Vectors is new Ada.Containers.Vectors
      (Index_Type   => Natural,
       Element_Type => Param,
       "="          => "=");
-
-   function Hash
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return Ada.Containers.Hash_Type is
-     (Libadalang.Analysis.Hash (Node.As_Ada_Node));
 
    type Assoc_Type is record
       Node     : Libadalang.Analysis.Ada_Node;
@@ -53,8 +48,8 @@ package LSP.Ada_Completions.Generic_Assoc_Utils is
       --  True if Node.Text represents a value and not a type
    end record;
 
-   package Param_To_Type_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-     (Key_Type        => Libadalang.Analysis.Ada_Node'Class,
+   package Param_To_Type_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Libadalang.Analysis.Ada_Node,
       Element_Type    => Assoc_Type,
       Hash            => Hash,
       Equivalent_Keys => Libadalang.Analysis."=",
@@ -84,7 +79,7 @@ package LSP.Ada_Completions.Generic_Assoc_Utils is
    end record;
 
    package Assoc_Data_Lists is new
-     Ada.Containers.Indefinite_Doubly_Linked_Lists
+     Ada.Containers.Doubly_Linked_Lists
        (Element_Type => Assoc_Data,
         "="          => "=");
    --  List of all the possible "profile"
