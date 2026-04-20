@@ -593,6 +593,31 @@ package body LSP.Utils is
       end;
    end Span_To_Slice;
 
+   -------------
+   -- Overlaps --
+   -------------
+
+   function Overlaps (Left, Right : LSP.Structures.A_Range) return Boolean is
+      function Before
+        (L, R : LSP.Structures.Position) return Boolean is
+          (L.line < R.line
+             or else (L.line = R.line and then L.character < R.character));
+      --  Return True when L is strictly before R.
+   begin
+      --  Two ranges overlap unless one ends strictly before the other begins.
+      return not (Before (Left.an_end, Right.start)
+                    or else Before (Right.an_end, Left.start));
+   end Overlaps;
+
+   --------------
+   -- In_Range --
+   --------------
+
+   function In_Range
+     (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
+      return Boolean
+   is (Overlaps ((start => Position, an_end => Position), Span));
+
    --------------
    -- To_Range --
    --------------

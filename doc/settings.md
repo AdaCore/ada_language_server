@@ -111,6 +111,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [gprFileDiagnostics](#gprfilediagnostics)
 * [sourceInfoDiagnostics](#sourceinfodiagnostics)
 * [projectDiagnostics](#projectdiagnostics)
+* [semanticDiagnostics](#semanticdiagnostics)
 * [alireDiagnostics](#alirediagnostics)
 * [enableIndexing](#enableindexing)
 * [renameInComments](#renameincomments)
@@ -290,6 +291,15 @@ The value is a boolean.
 
 ```javascript
     'projectDiagnostics': false
+```
+
+### semanticDiagnostics
+
+You can explicitly deactivate the emission of semantic diagnosticsvia the `semanticDiagnostics` key. By default, diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'semanticDiagnostics': false
 ```
 
 ### alireDiagnostics

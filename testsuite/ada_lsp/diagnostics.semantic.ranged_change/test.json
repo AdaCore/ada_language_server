@@ -1,0 +1,164 @@
+[
+   {
+      "comment": [
+         "Regression: a ranged didChange must not duplicate diagnostics that lie",
+         "outside the change range but inside the same xref entry-point node.",
+         "",
+         "pkg.ads has `X : Integer := False` (diagnostic) on line 2 and",
+         "`procedure Bar` on line 1.  A ranged change renaming Bar -> Baz",
+         "touches only line 1; but the xref entry-point (the whole package spec)",
+         "covers both lines.  The cached diagnostic at line 2 must be evicted",
+         "via the traversal root's range and re-added exactly once -- not",
+         "duplicated."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Pkg is\n   procedure Bar;\n   X : Integer := False;\nend Pkg;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 2, "character": 18 },
+                           "end": { "line": 2, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": [
+         "Ranged change: rename Bar -> Baz on line 1 only.",
+         "The didChange range (line 1, chars 13-16) does not overlap the",
+         "diagnostic at line 2, but the traversal root (the package spec)",
+         "covers both.  Expect exactly one diagnostic at line 2, not two."
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": { "line": 1, "character": 13 },
+                        "end": { "line": 1, "character": 16 }
+                     },
+                     "rangeLength": 3,
+                     "text": "Baz"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 2, "character": 18 },
+                           "end": { "line": 2, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

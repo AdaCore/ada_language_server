@@ -48,6 +48,13 @@ package LSP.Ada_Configurations is
    --  order-insensitive comparison. That means that a simple change in the
    --  order of scenario variables doesn't trigger a reload, which is nice.
 
+   function Needs_Semantic_Diagnostics_Refresh
+     (Self : Configuration; Other : Configuration'Class) return Boolean;
+   --  Compare the given configurations and return whether or not semantic
+   --  diagnostics need to be refreshed.
+   --  This is used to determine whether or not to enqueue semantic diagnostics
+   --  after a configuration change.
+
    procedure Read_JSON
      (Self     : in out Configuration'Class;
       JSON     : LSP.Structures.LSPAny;
@@ -95,6 +102,11 @@ package LSP.Ada_Configurations is
    function Source_Info_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
    --  Whether to publish source information diagnostics
+
+   function Semantic_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish semantic (name resolution) diagnostics.
+   --  Disabled by default pending production validation.
 
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
@@ -185,6 +197,7 @@ private
       GPR_File_Diagnostics_Enabled    : Boolean := True;
       Project_Diagnostics_Enabled     : Boolean := True;
       Source_Info_Diagnostics_Enabled : Boolean := True;
+      Semantic_Diagnostics_Enabled    : Boolean := True;
       Alire_Diagnostics_Enabled       : Boolean := True;
       Indexing_Enabled                : Boolean := True;
       Rename_In_Comments              : Boolean := False;
@@ -240,6 +253,11 @@ private
      (Self : Configuration'Class)
       return Boolean is
       (Self.Source_Info_Diagnostics_Enabled);
+
+   function Semantic_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is
+      (Self.Semantic_Diagnostics_Enabled);
 
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class)

@@ -1,0 +1,175 @@
+[
+   {
+      "comment": [
+         "Test that a semantic diagnostics full re-check of other open files is ",
+         "triggered after a didChange."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": "Open pkg.ads (clean) and main.adb (clean) - expect no diagnostics"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Pkg is\n   procedure Proc (X : Integer);\nend Pkg;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Pkg;\nprocedure Main is\nbegin\n   Pkg.Proc (42);\nend Main;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/main.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": [
+         "Change in pkg.ads: replace `Integer` with `Boolean` on line 1.",
+         "Expect a diagnostic in main.adb for the call to Pkg.Proc, since the parameter type ",
+         "has changed and the file is open (semantic diagnostics full re-check should be triggered)."
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": { "line": 1, "character": 23 },
+                        "end": { "line": 1, "character": 30 }
+                     },
+                     "rangeLength": 7,
+                     "text": "Boolean"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 3, "character": 13 },
+                           "end": { "line": 3, "character": 15 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Boolean, got universal integer"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

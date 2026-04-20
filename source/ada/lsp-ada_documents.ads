@@ -23,6 +23,8 @@ with Gnatformat.Configuration;
 with LSP.Utils;
 with VSS.Strings;
 
+with LSP.Structures;
+
 with Libadalang.Analysis;
 with Libadalang.Common;
 with Langkit_Support.Slocs;
@@ -35,7 +37,6 @@ with LSP.Constants;
 with LSP.Diagnostic_Sources; use LSP.Diagnostic_Sources;
 with LSP.Text_Documents.Langkit_Documents;
 with LSP.Search;
-with LSP.Structures;
 with LSP.Tracers;
 
 package LSP.Ada_Documents is
@@ -198,6 +199,12 @@ package LSP.Ada_Documents is
 
    procedure Reset_Symbol_Cache (Self : in out Document'Class);
    --  Clean cache for defining name symbols of the document.
+
+   function Semantic_Diagnostic_Source
+     (Self : in out Document)
+      return LSP.Diagnostic_Sources.Diagnostic_Source_Access;
+   --  Return the semantic diagnostic source for this document.
+   --  Used by background jobs to deposit computed results.
 
    -----------------------
    -- Document_Provider --
