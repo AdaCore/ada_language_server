@@ -727,4 +727,18 @@ package body LSP.Ada_Configurations is
       return Reload;
    end Needs_Reload;
 
+   ----------------------------------------
+   -- Needs_Semantic_Diagnostics_Refresh --
+   ----------------------------------------
+
+   function Needs_Semantic_Diagnostics_Refresh
+     (Self : Configuration; Other : Configuration'Class) return Boolean is
+   begin
+      return
+        Diff
+          (Self.Semantic_Diagnostics_Enabled,
+           Other.Semantic_Diagnostics_Enabled,
+           "semanticDiagnostics");
+   end Needs_Semantic_Diagnostics_Refresh;
+
 end LSP.Ada_Configurations;

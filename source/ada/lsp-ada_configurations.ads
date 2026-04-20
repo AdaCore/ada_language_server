@@ -48,6 +48,13 @@ package LSP.Ada_Configurations is
    --  order-insensitive comparison. That means that a simple change in the
    --  order of scenario variables doesn't trigger a reload, which is nice.
 
+   function Needs_Semantic_Diagnostics_Refresh
+     (Self : Configuration; Other : Configuration'Class) return Boolean;
+   --  Compare the given configurations and return whether or not semantic
+   --  diagnostics need to be refreshed.
+   --  This is used to determine whether or not to enqueue semantic diagnostics
+   --  after a configuration change.
+
    procedure Read_JSON
      (Self     : in out Configuration'Class;
       JSON     : LSP.Structures.LSPAny;

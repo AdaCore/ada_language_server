@@ -411,46 +411,84 @@ package body LSP.Ada_Handlers is
    overriding
    procedure Enqueue_Semantic_Diagnostics
      (Self     : in out Message_Handler;
-      Document : not null LSP.Ada_Documents.Document_Access;
-      Ranges   : LSP.Structures.Range_Vector)
+      Document : LSP.Ada_Documents.Document_Access := null;
+      Ranges   : LSP.Structures.Range_Vector := [])
    is
-   begin
-      --  Always enqueue a job for the changed document.  When Ranges is
-      --  non-empty this is the "quick" job that gives fast local feedback.
-      LSP.Ada_Semantic_Diagnostics.Schedule_Semantic_Diagnostics_For_Change
-        (Server   => Self.Server,
-         Handler  => Self'Unchecked_Access,
-         Document => Document,
-         Ranges   => Ranges);
+      use type LSP.Ada_Documents.Document_Access;
 
-      if not Ranges.Is_Empty then
-         --  Follow up with a full re-check of the changed document to catch
-         --  cross-scope errors (e.g. return-type change that breaks callers
-         --  in the same file).
+      procedure Schedule
+        (Doc : LSP.Ada_Documents.Document_Access;
+         R   : LSP.Structures.Range_Vector := []);
+      --  Create and enqueue a semantic diagnostics job for the given
+      --  document.
+      --  When R is non-empty, this is the "quick" job that gives
+      --  fast local feedback.
+
+      procedure Schedule_All_Open
+        (Except : LSP.Ada_Documents.Document_Access := null);
+      --  Create and enqueue a semantic diagnostics job for all open documents
+      --  except for Except if given. This is used after a document change to
+      --  give feedback on all the call sites in the project.
+
+      --------------
+      -- Schedule --
+      --------------
+
+      procedure Schedule
+        (Doc : LSP.Ada_Documents.Document_Access;
+         R   : LSP.Structures.Range_Vector := [])
+      is
+      begin
          LSP.Ada_Semantic_Diagnostics.Schedule_Semantic_Diagnostics_For_Change
            (Server   => Self.Server,
             Handler  => Self'Unchecked_Access,
-            Document => Document);
+            Document => Doc,
+            Ranges   => R);
+      end Schedule;
 
-         --  Also schedule a full re-check of every other open document so
-         --  that call-sites in other files report errors too (e.g. changing
-         --  a subprogram parameter type).
+      -----------------------
+      -- Schedule_All_Open --
+      -----------------------
+
+      procedure Schedule_All_Open
+        (Except : LSP.Ada_Documents.Document_Access := null)
+      is
+      begin
          for Cursor in Self.Open_Documents.Iterate loop
             declare
-               use LSP.Ada_Documents;
-               Other_Opened_Doc : constant LSP.Ada_Documents.Document_Access :=
+               Doc : constant LSP.Ada_Documents.Document_Access :=
                  LSP.Ada_Documents.Document_Access
                    (Document_Maps.Element (Cursor));
             begin
-               if Other_Opened_Doc /= Document then
-                  LSP.Ada_Semantic_Diagnostics
-                    .Schedule_Semantic_Diagnostics_For_Change
-                      (Server   => Self.Server,
-                       Handler  => Self'Unchecked_Access,
-                       Document => Other_Opened_Doc);
+               if Doc /= Except then
+                  Schedule (Doc);
                end if;
             end;
          end loop;
+      end Schedule_All_Open;
+
+   begin
+      if Document /= null then
+         --  Always enqueue a job for the changed document.  When Ranges is
+         --  non-empty this is the "quick" job that gives fast local feedback.
+         Schedule (Document, Ranges);
+
+         if not Ranges.Is_Empty then
+            --  Follow up with a full re-check of the changed document to catch
+            --  cross-scope errors (e.g. return-type change that breaks callers
+            --  in the same file).
+            Schedule (Document);
+
+            --  Also schedule a full re-check of every other open document so
+            --  that call-sites in other files report errors too (e.g. changing
+            --  a subprogram parameter type).
+            Schedule_All_Open (Except => Document);
+         end if;
+      else
+         --  No document is given: this is a global refresh, e.g. after a
+         --  configuration change. Enqueue a full re-check for all open
+         --  documents.
+         Schedule_All_Open;
       end if;
    end Enqueue_Semantic_Diagnostics;
 
@@ -4018,13 +4056,19 @@ package body LSP.Ada_Handlers is
    overriding
    procedure Refresh_Diagnostics (Self : in out Message_Handler) is
    begin
+      --  Refresh diagnostics for all open documents
       for Document of Self.Open_Documents loop
          Self.Publish_Diagnostics
            (Document => LSP.Ada_Documents.Document_Access (Document),
             Force    => True);
       end loop;
 
+      --  Refresh diagnostics for the workspace itself
       Self.Publish_Diagnostics (Force => True);
+
+      --  Enqueue semantic diagnostics after all the document and
+      --  workspace diagnostics have been refreshed.
+      Self.Enqueue_Semantic_Diagnostics;
    end Refresh_Diagnostics;
 
    --------------------

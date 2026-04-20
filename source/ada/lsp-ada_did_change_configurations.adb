@@ -143,6 +143,12 @@ package body LSP.Ada_Did_Change_Configurations is
          Self.Context.Increment_Project_Timestamp;
       end if;
 
+      if Current_Config.Needs_Semantic_Diagnostics_Refresh (New_Config) then
+         Self.Context.Get_Trace_Handle.Trace
+           ("Scheduling a semantic diagnostics refresh because of the configuration change");
+         Self.Context.Enqueue_Semantic_Diagnostics;
+      end if;
+
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 

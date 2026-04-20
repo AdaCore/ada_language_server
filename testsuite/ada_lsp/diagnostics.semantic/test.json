@@ -16,7 +16,16 @@
             "jsonrpc": "2.0",
             "id": 0,
             "method": "initialize",
-            "params": {}
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {},
+               "initializationOptions": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": false
+                  }
+               }
+            }
          },
          "wait": []
       }
@@ -32,24 +41,10 @@
       }
    },
    {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "workspace/didChangeConfiguration",
-            "params": {
-               "settings": {
-                  "ada": {
-                     "projectFile": "$URI{default.gpr}",
-                     "semanticDiagnostics": true
-                  }
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "comment": "Open file with unresolved name, expect 'no such entity' diagnostic"
+      "comment": [
+         "Open file with unresolved name, expect no diagnostics ",
+         "since semantic diagnostics are disabled"
+      ]
    },
    {
       "send": {
@@ -62,6 +57,33 @@
                   "languageId": "ada",
                   "version": 1,
                   "text": "package Pkg is\n   X : Integer := Does_Not_Exist;\nend Pkg;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Enable semantic diagnostics, expect diagnostics published"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "semanticDiagnostics": true
+                  }
                }
             }
          },
@@ -172,7 +194,6 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{default.gpr}",
                      "semanticDiagnostics": false
                   }
                }
@@ -200,7 +221,6 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{default.gpr}",
                      "semanticDiagnostics": true
                   }
                }

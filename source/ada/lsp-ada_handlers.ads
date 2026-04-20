@@ -431,9 +431,13 @@ private
    overriding
    procedure Enqueue_Semantic_Diagnostics
      (Self     : in out Message_Handler;
-      Document : not null LSP.Ada_Documents.Document_Access;
-      Ranges   : LSP.Structures.Range_Vector);
-   --  Enqueue a Changed_Range semantic diagnostics job for Document.
+      Document : LSP.Ada_Documents.Document_Access := null;
+      Ranges   : LSP.Structures.Range_Vector := []);
+   --  Enqueue semantic diagnostics for Document.
+   --  If Document is null then enqueue for all open documents, otherwise
+   --  only for the given document.
+   --  If Ranges is not empty and if a document is given then enqueue diagnostics
+   --  only for the given ranges.
 
    procedure Publish_Diagnostics
      (Self : in out Message_Handler; Force : Boolean := False);
