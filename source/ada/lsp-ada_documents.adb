@@ -1059,15 +1059,15 @@ package body LSP.Ada_Documents is
       Self.Refresh_Symbol_Cache := True;
 
       Self.Diagnostic_Sources :=
-        [new LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
+        (Syntax        => new LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
                (Handler => Handler'Unrestricted_Access,
                 Document => Self'Unrestricted_Access),
-         new LSP.Ada_Documents.Source_Info_Diagnostics.Diagnostic_Source
+         Source_Info   => new LSP.Ada_Documents.Source_Info_Diagnostics.Diagnostic_Source
                (Handler => Handler'Unrestricted_Access,
                 Document => Self'Unrestricted_Access),
-        new LSP.Ada_Documents.Semantic_Diagnostics.Diagnostic_Source
-              (Handler => Handler'Unrestricted_Access,
-               Document => Self'Unrestricted_Access)];
+         Semantic      => new LSP.Ada_Documents.Semantic_Diagnostics.Diagnostic_Source
+               (Handler => Handler'Unrestricted_Access,
+                Document => Self'Unrestricted_Access));
    end Initialize;
 
    ------------------
@@ -1205,7 +1205,7 @@ package body LSP.Ada_Documents is
       return LSP.Diagnostic_Sources.Diagnostic_Source_Access
    is
    begin
-      return Self.Diagnostic_Sources (3);
+      return Self.Diagnostic_Sources (Semantic);
    end Semantic_Diagnostic_Source;
 
    ---------------------------------------

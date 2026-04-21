@@ -2631,7 +2631,7 @@ package body LSP.Ada_Handlers is
       --  Emit diagnostics
       Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
 
-      --  Schedule a full-document semantic diagnostics pass in the background.
+      --  Schedule a full-document semantic diagnostics low priority job.
       Self.Enqueue_Semantic_Diagnostics
         (Document => LSP.Ada_Documents.Document_Access (Object),
          Ranges   =>

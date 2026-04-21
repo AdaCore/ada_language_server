@@ -76,10 +76,7 @@ package LSP.Utils is
    --  Check if range is empty
 
    function Overlaps (Left, Right : LSP.Structures.A_Range) return Boolean;
-   --  Return True when Left and Right share at least one point.
-   --  Two ranges overlap unless one ends strictly before the other begins.
-   --  A point P is contained in range R iff
-   --  Overlaps ((start => P, an_end => P), R).
+   --  Return True if Left and Right ranges overlap.
 
    function In_Range
      (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)

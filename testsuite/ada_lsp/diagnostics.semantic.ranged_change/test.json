@@ -3,7 +3,6 @@
       "comment": [
          "Regression: a ranged didChange must not duplicate diagnostics that lie",
          "outside the change range but inside the same xref entry-point node.",
-         "",
          "pkg.ads has `X : Integer := False` (diagnostic) on line 2 and",
          "`procedure Bar` on line 1.  A ranged change renaming Bar -> Baz",
          "touches only line 1; but the xref entry-point (the whole package spec)",
