@@ -211,8 +211,7 @@ package body LSP.Ada_Semantic_Diagnostics is
                            (Self.Document.Semantic_Diagnostic_Source);
                begin
                   Semantic_Diags_Source.Update_Diagnostics
-                    (Errors => Self.Errors,
-                     Eviction_Range => Self.Traversal_Range);
+                    (Errors => Self.Errors);
                   Self.Handler.Publish_Diagnostics (Self.Document);
                end;
 
