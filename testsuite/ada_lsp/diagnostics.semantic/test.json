@@ -1,0 +1,271 @@
+[
+   {
+      "comment": [
+         "Test that semantic diagnostics (P_Nameres_Diagnostics) are published",
+         "on didOpen when semanticDiagnostics is enabled, and cleared on fix"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {},
+               "initializationOptions": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "Open file with unresolved name, expect no diagnostics ",
+         "since semantic diagnostics are disabled"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Pkg is\n   X : Integer := Does_Not_Exist;\nend Pkg;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Enable semantic diagnostics, expect diagnostics published"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 18 },
+                           "end": { "line": 1, "character": 32 }
+                        },
+                        "source": "libadalang",
+                        "message": "no such entity"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Fix the error, expect diagnostics cleared"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "text": "package Pkg is\n   X : Integer := 0;\nend Pkg;\n"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Replace 0 with False, expect type mismatch diagnostic"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": { "line": 1, "character": 18 },
+                        "end": { "line": 1, "character": 19 }
+                     },
+                     "rangeLength": 1,
+                     "text": "False"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 18 },
+                           "end": { "line": 1, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Disable semantic diagnostics, expect diagnostics cleared"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "semanticDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Re-enable semantic diagnostics, expect diagnostics republished"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 18 },
+                           "end": { "line": 1, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

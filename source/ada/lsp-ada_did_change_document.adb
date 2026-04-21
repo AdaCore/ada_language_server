@@ -127,6 +127,21 @@ package body LSP.Ada_Did_Change_Document is
 
       --  Emit diagnostics
       Self.Parent.Context.Publish_Diagnostics (Self.Document);
+
+      --  Schedule the semantic diagnostics job for the changed ranges.
+      declare
+         Ranges : LSP.Structures.Range_Vector;
+      begin
+         for Change of Changes loop
+            if Change.a_range.Is_Set then
+               Ranges.Append (Change.a_range.Value);
+            end if;
+         end loop;
+
+         Self.Parent.Context.Enqueue_Semantic_Diagnostics
+           (Document => Self.Document,
+            Ranges   => Ranges);
+      end;
    end Complete;
 
    ----------------

@@ -1,0 +1,185 @@
+[
+   {
+      "comment": [
+         "Test that toggling semanticDiagnostics does not affect syntax (parse) diagnostics.",
+         "A file with a syntax error should keep its diagnostic regardless of whether",
+         "semanticDiagnostics is enabled or disabled."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": "Open file with a syntax error (stray semicolon), expect parse diagnostic"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Pkg is\n;\nend Pkg;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 0 },
+                           "end": { "line": 1, "character": 1 }
+                        },
+                        "source": "libadalang",
+                        "message": "Skipped token ;"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Disable semantic diagnostics — syntax diagnostic must remain"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 0 },
+                           "end": { "line": 1, "character": 1 }
+                        },
+                        "source": "libadalang",
+                        "message": "Skipped token ;"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Re-enable semantic diagnostics — syntax diagnostic must still be present"
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 0 },
+                           "end": { "line": 1, "character": 1 }
+                        },
+                        "source": "libadalang",
+                        "message": "Skipped token ;"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

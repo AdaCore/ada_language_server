@@ -290,60 +290,17 @@ Follow the [dedicated LSP4J documentation](https://github.com/redhat-developer/l
 [Claude Code](https://claude.com/product/claude-code) supports LSP servers via plugins, which allows it to use
 the Ada Language Server for code intelligence when working on Ada/SPARK projects.
 
-1. Create the plugin directory
+1. Make sure `ada_language_server` is available in your `$PATH`.
 
-Create a directory named `ada-spark-lsp` with the following structure:
-
-```
-ada-spark-lsp/
-├── .claude-plugin/
-│   └── plugin.json
-└── .lsp.json
-```
-
-**`ada-spark-lsp/.claude-plugin/plugin.json`:**
-
-```json
-{
-  "name": "ada-spark-lsp",
-  "description": "LSP for Ada/SPARK",
-  "version": "0.0.1",
-  "author": {"name": "AdaCore"}
-}
-```
-
-**`ada-spark-lsp/.lsp.json`:**
-
-```json
-{
-  "ada": {
-    "command": "ada_language_server",
-    "args": [],
-    "extensionToLanguage": {
-      ".ads": "ada",
-      ".adb": "ada",
-      ".adc": "ada"
-    }
-  },
-  "gpr": {
-    "command": "ada_language_server",
-    "args": ["--language-gpr"],
-    "extensionToLanguage": {
-      ".gpr": "gpr"
-    }
-  }
-}
-```
-
-You can reuse [this folder](integration/claude_code/ada-spark-lsp/).
-
-Make sure `ada_language_server` is available in your `$PATH`.
-
-2. Launch Claude Code with LSP tools enabled
+2. Clone this repository, then register the marketplace and install the plugin:
 
 ```bash
-ENABLE_LSP_TOOL=1 claude --plugin-dir path-to/ada-spark-lsp/
+claude plugin marketplace add /path/to/ada_language_server/integration/claude_code [--scope user]
+claude plugin install ada-spark-lsp
 ```
+
+Passing `--scope user` makes the plugin available for all sessions across all
+projects. Without it the plugin is installed for the current project only.
 
 3. Verify Ada LSP tools are available
 

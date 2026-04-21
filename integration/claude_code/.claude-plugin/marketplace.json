@@ -1,0 +1,15 @@
+{
+  "name": "ada-spark-lsp-marketplace",
+  "owner": {
+    "name": "AdaCore"
+  },
+  "plugins": [
+    {
+      "name": "ada-spark-lsp",
+      "description": "LSP for Ada/SPARK",
+      "source": "./ada-spark-lsp",
+      "category": "development",
+      "homepage": "https://github.com/AdaCore/ada_language_server"
+    }
+  ]
+}
