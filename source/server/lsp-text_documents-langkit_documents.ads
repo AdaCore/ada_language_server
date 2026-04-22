@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                      Copyright (C) 2023-2024, AdaCore                    --
+--                      Copyright (C) 2023-2026, AdaCore                    --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,6 +75,12 @@ package LSP.Text_Documents.Langkit_Documents is
       Sloc : Langkit_Support.Slocs.Source_Location)
       return LSP.Structures.Position;
    --  Convert a Langkit Source_Location to the corresponding LSP position.
+
+   function To_LSP_Position
+     (Self : Langkit_Text_Document'Class;
+      Sloc : Langkit_Support.Slocs.Source_Location)
+      return LSP.Structures.TextDocumentPositionParams;
+   --  Convert a Langkit Source_Location to document's URL and LSP position.
 
 private
 

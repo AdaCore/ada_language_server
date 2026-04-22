@@ -134,6 +134,15 @@ package LSP.Ada_Completions is
    --  GNATformat.
    --  Rule must match the content of "Prefix & Result.insertText.Value".
 
+   procedure Set_Completion_Item_Documentation
+     (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
+      Context                 : LSP.Ada_Contexts.Context;
+      Name                    : Libadalang.Analysis.Defining_Name;
+      Item                    : in out LSP.Structures.CompletionItem;
+      Compute_Doc_And_Details : Boolean);
+   --  Either set the item documentation and details or setup it to produce
+   --  them for the Completion_Resolve request.
+
    type Completion_Provider_Access is
      access all LSP.Ada_Completions.Completion_Provider'Class;
 
