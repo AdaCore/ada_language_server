@@ -67,7 +67,7 @@ private
       --  The document version at the time the job was enqueued.
 
       Ranges : LSP.Structures.Range_Vector;
-      --  The set of changed ranges to process.
+      --  The vector of changed ranges to process.
 
       Cursor : Traverse_Iterator_Access := null;
       --  Iterator tracking the current node being processed.

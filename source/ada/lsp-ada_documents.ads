@@ -287,6 +287,14 @@ package LSP.Ada_Documents is
 
 private
 
+   type Document_Diagnostic_Source_Kind is (Syntax, Semantic, Source_Info);
+   --  Kinds of diagnostics sources for Ada documents.
+
+   type Diagnostic_Source_Array is
+     array (Document_Diagnostic_Source_Kind) of Diagnostic_Source_Access;
+   --  The array type for diagnostic sources of Ada documents.
+   --  Each kind of diagnostic source is stored at a fixed index.
+
    type Name_Information is record
       Loc       : Langkit_Support.Slocs.Source_Location;
       Is_Public : Boolean;
@@ -305,9 +313,11 @@ private
      new LSP.Text_Documents.Langkit_Documents.Langkit_Text_Document with record
       Symbol_Cache : Symbol_Maps.Map;
       --  Cache of all defining name symbol of the document.
+
       Refresh_Symbol_Cache : Boolean := False;
       --  Symbol_Cache rebuild is required before.
-      Diagnostic_Sources : Diagnostic_Source_Vectors.Vector;
+
+      Diagnostic_Sources : Diagnostic_Source_Array;
       --  Known sources of diagnostics
    end record;
 

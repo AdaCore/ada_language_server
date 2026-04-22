@@ -53,6 +53,7 @@ package body LSP.Ada_Semantic_Diagnostics is
       use Libadalang.Iterators;
       use LSP.Structures;
       use type LSP.Ada_Handlers.Project_Stamp;
+      use type LSP.Ada_Documents.Document_Access;
 
       procedure Process_Node (Node : Ada_Node);
       --  Process a single node during traversal: if it is an xref entry point and
@@ -118,8 +119,10 @@ package body LSP.Ada_Semantic_Diagnostics is
    begin
       if Self.Handler.Get_Project_Stamp /= Self.Project_Stamp
         or else Self.Handler.Is_Shutdown
+        or else Self.Document = null
       then
-         --  Project was reloaded or the server is shutting down.
+          --  Project was reloaded, server is shutting down, or document was
+          --  closed while this job was in the queue: discard it.
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
          return;
