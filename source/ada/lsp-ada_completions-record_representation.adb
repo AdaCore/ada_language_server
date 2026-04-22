@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2025, AdaCore                          --
+--                     Copyright (C) 2025-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,7 +24,6 @@ with Libadalang.Expr_Eval;
 with Langkit_Support.Text;
 
 with LSP.Enumerations;
-with LSP.Ada_Completions.Filters;
 with LSP.Utils;
 
 with VSS.Strings.Formatters.Integers;
@@ -481,8 +480,7 @@ package body LSP.Ada_Completions.Record_Representation is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
       pragma Unreferenced (Filter);
       use all type Libadalang.Common.Token_Kind;
@@ -569,10 +567,12 @@ package body LSP.Ada_Completions.Record_Representation is
             commitCharacters    => <>,
             command             => <>,
             data                => <>);
-         Result.items.Append (Item);
+         Result.Completion_List.Append (Item);
       end Each_Field;
 
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       if Clause.Is_Null or else Type_Decl.Is_Null then
          return;
       end if;

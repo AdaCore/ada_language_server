@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 --  A completion provider for pragmas
 
+with LSP.Ada_Completions.Filters;
+
 package LSP.Ada_Completions.End_Names is
 
    type End_Name_Completion_Provider is
@@ -27,8 +29,7 @@ package LSP.Ada_Completions.End_Names is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList);
+      Result : out Ada_Completions.Completion_Result);
    --  Get completion for <end End_Name> or <end _keyword_>.
 
 end LSP.Ada_Completions.End_Names;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,7 +18,6 @@
 with VSS.Strings;
 
 with LSP.Predefined_Completion;
-with LSP.Ada_Completions.Filters;
 
 package body LSP.Ada_Completions.Aspects is
 
@@ -32,14 +31,13 @@ package body LSP.Ada_Completions.Aspects is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
-      pragma Unreferenced (Names);
-
       Parent : constant Libadalang.Analysis.Ada_Node :=
         (if Node.Is_Null then Node else Node.Parent);
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       if Filter.Is_Aspect then
          if not Parent.Is_Null and then
            Parent.Kind in Libadalang.Common.Ada_Aspect_Assoc_Range
@@ -51,13 +49,13 @@ package body LSP.Ada_Completions.Aspects is
             begin
                LSP.Predefined_Completion.Get_Aspects
                  (Prefix => Prefix,
-                  Result => Result.items);
+                  Result => Result.Completion_List);
             end;
 
          elsif Node.Kind in Libadalang.Common.Ada_Aspect_Spec_Range then
             LSP.Predefined_Completion.Get_Aspects
               (Prefix => VSS.Strings.Empty_Virtual_String,
-               Result => Result.items);
+               Result => Result.Completion_List);
          end if;
       end if;
    end Propose_Completion;

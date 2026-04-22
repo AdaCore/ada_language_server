@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 --  A completion provider for use-clauses
 
+with LSP.Ada_Completions.Filters;
+
 package LSP.Ada_Completions.Use_Clauses is
 
    type Use_Clause_Completion_Provider is
@@ -27,8 +29,7 @@ package LSP.Ada_Completions.Use_Clauses is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList);
+      Result : out Ada_Completions.Completion_Result);
    --  Get completion for use-clauses if we have a with-clause node on the
    --  same line.
 

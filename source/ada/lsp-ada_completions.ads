@@ -78,6 +78,21 @@ package LSP.Ada_Completions is
         Equivalent_Keys => Is_Full_Sloc_Equal,
         "="             => "=");
 
+   type Completion_Result_Kind is (Name_Map, Completion_List);
+
+   type Completion_Result (Kind : Completion_Result_Kind := Name_Map) is record
+      case Kind is
+         when Name_Map =>
+            Name_Map : Completion_Maps.Map;
+            --  Name_Map works for defining name completions to create snippets
+            --  and to avoid duplicates.
+
+         when Completion_List =>
+            Completion_List : LSP.Structures.CompletionItem_Vector;
+            --  Completion list works for completions other then defining name
+      end case;
+   end record;
+
    type Completion_Provider is abstract tagged limited null record;
 
    procedure Propose_Completion
@@ -86,12 +101,10 @@ package LSP.Ada_Completions is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is abstract;
-   --  Populate Names and Result with completions for given Source_Location.
-   --  Names works for defining name completions to create snippets and to
-   --  avoid duplicates. The Token's span encloses Sloc-1, but not Sloc itself.
+   --  Populate Result with completions for given Source_Location. The Token's
+   --  span encloses Sloc-1, but not Sloc itself.
    --
    --  Example: abc|;  or abc|<space>
    --  Cursor:     ^         ^
@@ -112,7 +125,7 @@ package LSP.Ada_Completions is
       Compute_Doc_And_Details   : Boolean;
       Has_Label_Details_Support : Boolean;
       Result                    : in out LSP.Structures.CompletionItem_Vector);
-   --  Convert all the completion Names into LSP completion items' results.
+   --  Convert Names completions into LSP completion items' results.
    --  Named_Notation_Threshold defines the number of parameters/components at
    --  which point named notation is used for subprogram/aggregate completion
    --  snippets.

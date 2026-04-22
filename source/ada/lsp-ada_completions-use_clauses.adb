@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,7 +18,6 @@
 with VSS.Strings.Conversions;
 with Libadalang.Iterators;
 
-with LSP.Ada_Completions.Filters;
 with LSP.Enumerations;
 
 package body LSP.Ada_Completions.Use_Clauses is
@@ -33,8 +32,7 @@ package body LSP.Ada_Completions.Use_Clauses is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
       use Libadalang.Common;
       use Langkit_Support.Slocs;
@@ -59,6 +57,8 @@ package body LSP.Ada_Completions.Use_Clauses is
          else Libadalang.Iterators.Find_First
              (Node.Unit.Root, Has_With_Clause_Node'Unrestricted_Access));
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       --  Return immediately if we don't have any with-clause node on the same
       --  line, if the with-clause is not yet complete (no semicolon), or if we
       --  are inside a comment.
@@ -122,7 +122,7 @@ package body LSP.Ada_Completions.Use_Clauses is
             command             => (Is_Set => False),
             data                => <>);
 
-         Result.items.Append (Item);
+         Result.Completion_List.Append (Item);
       end;
    end Propose_Completion;
 

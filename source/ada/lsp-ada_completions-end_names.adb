@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,8 +53,7 @@ package body LSP.Ada_Completions.End_Names is
       Token  :        Libadalang.Common.Token_Reference;
       Node   :        Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
       pragma Unreferenced (Filter);
       use type Libadalang.Common.Ada_Node_Kind_Type;
@@ -272,6 +271,8 @@ package body LSP.Ada_Completions.End_Names is
       Token_Reference : Libadalang.Common.Token_Reference := Token;
 
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       if Token = Libadalang.Common.No_Token or else Node.Is_Null then
          return;
 
@@ -343,7 +344,7 @@ package body LSP.Ada_Completions.End_Names is
                command             => (Is_Set => False),
                data                => <>);
 
-      Result.items.Append (Item);
+      Result.Completion_List.Append (Item);
    end Propose_Completion;
 
 end LSP.Ada_Completions.End_Names;

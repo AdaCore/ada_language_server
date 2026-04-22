@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,10 +35,8 @@ package body LSP.Ada_Handlers.Invisibles is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
-      pragma Unreferenced (Result);
       use all type Libadalang.Common.Token_Kind;
       use all type Libadalang.Common.Token_Reference;
       use type Ada.Containers.Count_Type;
@@ -63,9 +61,9 @@ package body LSP.Ada_Handlers.Invisibles is
          --  Skip all names in open documents, because they could have
          --  stale references. Then skip already provided results.
          if not Self.Handler.Open_Documents.Contains (File)
-           and then not Names.Contains (Name)
+           and then not Result.Name_Map.Contains (Name)
          then
-            Names.Insert
+            Result.Name_Map.Insert
               (Name,
                (Is_Dot_Call  => False,
                 Is_Visible   => False,
@@ -75,7 +73,7 @@ package body LSP.Ada_Handlers.Invisibles is
 
             Pos := Pos + 1;
 
-            Stop := Names.Length >= Limit;
+            Stop := Result.Name_Map.Length >= Limit;
          end if;
       end On_Inaccessible_Name;
 
@@ -91,6 +89,8 @@ package body LSP.Ada_Handlers.Invisibles is
       function Dummy_Canceled return Boolean is (False);
 
    begin
+      Result := (Ada_Completions.Name_Map, others => <>);
+
       if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
          --  Don't provide invisible completion after a dot: it's
          --  handled by the default LAL completion provider.
@@ -157,7 +157,7 @@ package body LSP.Ada_Handlers.Invisibles is
                      Limit       => Limit,
                      Only_Public => True,
                      Canceled    => Dummy_Canceled'Access,
-                     Result      => Names);
+                     Result      => Result.Name_Map);
                end loop;
             end;
          end if;

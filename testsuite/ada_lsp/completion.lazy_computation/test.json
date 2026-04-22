@@ -157,7 +157,7 @@
                      {
                         "label": "Select_Some",
                         "kind": 3,
-                        "sortText": "100&00002Select_Some",
+                        "sortText": "100&00001Select_Some",
                         "data": {
                            "uri": "$URI{test.ads}",
                            "range": {

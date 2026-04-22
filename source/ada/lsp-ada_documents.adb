@@ -389,6 +389,40 @@ package body LSP.Ada_Documents is
       Names     : out Ada_Completions.Completion_Maps.Map;
       Result    : out LSP.Structures.CompletionList)
    is
+      procedure Append (Name_Map : LSP.Ada_Completions.Completion_Maps.Map);
+      procedure Append (List : LSP.Structures.CompletionItem_Vector);
+
+      ------------
+      -- Append --
+      ------------
+
+      procedure Append (Name_Map : LSP.Ada_Completions.Completion_Maps.Map) is
+      begin
+         for Cursor in Name_Map.Iterate loop
+            declare
+               Name : Libadalang.Analysis.Defining_Name :=
+                 LSP.Ada_Completions.Completion_Maps.Key (Cursor);
+            begin
+               if not Names.Contains (Name) then
+                  Names.Include
+                    (Name,
+                     LSP.Ada_Completions.Completion_Maps.Element (Cursor));
+               end if;
+            end;
+         end loop;
+      end Append;
+
+      ------------
+      -- Append --
+      ------------
+
+      procedure Append (List : LSP.Structures.CompletionItem_Vector) is
+      begin
+         for Item of List loop
+            Result.items.Append (Item);
+         end loop;
+      end Append;
+
       Parent : constant Libadalang.Analysis.Ada_Node :=
         (if Node.Is_Null then Node else Node.Parent);
 
@@ -411,14 +445,32 @@ package body LSP.Ada_Documents is
       Filter.Initialize (Token, Node);
 
       for Provider of Providers loop
+         declare
+            use all type LSP.Ada_Completions.Completion_Result_Kind;
+            Next : LSP.Ada_Completions.Completion_Result;
          begin
             Provider.Propose_Completion
               (Sloc   => Sloc,
                Token  => Token,
                Node   => Node,
                Filter => Filter,
-               Names  => Names,
-               Result => Result);
+               Result => Next);
+
+            case Next.Kind is
+               when Name_Map =>
+                  if Names.Is_Empty then
+                     Names.Move (Next.Name_Map);
+                  else
+                     Append (Next.Name_Map);
+                  end if;
+
+               when Completion_List =>
+                  if Result.items.Is_Empty then
+                     Result.items.Move (Next.Completion_List);
+                  else
+                     Append (Next.Completion_List);
+                  end if;
+            end case;
 
          exception
             when E : Libadalang.Common.Property_Error =>

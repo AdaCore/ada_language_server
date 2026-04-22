@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 --  A completion provider for parameters after '(' or ','
 
+with LSP.Ada_Completions.Filters;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 limited with LSP.Ada_Handlers;
@@ -37,8 +38,7 @@ package LSP.Ada_Completions.Parameters is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList);
+      Result : out Ada_Completions.Completion_Result);
    --  Using the context, return the list of parameters after '(' or ','
 
    procedure Propose_Signatures

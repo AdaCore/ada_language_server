@@ -145,11 +145,8 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Token        : Libadalang.Common.Token_Reference;
       Node         : Libadalang.Analysis.Ada_Node;
       Limit        : Natural;
-      Filter       : in out LSP.Ada_Completions.Filters.Filter;
-      Names        : in out Ada_Completions.Completion_Maps.Map;
       Unsorted_Res : in out LSP.Structures.CompletionItem_Vector)
    is
-      pragma Unreferenced (Filter, Names);
       use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Ada_Completions.Generic_Assoc_Utils;

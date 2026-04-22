@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,16 +31,17 @@ package body LSP.Ada_Completions.Pragmas is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
       pragma Unreferenced (Filter);
-      pragma Unreferenced (Names);
 
       Parent : constant Libadalang.Analysis.Ada_Node :=
         (if Node.Is_Null then Node else Node.Parent);
    begin
-      if not Parent.Is_Null and then
+      Result := (Ada_Completions.Completion_List, others => <>);
+
+      if not Parent.Is_Null
+        and then
         Parent.Kind in Libadalang.Common.Ada_Pragma_Node_Range
       then
          declare
@@ -50,7 +51,7 @@ package body LSP.Ada_Completions.Pragmas is
          begin
             LSP.Predefined_Completion.Get_Pragmas
               (Prefix => Prefix,
-               Result => Result.items);
+               Result => Result.Completion_List);
          end;
       end if;
    end Propose_Completion;

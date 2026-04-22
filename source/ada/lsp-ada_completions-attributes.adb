@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,7 +17,6 @@
 
 with VSS.Strings;
 
-with LSP.Ada_Completions.Filters;
 with LSP.Predefined_Completion;
 
 package body LSP.Ada_Completions.Attributes is
@@ -32,14 +31,13 @@ package body LSP.Ada_Completions.Attributes is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
-      pragma Unreferenced (Names);
-
       use Libadalang.Analysis;
       use Libadalang.Common;
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       if Filter.Is_Attribute_Ref then
          declare
             use type VSS.Strings.Virtual_String;
@@ -56,7 +54,7 @@ package body LSP.Ada_Completions.Attributes is
             --  attributes, so set the prefix to the empty string.
             LSP.Predefined_Completion.Get_Attributes
               (Prefix => (if Prefix /= "'" then Prefix else ""),
-               Result => Result.items);
+               Result => Result.Completion_List);
          end;
       end if;
    end Propose_Completion;
