@@ -76,6 +76,41 @@ package body LSP.Ada_Semantic_Diagnostics is
             return;
          end if;
 
+         --  For per-range jobs, skip entry points whose sloc range does not
+         --  overlap any of the changed ranges.  The traversal still visits all
+         --  nodes in the containing entry-point ancestor (which may be the
+         --  whole package body), but this guard avoids calling the expensive
+         --  P_Nameres_Diagnostics on unrelated entry points.
+         if not Self.Ranges.Is_Empty then
+            declare
+               Node_Start : constant Source_Location :=
+                 Start_Sloc (Node.Sloc_Range);
+               Node_End   : constant Source_Location :=
+                 End_Sloc (Node.Sloc_Range);
+               Overlaps   : Boolean := False;
+            begin
+               for R of Self.Ranges loop
+                  declare
+                     R_Start : constant Source_Location :=
+                       (Line   => Line_Number (R.start.line + 1),
+                        Column => Column_Number (R.start.character + 1));
+                     R_End   : constant Source_Location :=
+                       (Line   => Line_Number (R.an_end.line + 1),
+                        Column => Column_Number (R.an_end.character + 1));
+                  begin
+                     if Node_Start <= R_End and then Node_End >= R_Start then
+                        Overlaps := True;
+                        exit;
+                     end if;
+                  end;
+               end loop;
+
+               if not Overlaps then
+                  return;
+               end if;
+            end;
+         end if;
+
          --  Process this xref entry point.
          declare
             Raw_Diags : constant Solver_Diagnostic_Array :=
@@ -136,19 +171,16 @@ package body LSP.Ada_Semantic_Diagnostics is
          return;
       end if;
 
-      if Self.Ranges.Is_Empty
-        and then Self.Document.Identifier.version /= Self.Document_Version
-      then
-         --  This is a full-document traversal job, but the document has been
-         --  edited since it was enqueued.  A newer full-document job will
-         --  already be (or will soon be) in the queue, so discard this one to
-         --  avoid wasting CPU on a result that will be immediately superseded.
-         --  Per-range jobs are not cancelled here: each covers a distinct
-         --  changed region and should always run, even if other edits arrived
-         --  at different locations in the meantime.
+      if Self.Document.Identifier.version /= Self.Document_Version then
+         --  The document has been edited since this job was enqueued.  A
+         --  newer job will already be (or will soon be) in the queue, so
+         --  discard this one to avoid wasting CPU on a result that will be
+         --  immediately superseded.  This applies to both full-document and
+         --  per-range jobs: the newer didChange will schedule fresh jobs
+         --  covering the up-to-date content.
 
          Me_Debug.Trace
-           ("Cancelling full-document semantic diagnostics job for "
+           ("Cancelling semantic diagnostics job for "
             & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
             & " because the document was edited since it was enqueued");
          Free (Self.Cursor);
@@ -172,8 +204,13 @@ package body LSP.Ada_Semantic_Diagnostics is
             --  visiting nodes that are entirely before the first change.
             if not Self.Ranges.Is_Empty then
 
+               Me_Debug.Trace ("Executing a per-range semantic diagnostics job for "
+                               & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
+                  & " (version "
+                  & Self.Document_Version.Value'Image
+                  & ")");
                Me_Debug.Trace
-                 ("Scheduling semantic diagnostics for changed ranges: "
+                 ("Changed ranges: "
                   & Self.Ranges'Image);
 
                declare
@@ -189,10 +226,13 @@ package body LSP.Ada_Semantic_Diagnostics is
                      Node := Node.Parent;
                   end loop;
 
-                  --  Start from the parent so that sibling entry points
-                  --  after this one are also visited.
-                  if not Node.Is_Null and then not Node.Parent.Is_Null then
-                     Start := Node.Parent;
+                  --  Start directly from the xref entry-point that contains
+                  --  the change.  The full-document job covers every other
+                  --  entry point in the file, so there is no need to start
+                  --  from Node.Parent (which could be a CompilationUnit and
+                  --  would cause the traversal to span the whole file).
+                  if not Node.Is_Null then
+                     Start := Node;
                   end if;
                end;
 
@@ -231,7 +271,13 @@ package body LSP.Ada_Semantic_Diagnostics is
                         .Semantic_Diagnostic_Source_Access
                            (Self.Document.Semantic_Diagnostic_Source);
                begin
-                  Me_Debug.Trace ("Semantic diagnostics traversal completed");
+                  Me_Debug.Trace
+                    ("Semantic diagnostics traversal completed for "
+                     & Self.Handler.To_File (Self.Document.URI)
+                         .Display_Base_Name
+                     & " (version "
+                     & Self.Document_Version.Value'Image
+                     & ")");
 
                   Semantic_Diags_Source.Update_Diagnostics
                     (Errors => Self.Errors);
@@ -256,6 +302,15 @@ package body LSP.Ada_Semantic_Diagnostics is
                null;
          end;
       end loop;
+
+      Me_Debug.Trace
+        ("Yielding semantic diagnostics job after processing "
+         & Max_Nodes_Per_Batch'Image
+         & " nodes"
+         & " (version "
+         & Self.Document_Version.Value'Image
+         & ")");
+
    exception
       when E : others =>
          Free (Self.Cursor);
@@ -277,6 +332,15 @@ package body LSP.Ada_Semantic_Diagnostics is
       then
          return;
       end if;
+
+      Me_Debug.Trace
+        ("Scheduling "
+         & (if Ranges.Is_Empty then "full-document" else "per-range")
+         & "semantic diagnostics job for "
+         & Handler.To_File (Document.URI).Display_Base_Name
+         & " (version "
+         & Document.Identifier.version.Value'Image
+         & ")");
 
       declare
          Job        : constant Semantic_Diagnostics_Job_Access :=

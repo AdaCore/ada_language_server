@@ -40,7 +40,7 @@ package body LSP.Ada_Tokens_Full is
    type Tokens_Full_Job
      (Parent : not null access constant Ada_Tokens_Full_Handler) is limited
    new LSP.Ada_Request_Jobs.Ada_Request_Job
-     (Priority => LSP.Server_Jobs.Low)
+     (Priority => LSP.Server_Jobs.Lowest)
    with record
       Unit   : Libadalang.Analysis.Analysis_Unit;
       Cursor : Traverse_Iterator_Access;

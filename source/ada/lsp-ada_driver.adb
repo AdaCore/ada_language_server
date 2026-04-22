@@ -799,7 +799,16 @@ begin
                            then In_Logger'Unchecked_Access else null),
             Out_Logger => (if Server_Logger_Trace.Is_Active and then Out_Trace.Is_Active
                            then Out_Logger'Unchecked_Access else null),
-            Priority   => LSP.Server_Jobs.Low);
+
+            --  Set message handler job priority to High to ensure quick
+            --  processing of short-running requests (e.g. hover, completion)
+            --  and improve the responsiveness of the server.
+            --  Long-running tasks (e.g. finding references, semantic
+            --  highlighting, semantic diagnostics) should run as separate,
+            --  lower-priority jobs.
+            --  These jobs support resuming, so they don’t block or delay
+            --  the handling of other requests.
+            Priority   => LSP.Server_Jobs.High);
       end if;
    exception
       when E : others =>
