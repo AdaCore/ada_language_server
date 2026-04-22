@@ -24,6 +24,7 @@ with Libadalang.Semantic_Diagnostics;
 
 with VSS.Strings.Conversions;
 
+with GNATCOLL.Traces; use GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with LSP.Ada_Context_Sets;
@@ -31,6 +32,9 @@ with LSP.Ada_Documents.Semantic_Diagnostics;
 with LSP.Servers;
 
 package body LSP.Ada_Semantic_Diagnostics is
+
+   Me_Debug : constant Trace_Handle :=
+     Create ("ALS.DIAGNOSTICS.SEMANTIC", Off);
 
    Max_Nodes_Per_Batch : constant := 300;
    --  Number of AST nodes processed per Execute call before yielding.
@@ -123,6 +127,10 @@ package body LSP.Ada_Semantic_Diagnostics is
       then
           --  Project was reloaded, server is shutting down, or document was
           --  closed while this job was in the queue: discard it.
+         Me_Debug.Trace
+           ("Cancelling semantic diagnostics job for "
+            & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
+            & " because the project was reloaded, server is shutting down, or document was closed");
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
          return;
@@ -138,6 +146,11 @@ package body LSP.Ada_Semantic_Diagnostics is
          --  Per-range jobs are not cancelled here: each covers a distinct
          --  changed region and should always run, even if other edits arrived
          --  at different locations in the meantime.
+
+         Me_Debug.Trace
+           ("Cancelling full-document semantic diagnostics job for "
+            & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
+            & " because the document was edited since it was enqueued");
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
          return;
@@ -158,6 +171,11 @@ package body LSP.Ada_Semantic_Diagnostics is
             --  changed position rather than from Unit.Root. This avoids
             --  visiting nodes that are entirely before the first change.
             if not Self.Ranges.Is_Empty then
+
+               Me_Debug.Trace
+                 ("Scheduling semantic diagnostics for changed ranges: "
+                  & Self.Ranges'Image);
+
                declare
                   First_Pos : constant LSP.Structures.Position :=
                     Self.Ranges.First_Element.start;
@@ -178,6 +196,9 @@ package body LSP.Ada_Semantic_Diagnostics is
                   end if;
                end;
 
+               Me_Debug.Trace
+                 ("Starting semantic diagnostics traversal from: "
+                  & Start.Image);
             end if;
 
             Self.Cursor := new Traverse_Iterator'Class'(Traverse (Start));
@@ -210,6 +231,8 @@ package body LSP.Ada_Semantic_Diagnostics is
                         .Semantic_Diagnostic_Source_Access
                            (Self.Document.Semantic_Diagnostic_Source);
                begin
+                  Me_Debug.Trace ("Semantic diagnostics traversal completed");
+
                   Semantic_Diags_Source.Update_Diagnostics
                     (Errors => Self.Errors);
                   Self.Handler.Publish_Diagnostics (Self.Document);
