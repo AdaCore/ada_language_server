@@ -2,7 +2,8 @@
    {
       "comment": [
          "Test that semantic diagnostics (P_Nameres_Diagnostics) are published",
-         "on didOpen when semanticDiagnostics is enabled, and cleared on fix"
+         "on didOpen when semanticDiagnostics is enabled, cleared on fix, cleared ",
+         "when semanticDiagnostics is disabled, and republished when re-enabled."
       ]
    },
    {
