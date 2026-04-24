@@ -49,13 +49,9 @@ package LSP.Ada_Documents.Semantic_Diagnostics is
      --  in the handler's configuration.
 
    procedure Update_Diagnostics
-     (Self           : in out Diagnostic_Source;
-      Errors         : LSP.Structures.Diagnostic_Vector;
-      Eviction_Range : LSP.Structures.A_Range_Optional);
+     (Self   : in out Diagnostic_Source;
+      Errors : LSP.Structures.Diagnostic_Vector);
    --  Update the cached diagnostics with Errors.
-   --  When Eviction_Range is not set, Errors replaces the whole cache.
-   --  Otherwise only cached diagnostics overlapping Eviction_Range are
-   --  evicted, then Errors is appended.
 
 private
 

@@ -1,9 +1,8 @@
 [
    {
       "comment": [
-         "Test that toggling semanticDiagnostics does not affect syntax (parse) diagnostics.",
-         "A file with a syntax error should keep its diagnostic regardless of whether",
-         "semanticDiagnostics is enabled or disabled."
+         "Test that toggling semanticDiagnostics correctly clears/restores semantic",
+         "diagnostics without touching syntax (parse) diagnostics."
       ]
    },
    {
@@ -50,7 +49,11 @@
       }
    },
    {
-      "comment": "Open file with a syntax error (stray semicolon), expect parse diagnostic"
+      "comment": [
+         "Open file with both a semantic error (type mismatch on line 1) and a",
+         "syntax error (stray ';' on line 2).  With semanticDiagnostics enabled",
+         "we expect both diagnostics to be published."
+      ]
    },
    {
       "send": {
@@ -62,7 +65,7 @@
                   "uri": "$URI{src/pkg.ads}",
                   "languageId": "ada",
                   "version": 1,
-                  "text": "package Pkg is\n;\nend Pkg;\n"
+                  "text": "package Pkg is\n   X : Integer := False;\n;\nend Pkg;\n"
                }
             }
          },
@@ -74,11 +77,19 @@
                   "diagnostics": [
                      {
                         "range": {
-                           "start": { "line": 1, "character": 0 },
-                           "end": { "line": 1, "character": 1 }
+                           "start": { "line": 2, "character": 0 },
+                           "end": { "line": 2, "character": 1 }
                         },
                         "source": "libadalang",
                         "message": "Skipped token ;"
+                     },
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 18 },
+                           "end": { "line": 1, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
                      }
                   ]
                }
@@ -87,7 +98,10 @@
       }
    },
    {
-      "comment": "Disable semantic diagnostics — syntax diagnostic must remain"
+      "comment": [
+         "Disable semantic diagnostics.",
+         "The semantic diagnostic must be cleared and the syntax one must remain."
+      ]
    },
    {
       "send": {
@@ -111,8 +125,8 @@
                   "diagnostics": [
                      {
                         "range": {
-                           "start": { "line": 1, "character": 0 },
-                           "end": { "line": 1, "character": 1 }
+                           "start": { "line": 2, "character": 0 },
+                           "end": { "line": 2, "character": 1 }
                         },
                         "source": "libadalang",
                         "message": "Skipped token ;"
@@ -124,7 +138,10 @@
       }
    },
    {
-      "comment": "Re-enable semantic diagnostics — syntax diagnostic must still be present"
+      "comment": [
+         "Re-enable semantic diagnostics.",
+         "Both the syntax and semantic diagnostics must be present again."
+      ]
    },
    {
       "send": {
@@ -148,11 +165,19 @@
                   "diagnostics": [
                      {
                         "range": {
-                           "start": { "line": 1, "character": 0 },
-                           "end": { "line": 1, "character": 1 }
+                           "start": { "line": 2, "character": 0 },
+                           "end": { "line": 2, "character": 1 }
                         },
                         "source": "libadalang",
                         "message": "Skipped token ;"
+                     },
+                     {
+                        "range": {
+                           "start": { "line": 1, "character": 18 },
+                           "end": { "line": 1, "character": 23 }
+                        },
+                        "source": "libadalang",
+                        "message": "expected Integer, got Boolean"
                      }
                   ]
                }
