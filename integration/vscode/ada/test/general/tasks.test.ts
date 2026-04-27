@@ -7,13 +7,13 @@ import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
 import { exe, getProjectFile } from '../../src/helpers';
 import {
     createAdaTaskProvider,
-    DEFAULT_PROBLEM_MATCHERS,
     findTaskByName,
     getConventionalTaskLabel,
     isFromWorkspace,
     runTaskAndGetResult,
     SimpleTaskDef,
     TASK_TYPE_ADA,
+    DEFAULT_PROBLEM_MATCHERS,
 } from '../../src/taskProviders';
 import {
     activate,
@@ -359,6 +359,7 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 1: "X" may be referenced before it has a value [enabled by default]
 1: this is a low warning
 0: missing ";"
+0: this message has no severity level
 2: this is an extra message
 2: hello world (trying: to confuse the regexp here)`.trim(),
         );
@@ -417,6 +418,24 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 0: no candidate interpretations match the actuals:
 0: found type "Kernel_Handle" defined at gps-kernel.ads:92
 0: expected type "Standard.Boolean"`.trim(),
+        );
+    });
+    test('problemMatchers severities (fallback)', async () => {
+        await testProblemMatchersWithCompilerMessages(
+            'compiler_messages_fallback.txt',
+            `
+0: procedure "Hello" is not referenced [-gnatwu]
+0: bad casing of "Hello" declared at line 4 [-gnatyr]
+0: bad casing of "Hello" declared at line 4 [-gnatyr]
+0: incorrect layout [-gnatyl]
+0: "begin" in wrong column, should be in column 1 [-gnatyl]
+0: bad indentation [-gnaty0]
+0: possibly useless assignment to "X", value might not be referenced [-gnatwm]
+0: "X" may be referenced before it has a value [enabled by default]
+0: missing ";"
+0: this is an extra message
+0: hello world (trying: to confuse the regexp here)
+0: this is a low warning`.trim(),
         );
     });
 });

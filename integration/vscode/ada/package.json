@@ -840,7 +840,7 @@
                 "severity": "error",
                 "pattern": [
                     {
-                        "regexp": "^(?:[a-zA-Z]:)?([^:]+):(\\d+):(\\d+):\\s+(?:\\(error\\)|error:)\\s*(.*)$",
+                        "regexp": "^(?:[a-zA-Z]:)?([^:]+):(\\d+):(\\d+):\\s+(?:\\(error\\)|error:)?\\s*(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
