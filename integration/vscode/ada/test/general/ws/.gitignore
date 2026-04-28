@@ -7,3 +7,6 @@
 # Executables produced at the root of the workspace
 /main1exec
 /main1exec.exe
+
+# Generated vscode files
+.vscode/*.json

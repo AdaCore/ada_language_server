@@ -17,3 +17,4 @@ gprbuild: *** compilation phase failed
 main.adb:4:5: (info) this is an extra message
 main.adb:4:6: info: hello world (trying: to confuse the regexp here)
 main.adb:14:7: low: this is a low warning
+main.adb:8:7: this message has no severity level

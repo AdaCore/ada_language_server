@@ -33,7 +33,7 @@ import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpe
 
 export const TASK_TYPE_ADA = 'ada';
 export const TASK_TYPE_SPARK = 'spark';
-export const DEFAULT_PROBLEM_MATCHERS = ['$ada-error', '$ada-warning', '$ada-info'];
+export const DEFAULT_PROBLEM_MATCHERS = ['$ada-info', '$ada-warning', '$ada-error'];
 
 /**
  * A type representing task definitions as they appear in tasks.json files.
