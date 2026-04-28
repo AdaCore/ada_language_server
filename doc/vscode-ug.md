@@ -327,6 +327,8 @@ You can configure thresholds for specific metrics to highlight when they are exc
 
 ![GNAT Metrics Thresholds](media/gnatmetric-thresholds.png)
 
+While VS Code doesn’t natively support running a task on file save, external extensions can enable this behavior. This is a convenient way to keep the metrics up to date, ensuring they are recomputed each time the code is modified.
+
 ## Cross and Embedded Support
 
 This section provides some guidance to work on cross or embedded projects. It assumes
