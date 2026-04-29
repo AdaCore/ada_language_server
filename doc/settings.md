@@ -295,7 +295,7 @@ The value is a boolean.
 
 ### semanticDiagnostics
 
-You can explicitly deactivate the emission of semantic diagnosticsvia the `semanticDiagnostics` key. By default, diagnostics are enabled.
+You can explicitly deactivate the emission of semantic diagnostics via the `semanticDiagnostics` key. By default, diagnostics are enabled.
 The value is a boolean.
 
 ```javascript
