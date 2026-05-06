@@ -53,6 +53,7 @@ export class ALSClientFeatures implements StaticFeature {
                     capabilities.textDocument.semanticTokens.tokenModifiers.concat([
                         'globalVariable',
                         'localVariable',
+                        'dispatchingCall',
                     ]);
             }
         }

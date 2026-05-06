@@ -501,6 +501,9 @@ package body LSP.Ada_Highlighters is
          Kind  : LSP.Enumerations.SemanticTokenModifiers);
       --  Highlight given Token with token Kind
 
+      function Is_Dispatching_Call return Boolean;
+      --  Return whether the given name denotes a dispatching call.
+
       function To_Kind (Decl : Libadalang.Analysis.Basic_Decl)
         return LSP.Enumerations.SemanticTokenTypes;
 
@@ -561,6 +564,44 @@ package body LSP.Ada_Highlighters is
 
          Holder.Set_Token_Modifier (Token, Kind);
       end Highlight_Token;
+
+      -------------------------
+      -- Is_Dispatching_Call --
+      -------------------------
+
+      function Is_Dispatching_Call return Boolean is
+      begin
+         begin
+            if Node.As_Name.P_Is_Dispatching_Call (True) then
+               return True;
+            end if;
+         exception
+            when Libadalang.Common.Property_Error =>
+               null;
+         end;
+
+         --  When the highlighted node is the callee part of a call
+         --  expression, retry through that enclosing expression.
+         declare
+            use Libadalang.Analysis;
+            Parent : constant Libadalang.Analysis.Ada_Node := Node.Parent;
+         begin
+            if not Parent.Is_Null
+              and then Parent.Kind = Libadalang.Common.Ada_Call_Expr
+              and then Parent.As_Call_Expr.F_Name = Node.As_Name
+            then
+               begin
+                  return Parent.As_Call_Expr.F_Name.P_Is_Dispatching_Call
+                    (True);
+               exception
+                  when Libadalang.Common.Property_Error =>
+                     return False;
+               end;
+            end if;
+         end;
+
+         return False;
+      end Is_Dispatching_Call;
 
       -------------------
       -- Is_Predefined --
@@ -858,6 +899,14 @@ package body LSP.Ada_Highlighters is
          exception
             when Libadalang.Common.Property_Error => null;
          end;
+
+         begin
+            if Is_Dispatching_Call then
+               Highlight_Token (Node.Token_Start, dispatchingCall);
+            end if;
+         exception
+            when Libadalang.Common.Property_Error => null;
+         end;
       end if;
 
       if not Def.Is_Null then
@@ -934,8 +983,12 @@ package body LSP.Ada_Highlighters is
    procedure Highlight_Node
      (Self   : Ada_Highlighter'Class;
       Holder : in out Highlights_Holder;
-      Node   : Libadalang.Analysis.Ada_Node'Class) is
+      Node   : Libadalang.Analysis.Ada_Node'Class)
+   is
+      Node_Img : constant String := Node.Image;
    begin
+      Highlighter_Debug.Trace ("Node trying to highlight: " & Node_Img);
+
       if Is_Ghost_Root_Node (Node)
         and Self.Token_Modifiers.Contains (LSP.Enumerations.documentation)
       then
@@ -1064,6 +1117,7 @@ package body LSP.Ada_Highlighters is
       Append_Modifier (an_abstract, "abstract");
       --  Append_Modifier (async, "async");
       Append_Modifier (modification, "modification");
+      Append_Modifier (dispatchingCall, "dispatchingCall");
       Append_Modifier (documentation, "documentation");
       Append_Modifier (defaultLibrary, "defaultLibrary");
       Append_Modifier (globalVariable, "globalVariable");

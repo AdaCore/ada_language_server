@@ -3529,6 +3529,8 @@ package body LSP.Message_IO is
          V := async;
       elsif Text = "modification" then
          V := modification;
+      elsif Text = "dispatchingCall" then
+            V := dispatchingCall;
       elsif Text = "documentation" then
          V := documentation;
       elsif Text = "defaultLibrary" then
@@ -3574,6 +3576,8 @@ package body LSP.Message_IO is
                return "async";
             when modification =>
                return "modification";
+               when dispatchingCall =>
+                  return "dispatchingCall";
             when documentation =>
                return "documentation";
             when defaultLibrary =>
