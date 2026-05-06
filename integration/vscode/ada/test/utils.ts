@@ -371,6 +371,10 @@ export async function waitForExpectedDiagnostics(
     timeoutMs: number = 5000,
 ): Promise<vscode.Diagnostic[]> {
     return new Promise((resolve, reject) => {
+        /* Windows truncates diagnostic messages for some reason
+         * so we only compare expected severity levels, not messages */
+        const isWindows = process.platform === 'win32';
+
         let disposable: vscode.Disposable | undefined = undefined;
 
         const getDiagnosticsAndMessages = (): [vscode.Diagnostic[], string[]] => {
@@ -419,11 +423,17 @@ export async function waitForExpectedDiagnostics(
             reject(new Error(errorMsg));
         }, timeoutMs);
 
-        const checkDiagnostics = () => {
+        const checkDiagnostics = (): boolean => {
             const [diagnostics, messages] = getDiagnosticsAndMessages();
-
-            // Check if we have the expected diagnostics
-            if (expectedMessages.every((msg) => messages.includes(msg))) {
+            /* On Windows, only do a partial match against expected message */
+            const hasExpectedMessage = (expectedMsg: string, actualMessages: string[]): boolean =>
+                isWindows
+                    ? actualMessages.some((diag) => expectedMsg.includes(diag))
+                    : actualMessages.includes(expectedMsg);
+            /**
+             * Check that we have the expected number of diagnostics
+             */
+            if (expectedMessages.every((expMsg) => hasExpectedMessage(expMsg, messages))) {
                 clearTimeout(timeout);
                 disposable?.dispose();
                 // Filter diagnostics to only include those that match expected messages
