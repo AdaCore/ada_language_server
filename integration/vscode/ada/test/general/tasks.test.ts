@@ -26,6 +26,7 @@ import {
 } from '../utils';
 
 suite('Task Providers', function () {
+    const isWindows = process.platform === 'win32';
     let projectPath: string;
 
     this.beforeAll(async () => {
@@ -281,7 +282,6 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
         expectedMessages: string,
     ) {
         const prov = createAdaTaskProvider();
-        const isWindows = process.platform === 'win32';
 
         /**
          * Run a task that dumps some compiler messages contained in the specified file.
@@ -400,7 +400,7 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
              * is captured is different on Windows and on Linux, hence using
              * different expected sets of messages here.
              */
-            process.platform === 'win32'
+            isWindows
                 ? `
 0: "New_Var_Edit" is undefined (more references follow)
 0: unmatched actual "Title" in call
