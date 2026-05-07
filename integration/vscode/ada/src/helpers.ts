@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2023, AdaCore                     --
+--                     Copyright (C) 2021-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,6 +22,7 @@ import { CancellationError, CancellationToken, DocumentSymbol, SymbolKind } from
 import { LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
 
+import { spawnSync } from 'child_process';
 import { existsSync } from 'fs';
 import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
 import {
@@ -118,6 +119,9 @@ export function substituteVariables(str: string, recursive = false): string {
     return str;
 }
 
+/* Alias for environment variable tables */
+type EnvTable = { [name: string]: string | null };
+
 /**
  * Name of the `terminal.integrated.env.*` setting applicable to the current platform.
  */
@@ -147,10 +151,8 @@ export function isExtensionInstalled(extensionId: string): boolean {
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * without evaluation of macros such as `${env:...}`.
  */
-export function getTerminalEnv(): { [name: string]: string | null } {
-    const custom_env = vscode.workspace
-        .getConfiguration()
-        .get<{ [name: string]: string | null }>(TERMINAL_ENV_SETTING_NAME);
+export function getTerminalEnv(): EnvTable {
+    const custom_env = vscode.workspace.getConfiguration().get<EnvTable>(TERMINAL_ENV_SETTING_NAME);
 
     return custom_env ?? {};
 }
@@ -160,7 +162,7 @@ export function getTerminalEnv(): { [name: string]: string | null } {
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * after evaluation of macros such as `${env:...}`.
  */
-export function getEvaluatedTerminalEnv(): { [name: string]: string | null } {
+export function getEvaluatedTerminalEnv(): EnvTable {
     const custom_env = getTerminalEnv();
 
     if (custom_env) {
@@ -199,16 +201,12 @@ export function getArgValue(a: string | vscode.ShellQuotedString): string {
  * The targetEnv can be `process.env` to apply the changes to the environment of
  * the running process.
  */
-export function setTerminalEnvironment(
-    targetEnv: NodeJS.ProcessEnv,
-    custom_env?: { [name: string]: string | null },
-) {
+export function setTerminalEnvironment(targetEnv: NodeJS.ProcessEnv, custom_env?: EnvTable) {
     if (custom_env == undefined) {
         // Retrieve the user's custom environment variables if specified in their
         // settings/workspace
         custom_env = getEvaluatedTerminalEnv();
     }
-
     if (custom_env) {
         for (const var_name in custom_env) {
             const var_value = custom_env[var_name];
@@ -496,29 +494,26 @@ export function envHasExec(execName: string): boolean {
 /**
  * Finds the path to an executable using the PATH environment variable.
  *
- * On Windows, the extension of the executable does not need to be provided. The
- * env variable PATHEXT is used to consider all applicable extensions (e.g.
- * .exe, .cmd).
+ * Deduces extension string from platform, or uses one provided
  *
  * @param execName - name of executable to find using PATH environment variable.
  * @returns the full path to the executable if found, otherwise `undefined`
  */
-export function which(execName: string) {
+export function which(execName: string, searchEnv?: EnvTable) {
+    /* If no extension provided, check platform */
+    const execNameWithExtension = path.extname(execName) === '' ? execName + exe : execName;
     const env = { ...process.env };
     setTerminalEnvironment(env);
-    const pathVal = env.PATH;
-    const paths = pathVal?.split(path.delimiter);
-    const exeExtensions =
-        process.platform == 'win32'
-            ? /**
-               * On Windows use a default list of extensions in case PATHEXT is
-               * not set.
-               */
-              (env.PATHEXT?.split(path.delimiter) ?? ['.exe', '.cmd', '.bat'])
-            : [''];
+
+    /* Search provided PATH first, if any */
+    let pathVal = env.PATH;
+    if (searchEnv && searchEnv.PATH) {
+        pathVal = searchEnv.PATH + path.delimiter + pathVal;
+    }
+    const paths = pathVal?.split(path.delimiter) ?? [];
 
     const exePath: string | undefined = paths
-        ?.flatMap((p) => exeExtensions.map((ext) => path.join(p, execName + ext)))
+        ?.map((p) => path.join(p, execNameWithExtension))
         .find(existsSync);
 
     return exePath;
@@ -783,4 +778,63 @@ export async function belongsToLoadedProject(
         logger.error('Failed to check if document belongs to loaded project: ' + String(error));
         return false;
     }
+}
+
+/** Alire environment parsing */
+
+/**
+ * Calls `alr printenv`, returns the resulting environment variables in a table
+ * Note: alr already expands these variables, so no evaluation needed
+ *
+ * @param alireToml - Uri of alire.toml configuration file
+ *
+ * @returns Key-value table of Alire environment variables if any
+ */
+export function getAlireEnv(alireToml: vscode.Uri): EnvTable | undefined {
+    const alrDriver = 'alr';
+    if (!envHasExec(alrDriver)) {
+        logger.warn('Could not find alr executable.');
+        return undefined;
+    } else {
+        logger.info('Checking Alire environment...');
+    }
+    const alrExecArgs = ['--non-interactive', 'printenv'];
+    // Need to run Alire commands in directory containing alire.toml
+    const crateRoot = path.dirname(alireToml.fsPath);
+    const alrProc = spawnSync(alrDriver, alrExecArgs, {
+        cwd: crateRoot,
+        shell: true,
+        timeout: 3000,
+        encoding: 'buffer',
+    });
+    if (alrProc.status != 0) {
+        const errMsg = alrProc.error?.message ?? alrProc.stderr.toString('utf-8');
+        logger.warn(`Failed to read Alire environment. Reason: ${errMsg}`);
+        return undefined;
+    }
+    /**
+     * Alire performs all path expansion/substitution before printing output. Example output:
+     *
+     *   export ALIRE="True"
+     *   export GNAT_NATIVE_ALIRE_PREFIX="/home/work/share/alire/toolchains/gnat_native_13.2.1_7889"
+     *   export PATH="/home/work/share/alire/toolchains/gprbuild_22.0.1_24dfc15/bin:/usr/bin"
+     *
+     */
+    const newLineRgx = /[\r,\n,\r\n]/g;
+    // Names of environment variable are relatively simple
+    const varNameRgx = '(?<alrName>\\w+)\\s*';
+    // but values may include complicated paths and enclosing quotes (which we ignore)
+    const varValRgx = '\\s*[\',"]?(?<alrVal>[\\w,/,\\\\,.,:,;,~,-]+)[\',"]?';
+    // e.g. 'export BUILD_MODE="prod"' -> alrName: 'BUILD_MODE', alrVal: 'prod'
+    const alrEnvStmtRgx = new RegExp(`${varNameRgx}=${varValRgx}`);
+
+    // Parse all environment variable assignments
+    const alrOutput = alrProc.stdout.toString('utf-8').split(newLineRgx) || [];
+    const alrEnvKeyPairs = alrOutput
+        .map((line) => line.match(alrEnvStmtRgx)?.groups)
+        .filter((m) => m != undefined);
+    const alireEnv: EnvTable = Object.fromEntries(
+        alrEnvKeyPairs.map((matched) => [matched.alrName, matched.alrVal]),
+    );
+    return alireEnv;
 }
