@@ -534,6 +534,7 @@ private
    overriding function Get_Runtime_Sources (Self : Message_Handler)
      return GPR2.Build.Source.Sets.Object is
      (if Self.Project_Tree_Is_Defined
+         and then Self.Project_Tree.Runtime_Project.Is_Defined
       then Self.Project_Tree.Runtime_Project.Sources
       else GPR2.Build.Source.Sets.Empty_Set);
 
