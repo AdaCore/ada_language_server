@@ -3857,7 +3857,8 @@ package LSP.Messages is
       documentation,
       defaultLibrary,
       globalVariable,
-      localVariable);
+      localVariable,
+      dispatchingCall);
 
    procedure Read_SemanticTokenModifiers
      (S : access Ada.Streams.Root_Stream_Type'Class;

@@ -1992,6 +1992,8 @@ package body LSP.Outputs is
             Handler.String_Value ("globalVariable");
          when LSP.Enumerations.localVariable =>
             Handler.String_Value ("localVariable");
+         when LSP.Enumerations.dispatchingCall =>
+            Handler.String_Value ("dispatchingCall");
       end case;
    end Write_SemanticTokenModifiers;
 

@@ -122,6 +122,10 @@
             {
                 "id": "localVariable",
                 "description": "Annotates a variable that is local to the code block"
+            },
+            {
+                "id": "dispatchingCall",
+                "description": "Annotates a call resolved through dispatching"
             }
         ],
         "semanticTokenScopes": [
