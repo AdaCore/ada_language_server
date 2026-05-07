@@ -24,6 +24,7 @@ import Transport from 'winston-transport';
 import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
+import { ProjectViewProvider } from './projectViewProvider';
 import { autoReloadProject, registerCommands } from './commands';
 import {
     TERMINAL_ENV_SETTING_NAME,
@@ -205,12 +206,26 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState.adaClient.registerFeature(new ALSClientFeatures());
 
     /**
+     * Create the Project View.
+     */
+    const projectViewProvider = new ProjectViewProvider(adaExtState.adaClient);
+    adaExtState.projectViewProvider = projectViewProvider;
+    adaExtState.projectTreeView = vscode.window.createTreeView('projectView', {
+        treeDataProvider: projectViewProvider,
+        showCollapseAll: true,
+    });
+
+    /**
      * Register commands first so that commands such as displaying the extension
      * Output become available even if the language servers fail to start.
      */
     registerCommands(context, adaExtState);
 
+    // Start the ALS clients
     await adaExtState.start();
+
+    // Refresh the Project View to show the root project if one is already loaded.
+    void adaExtState.refreshProjectView();
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 

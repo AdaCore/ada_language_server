@@ -16,6 +16,7 @@ import {
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
+import { ProjectViewItem, ProjectViewProvider } from './projectViewProvider';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
@@ -68,6 +69,8 @@ export class ExtensionState {
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
+    public projectViewProvider?: ProjectViewProvider;
+    public projectTreeView?: vscode.TreeView<ProjectViewItem>;
 
     public readonly metricDiagnostics = vscode.languages.createDiagnosticCollection('gnatmetric');
 
@@ -400,6 +403,7 @@ export class ExtensionState {
             this.clearCacheAndTasks(
                 'project related settings have changed: clearing caches and tasks',
             );
+            void this.refreshProjectView();
         }
 
         //  React to changes made in the environment variables, showing
@@ -552,6 +556,23 @@ export class ExtensionState {
         }
 
         return this.cachedProjectUri;
+    }
+
+    /**
+     * Refreshes the Project View by fetching the new root project URI, if
+     * any, and updating the view provider.
+     */
+    public async refreshProjectView(): Promise<void> {
+        // Clear the cached project URI to fetch a fresh one
+        this.cachedProjectUri = undefined;
+
+        // Get the potentially new root project URI
+        const projectUri = await this.getProjectUri();
+
+        // Update the project view provider if it exists
+        if (this.projectViewProvider) {
+            this.projectViewProvider.setRootProjectUri(projectUri);
+        }
     }
 
     /**

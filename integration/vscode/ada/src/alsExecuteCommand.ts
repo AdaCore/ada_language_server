@@ -95,6 +95,8 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
             // Clear the cache and the predefined tasks when the project
             // has been reloaded.
             adaExtState.clearCacheAndTasks('project is being reloaded: clearing caches and tasks');
+            // Refresh the project view with the potentially new root project URI
+            await adaExtState.refreshProjectView();
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return next(command, args);

@@ -15,9 +15,10 @@ import {
     CMD_GET_OBJECT_DIR,
     CMD_GPR_PROJECT_ARGS,
     CMD_DELETE_METRICS_FOR_FILE,
-    CMD_OPEN_USERS_GUIDE,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
+    CMD_OPEN_PROJECT_FILE,
+    CMD_OPEN_USERS_GUIDE,
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
@@ -27,6 +28,9 @@ import {
     CMD_SPARK_LIMIT_SUBP_ARG,
     CMD_SPARK_PROVE_SUBP,
     VSCODE_UG_LIVE_DOC_URL,
+    CMD_EDIT_PROJECT_FILE,
+    CMD_SET_PROJECT_VIEW_FILTER,
+    CMD_UNSET_PROJECT_VIEW_FILTER,
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
@@ -58,6 +62,7 @@ import {
 } from './taskProviders';
 import { Hierarchy } from './visualizerTypes';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
+import { ProjectViewItem } from './projectViewProvider';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(
@@ -130,6 +135,25 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.buildAndRunMainAsk', buildAndRunMainAsk),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_OPEN_PROJECT_FILE, openProjectFile),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_EDIT_PROJECT_FILE, async (item: ProjectViewItem) => {
+            if (item.uri) {
+                await vscode.commands.executeCommand('vscode.open', item.uri);
+            }
+        }),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_SET_PROJECT_VIEW_FILTER, setProjectViewFilter),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_UNSET_PROJECT_VIEW_FILTER, setProjectViewFilter),
     );
 
     // This is a hidden command that gets called in the default debug
@@ -274,6 +298,30 @@ export function getUsersGuideURI(): vscode.Uri | null {
         return ug_path;
     }
     return null;
+}
+
+/**
+ * Handler for the command that sets a filter on the project view.
+ * The user is prompted to enter a filter string, which is then sent to the
+ * project view provider to filter the displayed items. The filter is stored in
+ * the extension state to be reapplied when the view is refreshed, and a context
+ * variable is set to allow toggling the filter on and off in the view's when
+ * clauses.
+ */
+async function setProjectViewFilter() {
+    if (!adaExtState.projectViewProvider || !adaExtState.projectTreeView) {
+        return;
+    }
+    const activeFilter = adaExtState.projectViewProvider.getFilter();
+    const filter = await vscode.window.showInputBox({
+        prompt: 'Filter Project View',
+        placeHolder: activeFilter ? activeFilter : 'Enter filter text',
+    });
+    if (filter !== undefined) {
+        adaExtState.projectTreeView.message = filter ? `Filtered by: "${filter}"` : '';
+        vscode.commands.executeCommand('setContext', 'projectViewFilterActive', !!filter);
+        adaExtState.projectViewProvider.setFilter(filter);
+    }
 }
 
 /**
@@ -616,6 +664,35 @@ async function buildAndRunMainAsk() {
 }
 
 /**
+ * Handler for the command that opens a project file dialog and sets the
+ * ada.projectFile setting to the selected file.
+ *
+ * @param projectFileURI - (optional) the URI of the project file to open.
+ * If not provided, the user will be prompted to select a project file.
+ */
+async function openProjectFile(projectFileURI?: vscode.Uri) {
+    const selection = projectFileURI
+        ? [projectFileURI]
+        : await vscode.window.showOpenDialog({
+              defaultUri: vscode.workspace.workspaceFolders
+                  ? vscode.workspace.workspaceFolders[0].uri
+                  : undefined,
+              canSelectFiles: true,
+              canSelectFolders: false,
+              canSelectMany: false,
+              filters: {
+                  'GPR Project Files': ['gpr'],
+              },
+              title: 'Select a GPR project file to load',
+          });
+
+    if (selection && selection.length > 0 && selection[0]) {
+        const selectedFile = vscode.workspace.asRelativePath(selection[0]);
+        await vscode.workspace.getConfiguration('ada').update('projectFile', selectedFile);
+    }
+}
+
+/**
  * Handler for commands that restart language servers launched by the extension.
  *
  */
@@ -631,6 +708,9 @@ async function restartLanguageServers() {
     adaExtState.clearCacheAndTasks(
         'Language servers have been restarted, clearing cache and tasks',
     );
+
+    // Refresh the Project View
+    void adaExtState.refreshProjectView();
 }
 
 /**
