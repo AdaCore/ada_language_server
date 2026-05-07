@@ -7,7 +7,7 @@ suite('Syntax Check Test Suite', function () {
     this.beforeAll(async () => {
         await activate();
     });
-    suite('Grammer Rules Tests', () => {
+    suite('Grammar Rules Tests', () => {
         // the test function
         async function testRule(
             rule: AdaGrammarRule,

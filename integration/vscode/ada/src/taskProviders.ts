@@ -2,7 +2,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -839,7 +839,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
  * workspace contains a `alire.toml` file.
  */
 async function useAlire() {
-    return (await adaExtState.getAlireTomls()).length > 0;
+    return (await adaExtState.getAlireCrateFile()) != null;
 }
 
 /**

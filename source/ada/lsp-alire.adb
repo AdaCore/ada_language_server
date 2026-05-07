@@ -133,9 +133,9 @@ package body LSP.Alire is
          Lines   => Lines);
    end Conservative_Alire_Sync;
 
-   ---------------
-   -- Run_Alire --
-   ---------------
+   -----------------------------
+   -- Determine_Alire_Project --
+   -----------------------------
 
    procedure Determine_Alire_Project
      (Root    : String;
@@ -210,9 +210,9 @@ package body LSP.Alire is
 
    end Determine_Alire_Project;
 
-   ---------------
-   -- Run_Alire --
-   ---------------
+   ---------------------
+   -- Setup_Alire_Env --
+   ---------------------
 
    procedure Setup_Alire_Env
      (Root        : String;
@@ -312,6 +312,10 @@ package body LSP.Alire is
             return;
       end;
    end Start_Alire_Sync;
+
+   --------------------------
+   -- Start_Alire_Unsynced --
+   --------------------------
 
    procedure Start_Alire_Unsynced
      (Options : VSS.String_Vectors.Virtual_String_Vector;

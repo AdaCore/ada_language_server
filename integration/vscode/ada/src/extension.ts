@@ -151,6 +151,10 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState = new ExtensionState(context);
     context.subscriptions.push(adaExtState);
 
+    // Check if project is an Alire crate and cache configuration file
+    if (await adaExtState.getAlireCrateFile()) {
+        logger.info('Found Alire crate at project root.');
+    }
     // Subscribe to the didChangeConfiguration event to react to changes
     // in settings
     context.subscriptions.push(
