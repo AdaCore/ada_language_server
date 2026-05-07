@@ -3576,7 +3576,7 @@ package body LSP.Message_IO is
                return "async";
             when modification =>
                return "modification";
-               when dispatchingCall =>
+            when dispatchingCall =>
                   return "dispatchingCall";
             when documentation =>
                return "documentation";
