@@ -54,6 +54,7 @@ with LSP.Ada_Formatter;
 with LSP.Ada_Handlers.Executables_Commands;
 with LSP.Ada_Handlers.GPR_Dependencies_Commands;
 with LSP.Ada_Handlers.Mains_Commands;
+with LSP.Ada_Handlers.Project_View_Commands;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Object_Dir_Commands;
 with LSP.Ada_Handlers.Open_ALS_Log_File_Commands;
@@ -212,6 +213,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Show_Dependencies_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.GPR_Dependencies_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Project_View_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Source_Dirs_Commands.Command'Tag);
       LSP.Ada_Commands.Register

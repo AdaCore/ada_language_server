@@ -97,10 +97,36 @@ export const CMD_SHOW_GPR_LS_OUTPUT = 'ada.showGprLSOutput';
 export const CMD_RELOAD_PROJECT = 'als-reload-project';
 
 /**
+ * Identifier for the command that opens a project file.
+ */
+export const CMD_OPEN_PROJECT_FILE = 'ada.openProjectFile';
+
+/**
+ * Identifier for the command that edits a project file.
+ */
+export const CMD_EDIT_PROJECT_FILE = 'ada.editProjectFile';
+
+/**
  * Identifier for the command that retrieves the list of dependencies of the specified
  * GPR project.
  */
 export const CMD_GPR_PROJECT_DEPENDENCIES = 'als-gpr-dependencies';
+
+/**
+ * Identifier for the command that retrieves project view information from the ALS,
+ * including all projects in the tree and their source files.
+ */
+export const CMD_PROJECT_VIEW_INFORMATION = 'als-project-view-information';
+
+/**
+ * Identifier for the command that sets a filter for the Project View.
+ */
+export const CMD_SET_PROJECT_VIEW_FILTER = 'ada.setProjectViewFilter';
+
+/**
+ * Identifier for the command that unsets a filter for the Project View.
+ */
+export const CMD_UNSET_PROJECT_VIEW_FILTER = 'ada.unsetProjectViewFilter';
 
 /**
  * Identifier for the command that restarts all the language servers spawned by the extension

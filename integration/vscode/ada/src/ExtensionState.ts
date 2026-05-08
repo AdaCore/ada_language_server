@@ -16,12 +16,13 @@ import {
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
+import { ProjectViewItem, ProjectViewProvider } from './projectViewProvider';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
-import { TERMINAL_ENV_SETTING_NAME, exe, getArgValue, getEvaluatedTerminalEnv } from './helpers';
+import { TERMINAL_ENV_SETTING_NAME, which, getArgValue, getAlireEnv } from './helpers';
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
@@ -68,6 +69,8 @@ export class ExtensionState {
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
+    public projectViewProvider?: ProjectViewProvider;
+    public projectTreeView?: vscode.TreeView<ProjectViewItem>;
 
     public readonly metricDiagnostics = vscode.languages.createDiagnosticCollection('gnatmetric');
 
@@ -80,7 +83,7 @@ export class ExtensionState {
     cachedTargetPrefix: string | undefined;
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
-    cachedAlireTomls: vscode.Uri[] | undefined;
+    cachedAlireCrateFile: vscode.Uri | null | undefined;
     cachedDebugServerAddress: string | undefined | null;
     cachedGdb: string | undefined | null = undefined;
     projectAttributeCache: Map<string, Promise<string | string[]>> = new Map();
@@ -95,7 +98,7 @@ export class ExtensionState {
         this.cachedTargetPrefix = undefined;
         this.cachedMains = undefined;
         this.cachedExecutables = undefined;
-        this.cachedAlireTomls = undefined;
+        this.cachedAlireCrateFile = undefined;
         this.cachedDebugServerAddress = undefined;
         this.cachedGdb = undefined;
         this.projectAttributeCache.clear();
@@ -400,6 +403,7 @@ export class ExtensionState {
             this.clearCacheAndTasks(
                 'project related settings have changed: clearing caches and tasks',
             );
+            void this.refreshProjectView();
         }
 
         //  React to changes made in the environment variables, showing
@@ -513,29 +517,23 @@ export class ExtensionState {
             /**
              * If undefined yet, try to compute it.
              */
-            const env = getEvaluatedTerminalEnv();
-            let pathVal: string;
-            if (env && 'PATH' in env) {
-                pathVal = env.PATH ?? '';
-            } else if ('PATH' in process.env) {
-                pathVal = process.env.PATH ?? '';
-            } else {
-                pathVal = '';
-            }
+            const gdbBaseName = target != '' ? `${target}-gdb` : 'gdb';
 
-            const gdbExeBasename = target != '' ? `${target}-gdb${exe}` : `gdb${exe}`;
-            const gdb = pathVal
-                .split(path.delimiter)
-                .map<string>((v) => path.join(v, gdbExeBasename))
-                .find(existsSync);
-
+            /* If an Alire crate is detected at the project root,
+             * check the Alire environment for a debugger.
+             * Otherwise default to user terminal settings. */
+            const searchEnv = this.cachedAlireCrateFile
+                ? getAlireEnv(this.cachedAlireCrateFile)
+                : undefined;
+            const gdb = which(gdbBaseName, searchEnv);
             if (gdb) {
-                // Found
                 this.cachedGdb = gdb;
+                logger.info(`Found debugger at: ${gdb}`);
                 return this.cachedGdb;
             } else {
                 // Not found. Assign null to cache to avoid recomputing at every call.
                 this.cachedGdb = null;
+                logger.warn(`Could not find '${gdbBaseName}' in PATH.`);
             }
         }
 
@@ -558,6 +556,23 @@ export class ExtensionState {
         }
 
         return this.cachedProjectUri;
+    }
+
+    /**
+     * Refreshes the Project View by fetching the new root project URI, if
+     * any, and updating the view provider.
+     */
+    public async refreshProjectView(): Promise<void> {
+        // Clear the cached project URI to fetch a fresh one
+        this.cachedProjectUri = undefined;
+
+        // Get the potentially new root project URI
+        const projectUri = await this.getProjectUri();
+
+        // Update the project view provider if it exists
+        if (this.projectViewProvider) {
+            this.projectViewProvider.setRootProjectUri(projectUri);
+        }
     }
 
     /**
@@ -717,12 +732,13 @@ export class ExtensionState {
         return this.cachedExecutables;
     }
 
-    public async getAlireTomls(): Promise<vscode.Uri[]> {
-        if (!this.cachedAlireTomls) {
-            this.cachedAlireTomls = await vscode.workspace.findFiles('alire.toml');
+    public async getAlireCrateFile(): Promise<vscode.Uri | null> {
+        if (this.cachedAlireCrateFile == undefined) {
+            const alireTomls = await vscode.workspace.findFiles('alire.toml', null, 1);
+            this.cachedAlireCrateFile = alireTomls.length > 0 ? alireTomls[0] : null;
         }
 
-        return this.cachedAlireTomls;
+        return this.cachedAlireCrateFile;
     }
 
     /**

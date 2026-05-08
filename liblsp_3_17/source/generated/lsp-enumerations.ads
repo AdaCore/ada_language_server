@@ -451,7 +451,7 @@ package LSP.Enumerations is
    type SemanticTokenModifiers is
      (declaration, definition, readonly, static, deprecated, an_abstract,
       async, modification, documentation, defaultLibrary, globalVariable,
-      localVariable);
+      localVariable, dispatchingCall);
    --  A set of predefined token modifiers. This set is not fixed an clients
    --  can specify additional token types via the corresponding client
    --  capabilities.
