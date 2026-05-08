@@ -377,6 +377,16 @@ export async function waitForExpectedDiagnostics(
 
         let disposable: vscode.Disposable | undefined = undefined;
 
+        /* On Unix we check for diagnostic messages which match
+         * exactly the string in expectedMessages.
+         * On Windows, diagnostic messages are truncated for an unknown reason,
+         * so instead we check the truncated diagnostic message
+         * is a substring of the expected message
+         */
+        const matches = (expMsg: string, actualMsgs: string[]): boolean =>
+            isWindows
+                ? actualMsgs.some((truncated) => expMsg.includes(truncated, 0))
+                : actualMsgs.includes(expMsg);
         const getDiagnosticsAndMessages = (): [vscode.Diagnostic[], string[]] => {
             let diagnostics: vscode.Diagnostic[];
             if (fileUri) {
@@ -425,20 +435,15 @@ export async function waitForExpectedDiagnostics(
 
         const checkDiagnostics = (): boolean => {
             const [diagnostics, messages] = getDiagnosticsAndMessages();
-            /* On Windows, only do a partial match against expected message */
-            const hasExpectedMessage = (expectedMsg: string, actualMessages: string[]): boolean =>
-                isWindows
-                    ? actualMessages.some((diag) => expectedMsg.includes(diag))
-                    : actualMessages.includes(expectedMsg);
             /**
-             * Check that we have the expected number of diagnostics
+             * Check that we have the expected diagnostics
              */
-            if (expectedMessages.every((expMsg) => hasExpectedMessage(expMsg, messages))) {
+            if (expectedMessages.every((exp) => matches(exp, messages))) {
                 clearTimeout(timeout);
                 disposable?.dispose();
                 // Filter diagnostics to only include those that match expected messages
                 const matchedDiagnostics = diagnostics.filter((d) =>
-                    expectedMessages.includes(d.message),
+                    matches(d.message, expectedMessages),
                 );
                 resolve(matchedDiagnostics);
                 return true;
