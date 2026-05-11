@@ -409,17 +409,10 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             const subEntry = this.projectViewInfo.projects.get(subId);
             if (subEntry) {
                 const subUri = vscode.Uri.file(subEntry.project.file_name);
-                const hasChildren =
-                    subEntry.imports.length > 0 ||
-                    subEntry.aggregated.length > 0 ||
-                    subEntry.extended.length > 0 ||
-                    subEntry.sources.length > 0;
                 items.push(
                     new ProjectViewItem(
                         subEntry.project.name,
-                        hasChildren
-                            ? vscode.TreeItemCollapsibleState.Collapsed
-                            : vscode.TreeItemCollapsibleState.None,
+                        vscode.TreeItemCollapsibleState.Collapsed,
                         ProjectViewItemKind.SUB_PROJECT,
                         subUri,
                         subId,
