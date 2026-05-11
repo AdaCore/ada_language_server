@@ -58,9 +58,9 @@ export interface SimpleTaskDef extends vscode.TaskDefinition {
 }
 
 /**
- * An internal type to represent predefined tasks that will offered by the extension.
+ * A type to represent predefined tasks that will be offered by the extension.
  */
-interface PredefinedTask {
+export interface PredefinedTask {
     label: string;
     description?: string;
     taskDef: SimpleTaskDef;
@@ -68,6 +68,10 @@ interface PredefinedTask {
     taskGroup?: vscode.TaskGroup;
     revealKind?: vscode.TaskRevealKind;
     isBackground?: boolean;
+    /**
+     * A command ID to create a wrapper command for this task.
+     */
+    commandId?: string;
 }
 
 interface SPARKPredefinedTask extends PredefinedTask {
@@ -93,6 +97,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
     },
     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     taskGroup: vscode.TaskGroup.Build,
+    commandId: 'ada.tasks.buildProject',
 };
 
 export const BUILD_PROJECT_TASK_NAME = `${TASK_BUILD_PROJECT.taskDef.type}: ${TASK_BUILD_PROJECT.label}`;
@@ -106,6 +111,7 @@ const TASK_CLEAN_PROJECT = {
     },
     problemMatchers: [],
     taskGroup: vscode.TaskGroup.Clean,
+    commandId: 'ada.tasks.cleanProject',
 };
 
 export const TASK_PROVE_SUPB_PLAIN_NAME = 'Prove subprogram';
@@ -119,9 +125,10 @@ export const TASK_GNATCOV_SETUP: PredefinedTask = {
         args: ['setup'],
     },
     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+    commandId: 'ada.tasks.gnatcovSetup',
 };
 
-const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
+export const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
 
 export const TASK_GNATSAS_REPORT: PredefinedTask = {
     label: 'Create a report after a GNAT SAS analysis',
@@ -149,7 +156,7 @@ export const TASK_GNATSAS_REPORT: PredefinedTask = {
  * included in this array. They are later on split and provided by different
  * task providers.
  */
-const adaTasks: PredefinedTask[] = [
+export const adaTasks: PredefinedTask[] = [
     /**
      * Ada
      */
@@ -223,6 +230,7 @@ const adaTasks: PredefinedTask[] = [
          * `gnatsas report` task below
          */
         problemMatchers: [],
+        commandId: 'ada.tasks.analyzeProjectGnatSas',
     },
     {
         label: 'Analyze the current file with GNAT SAS',
@@ -255,6 +263,7 @@ const adaTasks: PredefinedTask[] = [
          * with a problem matcher.
          */
         problemMatchers: [],
+        commandId: 'ada.tasks.analyzeProjectGnatSasAndReport',
     },
     {
         label: 'Analyze the current file with GNAT SAS and produce a report',
@@ -279,6 +288,7 @@ const adaTasks: PredefinedTask[] = [
             args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`],
         },
         problemMatchers: [],
+        commandId: 'ada.tasks.generateDocumentation',
     },
     {
         label: 'Create or update GNATtest test framework',
@@ -288,6 +298,7 @@ const adaTasks: PredefinedTask[] = [
             args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`],
         },
         problemMatchers: [],
+        commandId: 'ada.tasks.createOrUpdateGnattest',
     },
 ];
 
@@ -849,7 +860,7 @@ async function useAlire() {
  *
  * @param args - an array of command line arguments from a task
  * @returns the array of arguments where items matching the pattern
- * '$\{command:ada.*\} have been evaluated. If they return an array of strings,
+ * '$\{command:ada.*\}' have been evaluated. If they return an array of strings,
  * then the array is inserted into the argument array at the location of the
  * command.
  */
