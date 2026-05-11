@@ -26,6 +26,7 @@ with GNAT.OS_Lib;
 with GNAT.Strings;
 
 pragma Warnings (Off, "is an internal GNAT unit");
+with LSP.Ada_Handlers.Format_Range_Commands;
 with System.Soft_Links;
 with System.Secondary_Stack;
 
@@ -259,6 +260,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Swap_If_Else.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Format_Range_Commands.Command'Tag);
 
       --  Refactoring - Change Subprogram Signature Commands
       LSP.Ada_Commands.Register
