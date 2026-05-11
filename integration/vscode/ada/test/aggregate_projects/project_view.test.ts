@@ -113,6 +113,65 @@ suite('Project View', function () {
         );
     });
 
+    test('Context values: project items use gprFile, others use distinct values', async () => {
+        // The "Edit Project File" context menu entry uses `viewItem == gprFile` to restrict
+        // visibility to project items only.  This test verifies that the contextValue assigned
+        // to each item kind matches those expectations so that a code change cannot silently
+        // re-enable the menu for source files or source directories.
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        // Root project item
+        const rootItems = await provider.getChildren();
+        assert.strictEqual(rootItems.length, 1, 'Expected exactly one root project item');
+        const rootItem = rootItems[0];
+        assert.strictEqual(
+            rootItem.contextValue,
+            'gprFile',
+            'Root project item should have contextValue "gprFile"',
+        );
+
+        // Sub-project items
+        const aggrChildren = await provider.getChildren(rootItem);
+        const subProjects = aggrChildren.filter(
+            (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT,
+        );
+        assert.ok(subProjects.length > 0, 'Expected at least one sub-project item');
+        for (const subItem of subProjects) {
+            assert.strictEqual(
+                subItem.contextValue,
+                'gprFile',
+                `Sub-project item '${String(subItem.label)}' should have contextValue "gprFile"`,
+            );
+        }
+
+        // Source directory and source file items
+        const subChildren = await provider.getChildren(subProjects[0]);
+        const sourceDirs = subChildren.filter(
+            (i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY,
+        );
+        assert.ok(sourceDirs.length > 0, 'Expected at least one source directory item');
+        for (const dirItem of sourceDirs) {
+            assert.strictEqual(
+                dirItem.contextValue,
+                'sourceDirectory',
+                `Source directory item '${String(dirItem.label)}' should ` +
+                    `have contextValue "sourceDirectory"`,
+            );
+
+            const files = await provider.getChildren(dirItem);
+            assert.ok(files.length > 0, 'Expected at least one source file item');
+            for (const fileItem of files) {
+                assert.strictEqual(
+                    fileItem.contextValue,
+                    'sourceFile',
+                    `Source file item '${String(fileItem.label)}' ` +
+                        `should have contextValue "sourceFile"`,
+                );
+            }
+        }
+    });
+
     test('Tree structure: source directories before dependencies', async () => {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');

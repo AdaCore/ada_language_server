@@ -1495,12 +1495,12 @@
             "view/item/context": [
                 {
                     "command": "ada.editProjectFile",
-                    "when": "view == projectView",
+                    "when": "view == projectView && viewItem == gprFile",
                     "group": "navigation"
                 },
                 {
                     "command": "ada.editProjectFile",
-                    "when": "view == projectView",
+                    "when": "view == projectView && viewItem == gprFile",
                     "group": "inline"
                 }
             ]
