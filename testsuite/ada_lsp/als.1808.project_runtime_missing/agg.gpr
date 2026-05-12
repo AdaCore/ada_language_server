@@ -1,0 +1,6 @@
+aggregate project Agg is
+
+   for Target use "aarch64-linux";
+   for Project_Files use ("test.gpr");
+
+end Agg;

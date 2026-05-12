@@ -1,0 +1,7 @@
+project Test is
+
+   for Target use "aarch64-linux";
+   for Source_Dirs use ("src");
+   for Main use ("foo.adb");
+
+end Test;
