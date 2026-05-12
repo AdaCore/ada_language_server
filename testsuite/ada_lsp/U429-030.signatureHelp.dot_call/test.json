@@ -9,9 +9,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -30,23 +28,20 @@
             "id": 1,
             "method": "initialize"
          },
-         "wait": [{
+         "wait": [
+            {
                "id": 1,
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
                      "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
+                        "triggerCharacters": [",", "("],
+                        "retriggerCharacters": ["\b"]
                      }
                   }
                }
-            }]
+            }
+         ]
       }
    },
    {
@@ -3478,6 +3473,21 @@
             }
          },
          "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 26,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 26,
+               "result": null
+            }
+         ]
       }
    },
    {
