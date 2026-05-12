@@ -188,11 +188,14 @@ export class ProjectViewItem extends vscode.TreeItem {
     /** The kind of the project view item */
     public itemKind: ProjectViewItemKind;
 
-    /** The URI of the item, if applicable */
-    public uri?: vscode.Uri;
+    /** The URI of the item */
+    public uri: vscode.Uri;
 
     /** For project items: the project id used to look up children */
     public projectId?: string;
+
+    /** The id of the parent project, used for stable unique ID generation */
+    public parentProjectId?: string;
 
     /** For source directory items: the source files belonging to this directory */
     public sources?: ProjectSourceInfo[];
@@ -202,28 +205,51 @@ export class ProjectViewItem extends vscode.TreeItem {
         public collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState
             .None,
         itemKind: ProjectViewItemKind = ProjectViewItemKind.SUB_PROJECT,
-        uri?: vscode.Uri,
+        uri: vscode.Uri,
         projectId?: string,
+        parentProjectId?: string,
     ) {
         super(label, collapsibleState);
         this.itemKind = itemKind;
         this.uri = uri;
         this.projectId = projectId;
+        this.parentProjectId = parentProjectId;
         this.iconPath = this.getIcon();
+        this.id = this.getUniqueID(itemKind, projectId, parentProjectId, uri);
 
         if (itemKind === ProjectViewItemKind.SOURCE_FILE) {
             this.contextValue = 'sourceFile';
-            this.command = uri
-                ? {
-                      command: 'vscode.open',
-                      title: 'Open File',
-                      arguments: [uri],
-                  }
-                : undefined;
+            this.command = {
+                command: 'vscode.open',
+                title: 'Open File',
+                arguments: [uri],
+            };
         } else if (itemKind === ProjectViewItemKind.SOURCE_DIRECTORY) {
             this.contextValue = 'sourceDirectory';
         } else {
             this.contextValue = 'gprFile';
+        }
+    }
+
+    private getUniqueID(
+        itemKind: ProjectViewItemKind,
+        projectId: string | undefined,
+        parentProjectId: string | undefined,
+        uri: vscode.Uri,
+    ): string {
+        // Ids are used to identify items for state persistence (e.g. expansion state)
+        // and must be stable across refreshes. Each formula encodes enough context to
+        // make the id unique even when the same project/directory/file appears at
+        // multiple positions in the tree (diamond imports, shared source directories).
+        switch (itemKind) {
+            case ProjectViewItemKind.ROOT_PROJECT:
+                return `project-${projectId}`;
+            case ProjectViewItemKind.SUB_PROJECT:
+                return `project-${projectId}-under-${parentProjectId ?? 'root'}`;
+            case ProjectViewItemKind.SOURCE_DIRECTORY:
+                return `dir-${uri.toString()}-in-${parentProjectId}`;
+            case ProjectViewItemKind.SOURCE_FILE:
+                return `file-${uri.toString()}-in-${parentProjectId}`;
         }
     }
 
@@ -315,6 +341,8 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
                     vscode.TreeItemCollapsibleState.None,
                     ProjectViewItemKind.SOURCE_FILE,
                     sourceUri,
+                    undefined,
+                    element.parentProjectId,
                 );
             });
         }
@@ -396,6 +424,8 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
                 vscode.TreeItemCollapsibleState.Collapsed,
                 ProjectViewItemKind.SOURCE_DIRECTORY,
                 vscode.Uri.file(dir),
+                undefined,
+                entry.project.id,
             );
             dirItem.sources = sources;
             dirItem.description = dir;
@@ -416,6 +446,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
                         ProjectViewItemKind.SUB_PROJECT,
                         subUri,
                         subId,
+                        entry.project.id,
                     ),
                 );
             }
