@@ -84,7 +84,8 @@ package body LSP.Ada_Completions.Aggregates is
    procedure Append_Record_Aggregate
      (Self      : in out Code_Snippet'Class;
       Aggregate : Libadalang.Analysis.Aggregate;
-      Shape     : Libadalang.Analysis.Shape);
+      Shape     : Libadalang.Analysis.Shape;
+      Base_Type : Libadalang.Analysis.Base_Type_Decl);
    --  Append a record aggregate text of given Shape
 
    function To_Text
@@ -102,6 +103,7 @@ package body LSP.Ada_Completions.Aggregates is
    procedure Create_Code_Snippet
      (Shape     : Libadalang.Analysis.Shape;
       Aggregate : Libadalang.Analysis.Aggregate;
+      Base_Type : Libadalang.Analysis.Base_Type_Decl;
       Result    : out Code_Snippet'Class);
 
    procedure Create_Completion
@@ -221,7 +223,8 @@ package body LSP.Ada_Completions.Aggregates is
    procedure Append_Record_Aggregate
      (Self      : in out Code_Snippet'Class;
       Aggregate : Libadalang.Analysis.Aggregate;
-      Shape     : Libadalang.Analysis.Shape)
+      Shape     : Libadalang.Analysis.Shape;
+      Base_Type : Libadalang.Analysis.Base_Type_Decl)
    is
       Count : Natural := 0;
 
@@ -239,6 +242,11 @@ package body LSP.Ada_Completions.Aggregates is
 
    begin
       Self.Append_Token ("(");
+
+      if not Base_Type.Is_Null and then Base_Type.P_Is_Private then
+         Self.Append_Token (Base_Type.F_Name);
+         Self.Append_Token (" with ");
+      end if;
 
       for Component of Shape.Components loop
          for Name of Component.P_Defining_Names loop
@@ -320,7 +328,9 @@ package body LSP.Ada_Completions.Aggregates is
    begin
       if Expression_Type.P_Is_Record_Type (Origin => Aggregate) then
          Self.Append_Record_Aggregate
-           (Aggregate, Get_Shapes (Expression_Type, Aggregate) (1));
+           (Aggregate,
+            Get_Shapes (Expression_Type, Aggregate) (1),
+            Expression_Type.P_Base_Type (Origin => Aggregate));
       elsif Expression_Type.P_Is_Access_Type (Origin => Aggregate) then
          Self.Append_Placeholder_Token ("null");
       elsif Expression_Type.P_Is_Int_Type (Origin => Aggregate) then
@@ -354,12 +364,13 @@ package body LSP.Ada_Completions.Aggregates is
    procedure Create_Code_Snippet
      (Shape     : Libadalang.Analysis.Shape;
       Aggregate : Libadalang.Analysis.Aggregate;
+      Base_Type : Libadalang.Analysis.Base_Type_Decl;
       Result    : out Code_Snippet'Class) is
    begin
       Result.Indent :=
         VSS.Strings.Character_Count (Aggregate.Sloc_Range.Start_Column);
 
-      Result.Append_Record_Aggregate (Aggregate, Shape);
+      Result.Append_Record_Aggregate (Aggregate, Shape, Base_Type);
    end Create_Code_Snippet;
 
    -----------------------
@@ -542,7 +553,11 @@ package body LSP.Ada_Completions.Aggregates is
                declare
                   Code : Code_Snippet;
                begin
-                  Create_Code_Snippet (Shape, Aggregate, Code);
+                  Create_Code_Snippet
+                     (Shape,
+                      Aggregate,
+                      Aggregate_Type.P_Base_Type,
+                      Code);
 
                   Self.Create_Completion
                     (Label_For_Shape (Shape), Code, Aggregate, Item);
