@@ -55,8 +55,8 @@ package body LSP.Ada_Completions.Aggregates is
 
    procedure Append_Token
      (Self : in out Code_Snippet'Class;
-      Name : Libadalang.Analysis.Name'Class);
-   --  Append an Ada name to code snippet
+      Name : Libadalang.Analysis.Ada_Node'Class);
+   --  Append an Ada node text to code snippet
 
    procedure Append_Placeholder_Token
      (Self : in out Code_Snippet'Class;
@@ -72,6 +72,14 @@ package body LSP.Ada_Completions.Aggregates is
       Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
       Component_Name  : Wide_Wide_String := "");
    --  Append Ada value of given Expression_Type, use Aggregate as origin
+
+   procedure Append_Discriminant_Value
+     (Self            : in out Code_Snippet'Class;
+      Aggregate       : Libadalang.Analysis.Aggregate;
+      Alternatives    : Libadalang.Analysis.Alternatives_List'Class;
+      Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
+      Component_Name  : Wide_Wide_String);
+   --  Append discriminant value taking it from given Alternatives if possible
 
    procedure Append_Record_Aggregate
      (Self      : in out Code_Snippet'Class;
@@ -127,6 +135,48 @@ package body LSP.Ada_Completions.Aggregates is
      "{}${{{}:{}}";
      --  Like `[indent]${3:Foo}` with the first `{` escaped
 
+   -------------------------------
+   -- Append_Discriminant_Value --
+   -------------------------------
+
+   procedure Append_Discriminant_Value
+     (Self            : in out Code_Snippet'Class;
+      Aggregate       : Libadalang.Analysis.Aggregate;
+      Alternatives    : Libadalang.Analysis.Alternatives_List'Class;
+      Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
+      Component_Name  : Wide_Wide_String) is
+   begin
+      for Item of Alternatives loop
+         --  Search for a range Left .. Right and write Left
+         if Item.Kind in Libadalang.Common.Ada_Bin_Op then
+            Self.Append_Token (Item.As_Bin_Op.F_Left);
+            return;
+         end if;
+
+         --  Search for a static subtype and write Item'First
+         if Item.Kind in Libadalang.Common.Ada_Name
+           and then not Item.As_Name.P_Name_Designated_Type.Is_Null
+           and then Item.As_Name.P_Is_Static_Subtype
+         then
+            Self.Append_Token (Item);
+            Self.Append_Token ("'First");
+            return;
+         end if;
+
+         --  Search for a static value in Alternatives
+         if Item.Kind in Libadalang.Common.Ada_Expr
+           and then Item.As_Expr.P_Is_Static_Expr
+         then
+            Self.Append_Token (Item);
+            return;
+         end if;
+
+      end loop;
+
+      --  Fallback to unknown value
+      Self.Append_Value (Aggregate, Expression_Type, Component_Name);
+   end Append_Discriminant_Value;
+
    ---------------------
    -- Append_New_Line --
    ---------------------
@@ -174,6 +224,19 @@ package body LSP.Ada_Completions.Aggregates is
       Shape     : Libadalang.Analysis.Shape)
    is
       Count : Natural := 0;
+
+      Discriminants : constant Libadalang.Analysis.Discriminant_Values_Array :=
+         Libadalang.Analysis.Discriminants_Values (Shape);
+
+      function The_Same_Name
+        (Name  : Libadalang.Analysis.Defining_Name;
+         Known : Libadalang.Analysis.Discriminant_Values) return Boolean is
+          (Name.P_Name_Matches (Known.Discriminant.P_Gnat_Xref));
+
+      function Is_Discriminant
+        (Name : Libadalang.Analysis.Defining_Name) return Boolean
+      is (for some K of Discriminants => The_Same_Name (Name, K));
+
    begin
       Self.Append_Token ("(");
 
@@ -186,11 +249,22 @@ package body LSP.Ada_Completions.Aggregates is
             Self.Append_Token (Name.F_Name);
             Self.Append_Token (" => ");
 
-            Self.Append_Value
-              (Aggregate,
-               Expression_Type =>
-                 Component.P_Formal_Type (Origin => Aggregate),
-               Component_Name  => Name.Text);
+            if Is_Discriminant (Name) then
+               for K of Discriminants when The_Same_Name (Name, K) loop
+                  Self.Append_Discriminant_Value
+                    (Aggregate,
+                     Libadalang.Analysis.Values (K),
+                     Expression_Type =>
+                       Component.P_Formal_Type (Origin => Aggregate),
+                     Component_Name  => Name.Text);
+               end loop;
+            else
+               Self.Append_Value
+                 (Aggregate,
+                  Expression_Type =>
+                    Component.P_Formal_Type (Origin => Aggregate),
+                  Component_Name  => Name.Text);
+            end if;
 
             Count := Count + 1;
          end loop;
@@ -229,7 +303,7 @@ package body LSP.Ada_Completions.Aggregates is
 
    procedure Append_Token
      (Self : in out Code_Snippet'Class;
-      Name : Libadalang.Analysis.Name'Class) is
+      Name : Libadalang.Analysis.Ada_Node'Class) is
    begin
       Self.Append_Token (VSS.Strings.To_Virtual_String (Name.Text));
    end Append_Token;
@@ -435,9 +509,13 @@ package body LSP.Ada_Completions.Aggregates is
    begin
       Result := (Ada_Completions.Completion_List, others => <>);
 
-      --  Complete only an empty aggregate just after open parenthesis `(`
+      --  Complete only an empty aggregate just after open parenthesis `(`.
+      --  Private, abstract, interface types don't have aggregates
       if not Filter.Is_Open_Parenthesis
         or else Aggregate_Type.Is_Null
+        or else Aggregate_Type.P_Is_Private
+        or else Aggregate_Type.P_Is_Abstract_Type
+        or else Aggregate_Type.P_Is_Interface_Type
       then
          return;
       else
@@ -465,8 +543,10 @@ package body LSP.Ada_Completions.Aggregates is
                   Code : Code_Snippet;
                begin
                   Create_Code_Snippet (Shape, Aggregate, Code);
+
                   Self.Create_Completion
                     (Label_For_Shape (Shape), Code, Aggregate, Item);
+
                   Result.Completion_List.Append (Item);
                end;
             end loop;
