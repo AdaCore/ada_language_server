@@ -333,6 +333,18 @@ package body LSP.Ada_Completions.Aggregates is
             Expression_Type.P_Base_Type (Origin => Aggregate));
       elsif Expression_Type.P_Is_Access_Type (Origin => Aggregate) then
          Self.Append_Placeholder_Token ("null");
+      elsif Expression_Type.P_Is_Char_Type (Origin => Aggregate) then
+         Self.Append_Placeholder_Token ("' '");
+      elsif Expression_Type.P_Is_Enum_Type (Origin => Aggregate) then
+         declare
+            Text : VSS.Strings.Virtual_String;
+         begin
+            Text.Append
+              (VSS.Strings.To_Virtual_String (Expression_Type.F_Name.Text));
+
+            Text.Append ("'First");
+            Self.Append_Placeholder_Token (Text);
+         end;
       elsif Expression_Type.P_Is_Int_Type (Origin => Aggregate) then
          Self.Append_Placeholder_Token ("0");
       elsif Expression_Type.P_Is_Real_Type (Origin => Aggregate) then
