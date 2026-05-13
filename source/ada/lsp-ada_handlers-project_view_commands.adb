@@ -18,6 +18,7 @@
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.JSON;
+with GNATCOLL.VFS;
 
 with VSS.JSON.Pull_Readers.Simple;
 with VSS.JSON.Streams;
@@ -25,6 +26,9 @@ with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 
 with GPR2.Project.Tree.Inspect;
+with GPR2.Project.View;
+
+with LSP.Ada_File_Sets;
 
 package body LSP.Ada_Handlers.Project_View_Commands is
 
@@ -137,6 +141,58 @@ package body LSP.Ada_Handlers.Project_View_Commands is
          Display_Config_Attributes => False,
          Display_Packages          => False,
          Display_Variables         => False);
+
+      --  If the project tree has a runtime project, include its source
+      --  directories and source files as a separate "runtime-project" entry
+      --  at the top level of the response. The client can then decide
+      --  whether to display this information based on user preferences.
+      if Handler.Project_Tree.Has_Runtime_Project then
+         declare
+            Runtime_View   : constant GPR2.Project.View.Object :=
+              Handler.Project_Tree.Runtime_Project;
+            Runtime_Prj    : constant GNATCOLL.JSON.JSON_Value :=
+              GNATCOLL.JSON.Create_Object;
+            Src_Dirs_Array : GNATCOLL.JSON.JSON_Array;
+            Sources_Array  : GNATCOLL.JSON.JSON_Array;
+            Source_Obj     : GNATCOLL.JSON.JSON_Value;
+         begin
+            GNATCOLL.JSON.Set_Field (Runtime_Prj, "id", "runtime");
+            GNATCOLL.JSON.Set_Field
+              (Runtime_Prj, "name", String (Runtime_View.Name));
+            GNATCOLL.JSON.Set_Field
+              (Runtime_Prj, "object-directory",
+               String (Runtime_View.Object_Directory.Dir_Name));
+
+            for S of Runtime_View.Source_Directories loop
+               GNATCOLL.JSON.Append
+                 (Src_Dirs_Array, GNATCOLL.JSON.Create (String (S.Dir_Name)));
+            end loop;
+            GNATCOLL.JSON.Set_Field
+              (Runtime_Prj, "source-directories", Src_Dirs_Array);
+
+            for Cursor in Handler.Project_Predefined_Sources.Iterate loop
+               declare
+                  File : constant GNATCOLL.VFS.Virtual_File :=
+                    LSP.Ada_File_Sets.File_Sets.Element (Cursor);
+               begin
+                  Source_Obj := GNATCOLL.JSON.Create_Object;
+                  GNATCOLL.JSON.Set_Field
+                    (Source_Obj, "directory",
+                     GNATCOLL.VFS.Display_Dir_Name (File));
+                  GNATCOLL.JSON.Set_Field
+                    (Source_Obj, "file-name",
+                     GNATCOLL.VFS.Display_Full_Name (File));
+                  GNATCOLL.JSON.Set_Field
+                    (Source_Obj, "simple-name",
+                     GNATCOLL.VFS.Display_Base_Name (File));
+                  GNATCOLL.JSON.Append (Sources_Array, Source_Obj);
+               end;
+            end loop;
+            GNATCOLL.JSON.Set_Field (Runtime_Prj, "sources", Sources_Array);
+
+            GNATCOLL.JSON.Set_Field (JSON_Res, "runtime-project", Runtime_Prj);
+         end;
+      end if;
 
       Response := (Is_Null => False, Value => <>);
 

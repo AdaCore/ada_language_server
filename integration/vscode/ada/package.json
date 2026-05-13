@@ -382,6 +382,31 @@
             },
             {
                 "type": "object",
+                "title": "Project View",
+                "order": 1,
+                "properties": {
+                    "ada.projectView.flatMode": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show all projects as a flat list instead of a hierarchy in the Project View."
+                    },
+                    "ada.projectView.showObjectDirectories": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show the object directory as a child of each project in the Project View."
+                    },
+                    "ada.projectView.showRuntimeFiles": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show the Ada runtime project and its source files in the Project View."
+                    }
+                }
+            },
+            {
+                "type": "object",
                 "title": "Formatting",
                 "order": 1,
                 "properties": {
@@ -1228,6 +1253,12 @@
                 "when": "view == projectView && ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.projectView.viewOptions",
+                "title": "View Options",
+                "category": "Ada",
+                "icon": "$(ellipsis)"
+            },
+            {
                 "command": "als-open-project-file",
                 "title": "Edit current project file",
                 "category": "Ada"
@@ -1532,6 +1563,11 @@
                     "group": "navigation",
                     "when": "view == projectView && ADA_PROJECT_CONTEXT && projectViewFilterActive",
                     "icon": "$(filter-filled)"
+                },
+                {
+                    "command": "ada.projectView.viewOptions",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT"
                 }
             ],
             "view/item/context": [

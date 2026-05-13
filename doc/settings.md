@@ -97,6 +97,9 @@ Settings taken into account only from the Ada & SPARK VS Code extension:
 * [showNotificationsOnErrors](#shownotificationsonerrors)
 * [trace.server](#traceserver)
 * [metricThresholds](#metricthresholds)
+* [projectView.flatMode](#projectviewflatmode)
+* [projectView.showObjectDirectories](#projectviewshowobjectdirectories)
+* [projectView.showRuntimeFiles](#projectviewshowruntimefiles)
 
 Settings understood by the Ada Language Server itself, independently from the LSP client:
 
@@ -183,6 +186,21 @@ root folder, then ALS will use it.
 ```javascript
     'projectFile': 'gnat/lsp_server.gpr'
 ```
+
+### projectView.flatMode
+
+Controls whether the Project View in VS Code displays projects in a flat list
+rather than as a hierarchy. This is a VS Code-only setting.
+
+### projectView.showObjectDirectories
+
+Controls whether the Project View in VS Code displays object directories.
+This is a VS Code-only setting.
+
+### projectView.showRuntimeFiles
+
+Controls whether the Project View in VS Code displays runtime source files.
+This is a VS Code-only setting.
 
 ### gprConfigurationFile
 

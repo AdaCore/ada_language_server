@@ -129,6 +129,11 @@ export const CMD_SET_PROJECT_VIEW_FILTER = 'ada.setProjectViewFilter';
 export const CMD_UNSET_PROJECT_VIEW_FILTER = 'ada.unsetProjectViewFilter';
 
 /**
+ * Identifier for the command that opens the Project View display options quick-pick.
+ */
+export const CMD_PROJECT_VIEW_OPTIONS = 'ada.projectView.viewOptions';
+
+/**
  * Identifier for the command that restarts all the language servers spawned by the extension
  * (Ada and GPR).
  */

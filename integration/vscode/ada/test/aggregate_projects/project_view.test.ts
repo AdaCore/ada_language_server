@@ -6,7 +6,7 @@ import {
     CMD_SET_PROJECT_VIEW_FILTER,
 } from '../../src/constants';
 import { adaExtState } from '../../src/extension';
-import { ProjectViewItemKind } from '../../src/projectViewProvider';
+import { ProjectViewItemKind, ProjectViewProvider } from '../../src/projectViewProvider';
 import { activate } from '../utils';
 
 suite('Project View', function () {
@@ -26,6 +26,9 @@ suite('Project View', function () {
             treeView.message = '';
         }
         await vscode.commands.executeCommand('setContext', 'projectViewFilterActive', false);
+
+        // Reset view settings to defaults to avoid affecting subsequent tests.
+        provider?.setViewSettings(false, false, false);
     });
 
     test('Open project file command updates ada.projectFile', async () => {
@@ -403,6 +406,183 @@ suite('Project View', function () {
             );
         } finally {
             commandsWithPatch.executeCommand = originalExecuteCommand;
+        }
+    });
+
+    test('ProjectViewProvider constructor reads view settings from VS Code configuration', () => {
+        // Intercept getConfiguration to return specific non-default values
+        const workspaceWithPatch = vscode.workspace as typeof vscode.workspace & {
+            getConfiguration: typeof vscode.workspace.getConfiguration;
+        };
+        const originalGetConfiguration = vscode.workspace.getConfiguration;
+        workspaceWithPatch.getConfiguration = () =>
+            ({
+                get: <T>(key: string, defaultValue: T): T => {
+                    if (key === 'projectView.flatMode') return true as unknown as T;
+                    if (key === 'projectView.showObjectDirectories') return true as unknown as T;
+                    if (key === 'projectView.showRuntimeFiles') return false as unknown as T;
+                    return defaultValue;
+                },
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                update: (_section: string, _value: unknown) => Promise.resolve(),
+            }) as unknown as vscode.WorkspaceConfiguration;
+
+        try {
+            const provider = new ProjectViewProvider(adaExtState.adaClient);
+            assert.strictEqual(
+                provider.flatMode,
+                true,
+                'flatMode should be initialised from VS Code configuration',
+            );
+            assert.strictEqual(
+                provider.showObjectDirs,
+                true,
+                'showObjectDirs should be initialised from VS Code configuration',
+            );
+            assert.strictEqual(
+                provider.showRuntimeFiles,
+                false,
+                'showRuntimeFiles should be initialised from VS Code configuration',
+            );
+        } finally {
+            workspaceWithPatch.getConfiguration = originalGetConfiguration;
+        }
+    });
+
+    test('Flat mode: all projects appear at root level with root project first', async () => {
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        // Hierarchical mode (default): only the root project appears at root level
+        const hierarchicalRoots = await provider.getChildren();
+        assert.strictEqual(
+            hierarchicalRoots.length,
+            1,
+            'Hierarchical mode should show only one root item',
+        );
+        assert.strictEqual(
+            hierarchicalRoots[0].label,
+            'Aggr',
+            'The single root item should be the aggregate project',
+        );
+
+        // Enable flat mode: all projects (Aggr + sub-projects) appear at root level
+        provider.setViewSettings(true, false, false);
+
+        const flatRoots = await provider.getChildren();
+        assert.ok(flatRoots.length > 1, 'Flat mode should expose more than one item at root level');
+
+        // The aggregate project must come first and keep its ROOT_PROJECT kind
+        assert.strictEqual(
+            flatRoots[0].itemKind,
+            ProjectViewItemKind.ROOT_PROJECT,
+            'First item in flat mode should have kind ROOT_PROJECT',
+        );
+        assert.strictEqual(
+            flatRoots[0].label,
+            'Aggr',
+            'First item in flat mode should be the aggregate project',
+        );
+
+        // All remaining items should be SUB_PROJECT
+        for (const item of flatRoots.slice(1)) {
+            assert.strictEqual(
+                item.itemKind,
+                ProjectViewItemKind.SUB_PROJECT,
+                `Item '${String(item.label)}' should be SUB_PROJECT in flat mode`,
+            );
+        }
+    });
+
+    test('showObjectDirs: object directory items appear when the setting is enabled', async () => {
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        const rootItems = await provider.getChildren();
+        const aggrChildren = await provider.getChildren(rootItems[0]);
+        const subProjects = aggrChildren.filter(
+            (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT,
+        );
+        assert.ok(subProjects.length > 0, 'Expected at least one sub-project');
+
+        // Without showObjectDirs: no OBJECT_DIRECTORY items in any sub-project's children
+        for (const subProject of subProjects) {
+            const children = await provider.getChildren(subProject);
+            assert.ok(
+                !children.some((i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY),
+                `Sub-project '${String(subProject.label)}' should have no ` +
+                    'OBJECT_DIRECTORY items when showObjectDirs is disabled',
+            );
+        }
+
+        // Enable showObjectDirs
+        provider.setViewSettings(false, true, false);
+
+        // At least one sub-project should now expose an OBJECT_DIRECTORY item
+        const childrenWithSetting = await Promise.all(
+            subProjects.map((sp) => provider.getChildren(sp)),
+        );
+        assert.ok(
+            childrenWithSetting.some((ch) =>
+                ch.some((i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY),
+            ),
+            'Expected at least one OBJECT_DIRECTORY item when showObjectDirs is enabled',
+        );
+
+        // OBJECT_DIRECTORY items must carry the right contextValue
+        for (const children of childrenWithSetting) {
+            const objDirItems = children.filter(
+                (i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY,
+            );
+            for (const item of objDirItems) {
+                assert.strictEqual(
+                    item.contextValue,
+                    'objectDirectory',
+                    'OBJECT_DIRECTORY items should have contextValue "objectDirectory"',
+                );
+            }
+        }
+    });
+
+    test('showRuntimeFiles: runtime project item and its source children are listed', async () => {
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        provider.setViewSettings(false, false, true);
+
+        const rootItems = await provider.getChildren();
+        const runtimeItem = rootItems.find(
+            (i) => i.itemKind === ProjectViewItemKind.RUNTIME_PROJECT,
+        );
+        assert.ok(runtimeItem, 'Expected a RUNTIME_PROJECT item when showRuntimeFiles is enabled');
+        assert.strictEqual(runtimeItem.contextValue, 'runtimeProject');
+
+        const children = await provider.getChildren(runtimeItem);
+        assert.ok(
+            children.length > 0,
+            'Expected RUNTIME_PROJECT to have source directory children',
+        );
+        assert.ok(
+            children.every((i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY),
+            'All children of RUNTIME_PROJECT should be SOURCE_DIRECTORY items',
+        );
+
+        // Verify that each runtime source directory exposes SOURCE_FILE children
+        for (const dirItem of children) {
+            const files = await provider.getChildren(dirItem);
+            assert.ok(
+                files.length > 0,
+                `Source directory '${String(dirItem.label)}' of the runtime project ` +
+                    'should contain at least one source file',
+            );
+            for (const fileItem of files) {
+                assert.strictEqual(
+                    fileItem.itemKind,
+                    ProjectViewItemKind.SOURCE_FILE,
+                    `Children of a runtime SOURCE_DIRECTORY must be SOURCE_FILE items, ` +
+                        `but found kind ${fileItem.itemKind} for '${String(fileItem.label)}'`,
+                );
+            }
         }
     });
 });
