@@ -413,3 +413,123 @@ suite('getMatchingPrefixes', function () {
         assert.deepStrictEqual(getMatchingPrefixes('a', 'a'), ['', '']);
     });
 });
+
+/**
+ * Helper that verifies a method caches its Promise synchronously, so that
+ * two concurrent calls (no `await` between them) share a single in-flight
+ * LSP request.
+ *
+ * @param getter - Calls the method under test and returns its Promise.
+ */
+async function assertPromiseCaching(getter: () => Promise<unknown>): Promise<void> {
+    const originalSendRequest = adaExtState.adaClient.sendRequest.bind(adaExtState.adaClient);
+    let sendRequestCallCount = 0;
+    adaExtState.adaClient.sendRequest = ((...args: Parameters<typeof originalSendRequest>) => {
+        sendRequestCallCount++;
+        return (
+            originalSendRequest as (...a: typeof args) => ReturnType<typeof originalSendRequest>
+        )(...args);
+    }) as typeof adaExtState.adaClient.sendRequest;
+
+    try {
+        // Call the method twice WITHOUT awaiting the first call.
+        // Because the Promise is cached synchronously on the first call,
+        // both calls must return the exact same Promise object and only
+        // one LSP request should be sent.
+        const p1 = getter();
+        const p2 = getter();
+
+        assert.strictEqual(p1, p2, 'Both calls should return the same cached Promise');
+
+        await assert.doesNotReject(async () => {
+            await Promise.all([p1, p2]);
+        }, 'Both calls should resolve successfully');
+
+        assert.strictEqual(sendRequestCallCount, 1, 'sendRequest should only be called once');
+    } finally {
+        adaExtState.adaClient.sendRequest = originalSendRequest;
+    }
+}
+
+suite('ExtensionState promise caching', function () {
+    let savedSourceDirs: typeof adaExtState.cachedSourceDirs;
+    let savedObjectDir: typeof adaExtState.cachedObjectDir;
+    let savedMains: typeof adaExtState.cachedMains;
+    let savedExecutables: typeof adaExtState.cachedExecutables;
+    let savedProjectAttributeCache: typeof adaExtState.projectAttributeCache;
+
+    setup(function () {
+        // Save the original cache values so that we can restore them after the test.
+        savedSourceDirs = adaExtState.cachedSourceDirs;
+        savedObjectDir = adaExtState.cachedObjectDir;
+        savedMains = adaExtState.cachedMains;
+        savedExecutables = adaExtState.cachedExecutables;
+        savedProjectAttributeCache = new Map(adaExtState.projectAttributeCache);
+
+        // Reset all caches so each test starts with a clean slate.
+        adaExtState.cachedSourceDirs = undefined;
+        adaExtState.cachedObjectDir = undefined;
+        adaExtState.cachedMains = undefined;
+        adaExtState.cachedExecutables = undefined;
+        adaExtState.projectAttributeCache.clear();
+    });
+
+    teardown(function () {
+        // Restore the original cache values to avoid interference between tests.
+        adaExtState.cachedSourceDirs = savedSourceDirs;
+        adaExtState.cachedObjectDir = savedObjectDir;
+        adaExtState.cachedMains = savedMains;
+        adaExtState.cachedExecutables = savedExecutables;
+        adaExtState.projectAttributeCache = savedProjectAttributeCache;
+    });
+
+    test('getSourceDirs: concurrent calls share one request', async function () {
+        await assertPromiseCaching(() => adaExtState.getSourceDirs());
+    });
+
+    test('getObjectDir: concurrent calls share one request', async function () {
+        await assertPromiseCaching(() => adaExtState.getObjectDir());
+    });
+
+    test('getMains: concurrent calls share one request', async function () {
+        await assertPromiseCaching(() => adaExtState.getMains());
+    });
+
+    test('getExecutables: concurrent calls share one request', async function () {
+        await assertPromiseCaching(() => adaExtState.getExecutables());
+    });
+
+    test('getProjectAttributeValue: same-key calls share one request', async function () {
+        const attr = 'Target';
+        await assertPromiseCaching(() => adaExtState.getProjectAttributeValue(attr));
+    });
+
+    test('getProjectAttributeValue: failed request evicts the cache entry', async function () {
+        // Use an attribute that is not defined in the test project so that
+        // the server rejects the request and triggers the .catch handler.
+        const attr = 'Unknown';
+        const mapKey = JSON.stringify({ attribute: attr, pkg: '', index: '' });
+
+        adaExtState.projectAttributeCache.delete(mapKey);
+
+        const p = adaExtState.getProjectAttributeValue(attr);
+
+        // The Promise must be cached synchronously before the request resolves
+        assert.notStrictEqual(
+            adaExtState.projectAttributeCache.get(mapKey),
+            undefined,
+            'Cache entry should exist while the request is in-flight',
+        );
+
+        // The request should fail because 'Unknown' is not a valid attribute
+        await assert.rejects(p);
+
+        // After the rejection the .catch handler must have evicted the entry
+        // so that the next caller can retry
+        assert.strictEqual(
+            adaExtState.projectAttributeCache.get(mapKey),
+            undefined,
+            'Cache entry should be evicted after a failed request',
+        );
+    });
+});
