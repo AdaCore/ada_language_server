@@ -78,11 +78,11 @@ export class ExtensionState {
      * The following fields are caches for ALS requests or costly properties.
      */
     cachedProjectUri: vscode.Uri | undefined;
-    cachedObjectDir: string | undefined;
-    cachedSourceDirs: ALSSourceDirDescription[] | undefined;
+    cachedObjectDir: Promise<string> | undefined;
+    cachedSourceDirs: Promise<ALSSourceDirDescription[]> | undefined;
     cachedTargetPrefix: string | undefined;
-    cachedMains: string[] | undefined;
-    cachedExecutables: string[] | undefined;
+    cachedMains: Promise<string[]> | undefined;
+    cachedExecutables: Promise<string[]> | undefined;
     cachedAlireCrateFile: vscode.Uri | null | undefined;
     cachedDebugServerAddress: string | undefined | null;
     cachedGdb: string | undefined | null = undefined;
@@ -482,13 +482,24 @@ export class ExtensionState {
 
             const queryPromise = this.adaClient
                 .sendRequest(ExecuteCommandRequest.type, params)
-                .then((value) => {
+                .then((value) => value as string | string[])
+                .catch((err: unknown) => {
                     /**
-                     * Only cache the promise if it was fulfilled.
+                     * Evict the cache entry on failure so that subsequent
+                     * callers can retry instead of getting a rejected promise.
                      */
-                    this.projectAttributeCache.set(mapKey, queryPromise);
-                    return value as string | string[];
+                    this.projectAttributeCache.delete(mapKey);
+                    throw err;
                 });
+
+            /**
+             * Cache the pending promise immediately so that concurrent callers
+             * requesting the same attribute share the single in-flight request
+             * rather than each firing a redundant one.
+             */
+            if (useCache) {
+                this.projectAttributeCache.set(mapKey, queryPromise);
+            }
 
             return queryPromise;
         } else {
@@ -679,11 +690,15 @@ export class ExtensionState {
      *
      * @returns the full path of the project object directory obtained from the ALS
      */
-    public async getObjectDir(): Promise<string> {
+    public getObjectDir(): Promise<string> {
         if (!this.cachedObjectDir) {
-            this.cachedObjectDir = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
-                command: 'als-object-dir',
-            })) as string;
+            this.cachedObjectDir = this.adaClient
+                .sendRequest(ExecuteCommandRequest.type, { command: 'als-object-dir' })
+                .then((value) => value as string)
+                .catch((err: unknown) => {
+                    this.cachedObjectDir = undefined;
+                    throw err;
+                });
         }
 
         return this.cachedObjectDir;
@@ -693,11 +708,15 @@ export class ExtensionState {
      *
      * @returns the list of source directories defined in the project loaded by the ALS
      */
-    public async getSourceDirs(): Promise<ALSSourceDirDescription[]> {
+    public getSourceDirs(): Promise<ALSSourceDirDescription[]> {
         if (this.cachedSourceDirs === undefined) {
-            this.cachedSourceDirs = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
-                command: 'als-source-dirs',
-            })) as ALSSourceDirDescription[];
+            this.cachedSourceDirs = this.adaClient
+                .sendRequest(ExecuteCommandRequest.type, { command: 'als-source-dirs' })
+                .then((value) => value as ALSSourceDirDescription[])
+                .catch((err: unknown) => {
+                    this.cachedSourceDirs = undefined;
+                    throw err;
+                });
         }
 
         return this.cachedSourceDirs;
@@ -707,11 +726,15 @@ export class ExtensionState {
      *
      * @returns the list of full paths of main sources defined in the project from the ALS
      */
-    public async getMains(): Promise<string[]> {
+    public getMains(): Promise<string[]> {
         if (!this.cachedMains) {
-            this.cachedMains = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
-                command: 'als-mains',
-            })) as string[];
+            this.cachedMains = this.adaClient
+                .sendRequest(ExecuteCommandRequest.type, { command: 'als-mains' })
+                .then((value) => value as string[])
+                .catch((err: unknown) => {
+                    this.cachedMains = undefined;
+                    throw err;
+                });
         }
 
         return this.cachedMains;
@@ -722,11 +745,15 @@ export class ExtensionState {
      * @returns the list of full paths of executables corresponding to main
      * sources defined in the project from the ALS
      */
-    public async getExecutables(): Promise<string[]> {
+    public getExecutables(): Promise<string[]> {
         if (!this.cachedExecutables) {
-            this.cachedExecutables = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
-                command: 'als-executables',
-            })) as string[];
+            this.cachedExecutables = this.adaClient
+                .sendRequest(ExecuteCommandRequest.type, { command: 'als-executables' })
+                .then((value) => value as string[])
+                .catch((err: unknown) => {
+                    this.cachedExecutables = undefined;
+                    throw err;
+                });
         }
 
         return this.cachedExecutables;
