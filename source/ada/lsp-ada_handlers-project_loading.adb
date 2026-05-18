@@ -192,6 +192,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    ---------------------------
 
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class) is
+      use type LSP.Ada_Project_Loading.Alire_Cache_Status;
       use type VSS.Strings.Virtual_String;
       use VSS.Strings.Conversions;
 
@@ -200,8 +201,7 @@ package body LSP.Ada_Handlers.Project_Loading is
         Self.Configuration.Project_File;
       GPR_Configuration_File : VSS.Strings.Virtual_String :=
         Self.Configuration.GPR_Configuration_File;
-      Is_Alire_Crate         : constant Boolean :=
-        Alire.Is_Alire_Crate (Self.Client);
+      Is_Alire_Crate         : Boolean;
       Alire_Error            : VSS.Strings.Virtual_String;
    begin
       if not Self.Contexts.Is_Empty then
@@ -209,6 +209,18 @@ package body LSP.Ada_Handlers.Project_Loading is
          --  as a guarantee that the initialization has been done.
          return;
       end if;
+
+      --  The Alire status is not set yet: check if we are dealing with
+      --  an Alire crate.
+      if Self.Project_Status.Get_Alire_Status = LSP.Ada_Project_Loading.Not_Set
+      then
+         --  Compute the Alire status and store it in the project
+         Self.Project_Status.Set_Alire_Status
+           (Alire.Is_Alire_Crate (Self.Client));
+      end if;
+
+      Is_Alire_Crate :=
+        Self.Project_Status.Get_Alire_Status = LSP.Ada_Project_Loading.Enabled;
 
       --  First consider ada.projectFile
       if not Project_File.Is_Empty then
