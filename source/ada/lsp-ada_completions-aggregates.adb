@@ -70,6 +70,7 @@ package body LSP.Ada_Completions.Aggregates is
      (Self            : in out Code_Snippet'Class;
       Aggregate       : Libadalang.Analysis.Aggregate;
       Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
+      Level           : Natural;
       Component_Name  : Wide_Wide_String := "");
    --  Append Ada value of given Expression_Type, use Aggregate as origin
 
@@ -98,7 +99,11 @@ package body LSP.Ada_Completions.Aggregates is
    procedure Create_Code_Snippet
      (Aggregate      : Libadalang.Analysis.Aggregate;
       Aggregate_Type : Libadalang.Analysis.Base_Type_Decl;
+      Level          : Natural;
       Result         : out Code_Snippet'Class);
+   --  Create Code_Snippet for given Aggregate_Type inside Aggregate node. Use
+   --  Level for dimension index if Aggregate_Type is multidimensional array
+   --  type.
 
    procedure Create_Code_Snippet
      (Shape     : Libadalang.Analysis.Shape;
@@ -172,11 +177,10 @@ package body LSP.Ada_Completions.Aggregates is
             Self.Append_Token (Item);
             return;
          end if;
-
       end loop;
 
       --  Fallback to unknown value
-      Self.Append_Value (Aggregate, Expression_Type, Component_Name);
+      Self.Append_Value (Aggregate, Expression_Type, 0, Component_Name);
    end Append_Discriminant_Value;
 
    ---------------------
@@ -271,6 +275,7 @@ package body LSP.Ada_Completions.Aggregates is
                  (Aggregate,
                   Expression_Type =>
                     Component.P_Formal_Type (Origin => Aggregate),
+                  Level           => 0,
                   Component_Name  => Name.Text);
             end if;
 
@@ -324,9 +329,30 @@ package body LSP.Ada_Completions.Aggregates is
      (Self            : in out Code_Snippet'Class;
       Aggregate       : Libadalang.Analysis.Aggregate;
       Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
+      Level           : Natural;
       Component_Name  : Wide_Wide_String := "") is
    begin
-      if Expression_Type.P_Is_Record_Type (Origin => Aggregate) then
+      if Expression_Type.P_Is_Array_Type (Origin => Aggregate) then
+         Self.Append_Token ("[others => ");
+
+         if Expression_Type.P_Index_Type
+              (Dim => Level + 1, Origin => Aggregate)
+              .Is_Null
+         then
+            Self.Append_Value
+              (Aggregate,
+               Expression_Type =>
+                 Expression_Type.P_Comp_Type (Origin => Aggregate),
+               Level           => 0);
+         else
+            Self.Append_Value
+              (Aggregate,
+               Expression_Type,
+               Level => Level + 1);
+         end if;
+
+         Self.Append_Token ("]");
+      elsif Expression_Type.P_Is_Record_Type (Origin => Aggregate) then
          Self.Append_Record_Aggregate
            (Aggregate,
             Get_Shapes (Expression_Type, Aggregate) (1),
@@ -361,12 +387,13 @@ package body LSP.Ada_Completions.Aggregates is
    procedure Create_Code_Snippet
      (Aggregate      : Libadalang.Analysis.Aggregate;
       Aggregate_Type : Libadalang.Analysis.Base_Type_Decl;
+      Level          : Natural;
       Result         : out Code_Snippet'Class) is
    begin
       Result.Indent :=
         VSS.Strings.Character_Count (Aggregate.Sloc_Range.Start_Column);
 
-      Result.Append_Value (Aggregate, Aggregate_Type);
+      Result.Append_Value (Aggregate, Aggregate_Type, Level);
    end Create_Code_Snippet;
 
    -------------------------
@@ -556,7 +583,7 @@ package body LSP.Ada_Completions.Aggregates is
             declare
                Code : Code_Snippet;
             begin
-               Create_Code_Snippet (Aggregate, Aggregate_Type, Code);
+               Create_Code_Snippet (Aggregate, Aggregate_Type, Level, Code);
                Self.Create_Completion (To_Label, Code, Aggregate, Item);
                Result.Completion_List.Append (Item);
             end;
