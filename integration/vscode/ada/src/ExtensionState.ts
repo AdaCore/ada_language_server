@@ -72,6 +72,17 @@ export class ExtensionState {
     public projectViewProvider?: ProjectViewProvider;
     public projectTreeView?: vscode.TreeView<ProjectViewItem>;
 
+    /**
+     * Transient override set by context-menu task commands immediately before
+     * launching a task and cleared in a finally block afterwards.  While set,
+     * {@link gprProjectArgs} returns `-P <uri>` for this URI instead of the
+     * currently loaded root project.
+     */
+    public pendingProjectOverride?: vscode.Uri;
+
+    /**
+     * Diagnostic collection for metrics diagnostics
+     */
     public readonly metricDiagnostics = vscode.languages.createDiagnosticCollection('gnatmetric');
 
     /**

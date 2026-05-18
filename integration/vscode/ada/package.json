@@ -1351,6 +1351,48 @@
                 "title": "GNATcoverage - Load an existing XML coverage report"
             },
             {
+                "command": "ada.tasks.buildProject",
+                "category": "Ada",
+                "title": "Build current project",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.cleanProject",
+                "category": "Ada",
+                "title": "Clean current project",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.analyzeProjectGnatSas",
+                "category": "Ada",
+                "title": "Analyze the project with GNAT SAS",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.analyzeProjectGnatSasAndReport",
+                "category": "Ada",
+                "title": "Analyze the project with GNAT SAS and produce a report",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.generateDocumentation",
+                "category": "Ada",
+                "title": "Generate documentation from the project",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.createOrUpdateGnattest",
+                "category": "Ada",
+                "title": "Create or update GNATtest test framework",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.gnatcovSetup",
+                "category": "Ada",
+                "title": "GNATcoverage - Setup runtime library",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "ada.issueReporter",
                 "category": "Ada",
                 "title": "Report Issue"
@@ -1495,13 +1537,58 @@
             "view/item/context": [
                 {
                     "command": "ada.editProjectFile",
-                    "when": "view == projectView",
+                    "when": "view == projectView && viewItem == gprFile",
                     "group": "navigation"
                 },
                 {
                     "command": "ada.editProjectFile",
-                    "when": "view == projectView",
+                    "when": "view == projectView && viewItem == gprFile",
                     "group": "inline"
+                },
+                {
+                    "command": "ada.tasks.buildProject",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_ada_tasks@1"
+                },
+                {
+                    "command": "ada.tasks.cleanProject",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_ada_tasks@2"
+                },
+                {
+                    "command": "ada.tasks.generateDocumentation",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_ada_tasks@3"
+                },
+                {
+                    "command": "ada.tasks.analyzeProjectGnatSas",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_gnatsas_tasks@1"
+                },
+                {
+                    "command": "ada.tasks.createOrUpdateGnattest",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_gnatdas_tasks@1"
+                },
+                {
+                    "command": "ada.tasks.gnatcovSetup",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_gnatdas_tasks@2"
+                },
+                {
+                    "command": "ada.spark.tasks.cleanProject",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "2_spark_tasks@1"
+                },
+                {
+                    "command": "ada.spark.tasks.examineProject",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "2_spark_tasks@2"
+                },
+                {
+                    "command": "ada.spark.tasks.proveProject",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "2_spark_tasks@3"
                 }
             ]
         },

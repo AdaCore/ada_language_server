@@ -113,6 +113,65 @@ suite('Project View', function () {
         );
     });
 
+    test('Context values: project items use gprFile, others use distinct values', async () => {
+        // The "Edit Project File" context menu entry uses `viewItem == gprFile` to restrict
+        // visibility to project items only.  This test verifies that the contextValue assigned
+        // to each item kind matches those expectations so that a code change cannot silently
+        // re-enable the menu for source files or source directories.
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        // Root project item
+        const rootItems = await provider.getChildren();
+        assert.strictEqual(rootItems.length, 1, 'Expected exactly one root project item');
+        const rootItem = rootItems[0];
+        assert.strictEqual(
+            rootItem.contextValue,
+            'gprFile',
+            'Root project item should have contextValue "gprFile"',
+        );
+
+        // Sub-project items
+        const aggrChildren = await provider.getChildren(rootItem);
+        const subProjects = aggrChildren.filter(
+            (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT,
+        );
+        assert.ok(subProjects.length > 0, 'Expected at least one sub-project item');
+        for (const subItem of subProjects) {
+            assert.strictEqual(
+                subItem.contextValue,
+                'gprFile',
+                `Sub-project item '${String(subItem.label)}' should have contextValue "gprFile"`,
+            );
+        }
+
+        // Source directory and source file items
+        const subChildren = await provider.getChildren(subProjects[0]);
+        const sourceDirs = subChildren.filter(
+            (i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY,
+        );
+        assert.ok(sourceDirs.length > 0, 'Expected at least one source directory item');
+        for (const dirItem of sourceDirs) {
+            assert.strictEqual(
+                dirItem.contextValue,
+                'sourceDirectory',
+                `Source directory item '${String(dirItem.label)}' should ` +
+                    `have contextValue "sourceDirectory"`,
+            );
+
+            const files = await provider.getChildren(dirItem);
+            assert.ok(files.length > 0, 'Expected at least one source file item');
+            for (const fileItem of files) {
+                assert.strictEqual(
+                    fileItem.contextValue,
+                    'sourceFile',
+                    `Source file item '${String(fileItem.label)}' ` +
+                        `should have contextValue "sourceFile"`,
+                );
+            }
+        }
+    });
+
     test('Tree structure: source directories before dependencies', async () => {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
@@ -282,6 +341,68 @@ suite('Project View', function () {
             );
         } finally {
             windowWithPatch.showInputBox = originalShowInputBox;
+        }
+    });
+
+    test('Ada task commands use the project passed as context-menu argument', async () => {
+        // Verify that when a project-level Ada task is invoked from the
+        // Project View context menu (i.e. with a ProjectViewItem argument),
+        // the resolved task command line references the selected project file
+        // rather than the currently loaded root project.
+
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        const rootItems = await provider.getChildren();
+        const rootItem = rootItems[0];
+        const aggrChildren = await provider.getChildren(rootItem);
+        const project1Item = aggrChildren.find(
+            (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT && i.label === 'Project_1',
+        );
+        assert.ok(project1Item, 'Expected to find Project_1 as a sub-project item');
+        assert.ok(project1Item.uri, 'Sub-project item should expose a URI');
+
+        // Intercept 'workbench.action.tasks.runTask' to avoid actually running
+        // the task.
+        let capturedProjectArgs: string[] | undefined;
+        const commandsWithPatch = vscode.commands as typeof vscode.commands & {
+            executeCommand: typeof vscode.commands.executeCommand;
+        };
+        const originalExecuteCommand = vscode.commands.executeCommand.bind(vscode.commands);
+        commandsWithPatch.executeCommand = async (
+            command: string,
+            ...args: unknown[]
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ): Promise<any> => {
+            if (command === 'workbench.action.tasks.runTask') {
+                capturedProjectArgs = await originalExecuteCommand('ada.gprProjectArgs');
+                return undefined;
+            }
+            return originalExecuteCommand(command, ...args);
+        };
+
+        try {
+            // Invoke the registered command wrapper as the context menu would,
+            // passing the selected project item as the argument.
+            await vscode.commands.executeCommand('ada.tasks.buildProject', project1Item);
+
+            assert.ok(capturedProjectArgs, 'Expected ada.gprProjectArgs to have been called');
+
+            // Check that the task project args reference the selected project file in the Project
+            // View, not the loaded aggregate project.
+            assert.deepStrictEqual(
+                capturedProjectArgs,
+                ['-P', project1Item.uri.fsPath],
+                'Expected project args to reference the selected project file',
+            );
+            // After the command finishes, pendingProjectOverride should be cleared.
+            assert.strictEqual(
+                adaExtState.pendingProjectOverride,
+                undefined,
+                'pendingProjectOverride should be cleared after the task command finishes',
+            );
+        } finally {
+            commandsWithPatch.executeCommand = originalExecuteCommand;
         }
     });
 });

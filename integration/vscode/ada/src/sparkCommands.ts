@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { commands } from 'vscode';
 import { CMD_SPARK_ASK_OPTIONS } from './constants';
 import { sparkTasks, TASK_TYPE_SPARK } from './taskProviders';
+import { adaExtState } from './extension';
+import { ProjectViewItem } from './projectViewProvider';
 
 /**
  * The following commands are wrappers around VS Code tasks that allow setting
@@ -23,22 +25,35 @@ export function registerSPARKTaskWrappers(context: vscode.ExtensionContext) {
             context.subscriptions.push(
                 commands.registerCommand(
                     task.commandId,
-                    sparkTaskWrapper(task.label, !task.noOptionPicker),
+                    sparkTaskWrapper(task, !task.noOptionPicker),
                 ),
             );
         }
     }
 }
 
-function sparkTaskWrapper(taskPlainName: string, optionPicker = true) {
-    return async () => {
+/**
+ * Returns a command handler that sets {@link ExtensionState.pendingProjectOverride}
+ * to the selected item in the Project View (if any) before launching the task
+ * and clears it in a finally block afterwards, so that {@link gprProjectArgs}
+ * targets the selected project only for that specific invocation.
+ *
+ * If `optionPicker` is true, also prompts for SPARK options before launching the task.
+ *
+ * The wrapper also catches `vscode.CancellationError` and displays a non-modal
+ * "Canceled" message, to match the way cancellation is reported natively by
+ * VS Code when it occurs in CodeLens handlers.
+ */
+function sparkTaskWrapper(taskDecl: (typeof sparkTasks)[number], optionPicker = true) {
+    return async (item?: ProjectViewItem) => {
+        adaExtState.pendingProjectOverride = item?.uri;
         try {
             if (optionPicker) {
                 await commands.executeCommand(CMD_SPARK_ASK_OPTIONS, 'taskWrapper');
             }
             await commands.executeCommand(
                 'workbench.action.tasks.runTask',
-                `${TASK_TYPE_SPARK}: ${taskPlainName}`,
+                `${TASK_TYPE_SPARK}: ${taskDecl.label}`,
             );
         } catch (error) {
             if (error instanceof vscode.CancellationError) {
@@ -51,6 +66,8 @@ function sparkTaskWrapper(taskPlainName: string, optionPicker = true) {
                 return;
             }
             throw error;
+        } finally {
+            adaExtState.pendingProjectOverride = undefined;
         }
     };
 }

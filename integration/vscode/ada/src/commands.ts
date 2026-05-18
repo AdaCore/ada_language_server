@@ -44,6 +44,7 @@ import {
     isRunningOnRemote,
 } from './helpers';
 import { registerSPARKTaskWrappers } from './sparkCommands';
+import { registerAdaTaskWrappers } from './adaTaskCommands';
 import { askSPARKOptions, getLastSPARKOptions } from './sparkOptionsPicker';
 import {
     DEFAULT_PROBLEM_MATCHERS,
@@ -275,6 +276,7 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     registerSPARKTaskWrappers(context);
+    registerAdaTaskWrappers(context);
 }
 
 /**
@@ -1086,9 +1088,16 @@ async function buildAndDebugSpecifiedMainWithGNATemulator(main: vscode.Uri): Pro
 /**
  * @returns an array of -P and -X project and scenario command lines arguments
  * for use with GPR-based tools.
+ *
+ * If a context-menu task command has set {@link ExtensionState.pendingProjectOverride},
+ * that URI is used as the project instead of the currently loaded root project.
  */
 export async function gprProjectArgs(): Promise<string[]> {
     const scenarioArgs = gprScenarioArgs();
+    const override = adaExtState.pendingProjectOverride;
+    if (override) {
+        return ['-P', override.fsPath, ...scenarioArgs];
+    }
     return ['-P', await getProjectFromConfigOrALS()].concat(scenarioArgs);
 }
 
