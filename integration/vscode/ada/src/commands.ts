@@ -32,6 +32,9 @@ import {
     CMD_SET_PROJECT_VIEW_FILTER,
     CMD_UNSET_PROJECT_VIEW_FILTER,
     CMD_PROJECT_VIEW_OPTIONS,
+    CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
+    CMD_PROJECT_VIEW_VISUALIZE_FILES,
+    CMD_PROJECT_VIEW_VISUALIZE_GPR,
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
@@ -84,13 +87,13 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.visualizeFiles', () =>
-            startVisualize(context, Hierarchy.FILE),
+        vscode.commands.registerCommand('ada.visualizeFiles', (uri?: vscode.Uri) =>
+            startVisualize(context, Hierarchy.FILE, uri),
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.visualizeGPR', () =>
-            startVisualize(context, Hierarchy.GPR),
+        vscode.commands.registerCommand('ada.visualizeGPR', (uri?: vscode.Uri) =>
+            startVisualize(context, Hierarchy.GPR, uri),
         ),
     );
     context.subscriptions.push(
@@ -159,6 +162,22 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_PROJECT_VIEW_OPTIONS, showProjectViewOptions),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
+            (item: ProjectViewItem) => vscode.commands.executeCommand('revealInExplorer', item.uri),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_FILES, (item: ProjectViewItem) =>
+            startVisualize(context, Hierarchy.FILE, item.uri),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_GPR, (item: ProjectViewItem) =>
+            startVisualize(context, Hierarchy.GPR, item.uri),
+        ),
     );
 
     // This is a hidden command that gets called in the default debug
