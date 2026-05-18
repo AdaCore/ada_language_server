@@ -72,7 +72,7 @@ package LSP.Ada_Project_Loading is
    type Alire_Cache_Status is (Not_Set, Enabled, Disabled);
    --  Variants for Alire cache status for the project loaded:
    --
-   -- @value Not_Set: alire.toml existence was not check
+   -- @value Not_Set: alire.toml existence was not checked
    --
    -- @value Enabled: alire.toml was found
    --
