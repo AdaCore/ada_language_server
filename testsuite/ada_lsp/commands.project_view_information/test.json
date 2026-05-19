@@ -1,0 +1,124 @@
+[
+   {
+      "comment": [
+         "Test for the 'als-project-view-information' command.",
+         "Verifies that the response includes a 'runtime-project' entry"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-project-view-information"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw1",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-project-view-information",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw1",
+               "result": {
+                  "tree": {
+                     "root-project": {
+                        "name": "Default"
+                     }
+                  },
+                  "runtime-project": {
+                     "id": "runtime",
+                     "sources": [
+                        "<HAS>",
+                        {
+                           "directory": "<ANY>",
+                           "file-name": "<ANY>",
+                           "simple-name": "a-assert.adb"
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
