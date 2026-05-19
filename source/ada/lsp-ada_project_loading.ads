@@ -69,6 +69,15 @@ package LSP.Ada_Project_Loading is
    --
    --  @value Project_Not_Found: the configured project was not found.
 
+   type Alire_Cache_Status is (Not_Set, Enabled, Disabled);
+   --  Variants for Alire cache status for the project loaded:
+   --
+   -- @value Not_Set: alire.toml existence was not checked
+   --
+   -- @value Enabled: alire.toml was found
+   --
+   -- @value Disabled: alire.toml was not found
+
    procedure Set_Load_Status
      (Project : in out Project_Status_Type; Status : Project_Status);
    --  Set the status of the project
@@ -76,6 +85,15 @@ package LSP.Ada_Project_Loading is
    function Get_Load_Status
      (Project : Project_Status_Type) return Project_Status;
    --  Return the status
+
+   procedure Set_Alire_Status
+     (Project : in out Project_Status_Type; Status : Boolean);
+   --  Set the state of the Alire cache. Status should be true when an Alire
+   --  crate has been found.
+
+   function Get_Alire_Status
+     (Project : Project_Status_Type) return Alire_Cache_Status;
+   --  Return Enabled if an Alire crate has been detected
 
    procedure Set_Project_Type
      (Project : in out Project_Status_Type; Project_Type : Project_Types);
@@ -154,6 +172,9 @@ private
       GPR2_Messages       : GPR2.Log.Object := GPR2.Log.Undefined;
       --  The warning/error messages emitted by GPR2 while loading the project.
 
+      Alire_Enabled : Alire_Cache_Status := Not_Set;
+      --  Cache indicating if an Alire crate was found
+
       Alire_Messages : VSS.String_Vectors.Virtual_String_Vector;
       --  The warning/error messages related to Alire while attempting to
       --  load a project from a workspace that contains an alire.toml file.
@@ -166,9 +187,14 @@ private
         Project_File        => GNATCOLL.VFS.No_File,
         Missing_Ada_Runtime => False,
         GPR2_Messages       => <>,
+        Alire_Enabled       => Not_Set,
         Alire_Messages      => <>);
 
    function Get_Load_Status
      (Project : Project_Status_Type) return Project_Status is (Project.Status);
+
+   function Get_Alire_Status
+     (Project : Project_Status_Type) return Alire_Cache_Status
+   is (Project.Alire_Enabled);
 
 end LSP.Ada_Project_Loading;

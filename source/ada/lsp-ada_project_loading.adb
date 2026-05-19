@@ -328,6 +328,20 @@ package body LSP.Ada_Project_Loading is
    end Set_Load_Status;
 
    ----------------------
+   -- Set_Alire_Status --
+   ----------------------
+
+   procedure Set_Alire_Status
+     (Project : in out Project_Status_Type; Status : Boolean) is
+   begin
+      if Status then
+         Project.Alire_Enabled := Enabled;
+      else
+         Project.Alire_Enabled := Disabled;
+      end if;
+   end Set_Alire_Status;
+
+   ----------------------
    -- Set_Project_Type --
    ----------------------
 
