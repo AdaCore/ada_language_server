@@ -129,6 +129,28 @@ export const CMD_SET_PROJECT_VIEW_FILTER = 'ada.setProjectViewFilter';
 export const CMD_UNSET_PROJECT_VIEW_FILTER = 'ada.unsetProjectViewFilter';
 
 /**
+ * Identifier for the command that opens the Project View display options quick-pick.
+ */
+export const CMD_PROJECT_VIEW_OPTIONS = 'ada.projectView.viewOptions';
+
+/**
+ * Identifier for the command that reveals a file selected in the Project View in the Explorer.
+ */
+export const CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER = 'ada.projectView.revealInExplorer';
+
+/**
+ * Identifier for the command that shows the file dependencies graph for a source file
+ * selected in the Project View.
+ */
+export const CMD_PROJECT_VIEW_VISUALIZE_FILES = 'ada.projectView.visualizeFiles';
+
+/**
+ * Identifier for the command that shows the GPR dependencies graph for a project file
+ * selected in the Project View.
+ */
+export const CMD_PROJECT_VIEW_VISUALIZE_GPR = 'ada.projectView.visualizeGPR';
+
+/**
  * Identifier for the command that restarts all the language servers spawned by the extension
  * (Ada and GPR).
  */

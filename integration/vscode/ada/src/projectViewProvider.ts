@@ -54,10 +54,19 @@ interface Raw_ProjectEntry {
     sources?: Raw_ProjectSourceInfo[];
 }
 
+interface Raw_RuntimeProjectInfo {
+    id: string;
+    name: string;
+    'source-directories'?: string[];
+    'object-directory'?: string;
+    sources?: Raw_ProjectSourceInfo[];
+}
+
 interface Raw_ProjectViewResponse {
     info?: { 'generated-on': string; version: string };
     tree: { 'root-project': { name: string; id: string } };
     projects: Raw_ProjectEntry[];
+    'runtime-project'?: Raw_RuntimeProjectInfo;
 }
 
 // ---------------------------------------------------------------------------
@@ -109,6 +118,8 @@ export interface ProjectEntry {
 export interface ProjectViewInformation {
     root_project_id: string;
     projects: Map<string, ProjectEntry>;
+    /** Runtime project entry, if the server returned one */
+    runtime_project?: ProjectEntry;
 }
 
 // ---------------------------------------------------------------------------
@@ -165,9 +176,40 @@ function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInfo
         throw new Error('Project View response is missing the root-project id');
     }
 
+    // Parse optional runtime project entry returned by the server
+    let runtime_project: ProjectEntry | undefined;
+    const rawRuntime = raw['runtime-project'];
+    if (rawRuntime) {
+        runtime_project = {
+            project: {
+                id: rawRuntime.id,
+                name: rawRuntime.name,
+                kind: 'runtime',
+                qualifier: 'runtime',
+                simple_name: rawRuntime.name,
+                file_name: '',
+                directory: '',
+                is_externally_built: true,
+                languages: [],
+                source_directories: rawRuntime['source-directories'] ?? [],
+                object_dir: rawRuntime['object-directory'],
+            },
+            imports: [],
+            aggregated: [],
+            extended: [],
+            imported_by: [],
+            sources: (rawRuntime.sources ?? []).map((s) => ({
+                file_name: s['file-name'],
+                simple_name: s['simple-name'],
+                directory: s.directory,
+            })),
+        };
+    }
+
     return {
         root_project_id: rootId,
         projects,
+        runtime_project,
     };
 }
 
@@ -179,6 +221,8 @@ export enum ProjectViewItemKind {
     SUB_PROJECT,
     SOURCE_DIRECTORY,
     SOURCE_FILE,
+    OBJECT_DIRECTORY,
+    RUNTIME_PROJECT,
 }
 
 /**
@@ -226,6 +270,10 @@ export class ProjectViewItem extends vscode.TreeItem {
             };
         } else if (itemKind === ProjectViewItemKind.SOURCE_DIRECTORY) {
             this.contextValue = 'sourceDirectory';
+        } else if (itemKind === ProjectViewItemKind.OBJECT_DIRECTORY) {
+            this.contextValue = 'objectDirectory';
+        } else if (itemKind === ProjectViewItemKind.RUNTIME_PROJECT) {
+            this.contextValue = 'runtimeProject';
         } else {
             this.contextValue = 'gprFile';
         }
@@ -250,6 +298,10 @@ export class ProjectViewItem extends vscode.TreeItem {
                 return `dir-${uri.toString()}-in-${parentProjectId}`;
             case ProjectViewItemKind.SOURCE_FILE:
                 return `file-${uri.toString()}-in-${parentProjectId}`;
+            case ProjectViewItemKind.OBJECT_DIRECTORY:
+                return `objdir-${uri.toString()}-in-${parentProjectId}`;
+            case ProjectViewItemKind.RUNTIME_PROJECT:
+                return `runtime-project`;
         }
     }
 
@@ -259,8 +311,12 @@ export class ProjectViewItem extends vscode.TreeItem {
                 return new vscode.ThemeIcon('file-code');
             case ProjectViewItemKind.SOURCE_DIRECTORY:
                 return new vscode.ThemeIcon('folder');
+            case ProjectViewItemKind.OBJECT_DIRECTORY:
+                return new vscode.ThemeIcon('package');
             case ProjectViewItemKind.ROOT_PROJECT:
                 return new vscode.ThemeIcon('project');
+            case ProjectViewItemKind.RUNTIME_PROJECT:
+                return new vscode.ThemeIcon('library');
             default:
                 return new vscode.ThemeIcon('project');
         }
@@ -282,8 +338,23 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     private projectViewInfo: ProjectViewInformation | undefined;
     private filterString: string = '';
 
+    /** When true, all projects are shown as a flat list instead of a hierarchy */
+    public flatMode: boolean = false;
+
+    /** When true, object directories are shown as children of each project */
+    public showObjectDirs: boolean = false;
+
+    /** When true, the runtime project (if returned by the server) is shown */
+    public showRuntimeFiles: boolean = false;
+
     constructor(adaClient: LanguageClient) {
         this.adaClient = adaClient;
+
+        // Restore persisted display preferences from VS Code settings
+        const config = vscode.workspace.getConfiguration('ada');
+        this.flatMode = config.get<boolean>('projectView.flatMode', false);
+        this.showObjectDirs = config.get<boolean>('projectView.showObjectDirectories', false);
+        this.showRuntimeFiles = config.get<boolean>('projectView.showRuntimeFiles', false);
     }
 
     /**
@@ -331,6 +402,11 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             return [];
         }
 
+        // Object directory items have no children
+        if (element?.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY) {
+            return [];
+        }
+
         // Source directory items return their source files as children
         if (element?.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY) {
             if (!element.sources) return [];
@@ -347,32 +423,83 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             });
         }
 
+        // The runtime project item returns its own source directory / file children
+        if (element?.itemKind === ProjectViewItemKind.RUNTIME_PROJECT) {
+            if (!this.projectViewInfo?.runtime_project) return [];
+            const items = this.getProjectChildren(this.projectViewInfo.runtime_project);
+            if (this.filterString) {
+                return items.filter((item) => this.matchesFilter(item));
+            }
+            return items;
+        }
+
         // Ensure project information is loaded
         await this.ensureProjectInfoLoaded();
 
-        // If no element is provided, return the root project
+        // If no element is provided, return the root item(s)
         if (!element) {
             if (!this.projectViewInfo) {
                 return [];
             }
 
-            const rootEntry = this.projectViewInfo.projects.get(
-                this.projectViewInfo.root_project_id,
-            );
-            if (!rootEntry) {
-                return [];
+            const roots: ProjectViewItem[] = [];
+
+            if (this.flatMode) {
+                // Flat mode: show all projects as a flat list, root project first
+                const rootId = this.projectViewInfo.root_project_id;
+                const sortedEntries = [...this.projectViewInfo.projects.values()].sort((a, b) =>
+                    a.project.id === rootId ? -1 : b.project.id === rootId ? 1 : 0,
+                );
+                for (const entry of sortedEntries) {
+                    const projectUri = vscode.Uri.file(entry.project.file_name);
+                    const isRoot = entry.project.id === rootId;
+                    roots.push(
+                        new ProjectViewItem(
+                            entry.project.name,
+                            vscode.TreeItemCollapsibleState.Collapsed,
+                            isRoot
+                                ? ProjectViewItemKind.ROOT_PROJECT
+                                : ProjectViewItemKind.SUB_PROJECT,
+                            projectUri,
+                            entry.project.id,
+                        ),
+                    );
+                }
+            } else {
+                // Hierarchical mode: show only the root project
+                const rootEntry = this.projectViewInfo.projects.get(
+                    this.projectViewInfo.root_project_id,
+                );
+                if (!rootEntry) {
+                    return [];
+                }
+
+                const rootUri = vscode.Uri.file(rootEntry.project.file_name);
+                roots.push(
+                    new ProjectViewItem(
+                        rootEntry.project.name,
+                        vscode.TreeItemCollapsibleState.Expanded,
+                        ProjectViewItemKind.ROOT_PROJECT,
+                        rootUri,
+                        rootEntry.project.id,
+                    ),
+                );
             }
 
-            const rootUri = vscode.Uri.file(rootEntry.project.file_name);
-            const rootItem = new ProjectViewItem(
-                rootEntry.project.name,
-                vscode.TreeItemCollapsibleState.Expanded,
-                ProjectViewItemKind.ROOT_PROJECT,
-                rootUri,
-                rootEntry.project.id,
-            );
+            // Append the runtime project item when enabled
+            if (this.showRuntimeFiles && this.projectViewInfo.runtime_project) {
+                const rp = this.projectViewInfo.runtime_project;
+                roots.push(
+                    new ProjectViewItem(
+                        rp.project.name,
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        ProjectViewItemKind.RUNTIME_PROJECT,
+                        vscode.Uri.file(''),
+                    ),
+                );
+            }
 
-            return [rootItem];
+            return roots;
         }
 
         // If element has no project id, return empty
@@ -387,11 +514,20 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
 
         const items: ProjectViewItem[] = this.getProjectChildren(entry);
 
+        // In flat mode, suppress sub-project children (projects already shown at root level)
+        const filtered = this.flatMode
+            ? items.filter(
+                  (item) =>
+                      item.itemKind !== ProjectViewItemKind.SUB_PROJECT &&
+                      item.itemKind !== ProjectViewItemKind.ROOT_PROJECT,
+              )
+            : items;
+
         // Filter items if a filter is active
         if (this.filterString) {
-            return items.filter((item) => this.matchesFilter(item));
+            return filtered.filter((item) => this.matchesFilter(item));
         }
-        return items;
+        return filtered;
     }
 
     /**
@@ -430,6 +566,22 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             dirItem.sources = sources;
             dirItem.description = dir;
             items.push(dirItem);
+        }
+
+        // Add object directory item when the setting is enabled
+        if (this.showObjectDirs && entry.project.object_dir) {
+            const objDir = entry.project.object_dir;
+            const objDirItem = new ProjectViewItem(
+                path.basename(objDir),
+                vscode.TreeItemCollapsibleState.Collapsed,
+                ProjectViewItemKind.OBJECT_DIRECTORY,
+                vscode.Uri.file(objDir),
+                undefined,
+                entry.project.id,
+            );
+            objDirItem.description = objDir;
+            objDirItem.tooltip = `Object directory: ${objDir}`;
+            items.push(objDirItem);
         }
 
         // Add sub-project children (imports, aggregated, extended)
@@ -526,5 +678,19 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     private matchesFilter(item: ProjectViewItem): boolean {
         const label = item.label?.toString().toLowerCase() ?? '';
         return label.includes(this.filterString);
+    }
+
+    /**
+     * Updates the view display settings and refreshes the tree.
+     *
+     * @param flatMode - Show all projects as a flat list instead of a hierarchy
+     * @param showObjectDirs - Show object directories as children of each project
+     * @param showRuntimeFiles - Show the runtime project (when available from the server)
+     */
+    setViewSettings(flatMode: boolean, showObjectDirs: boolean, showRuntimeFiles: boolean): void {
+        this.flatMode = flatMode;
+        this.showObjectDirs = showObjectDirs;
+        this.showRuntimeFiles = showRuntimeFiles;
+        this._onDidChangeTreeData.fire();
     }
 }

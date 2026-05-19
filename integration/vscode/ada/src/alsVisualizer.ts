@@ -97,7 +97,11 @@ function withVizProgress(
  * @param context - The VS Code context of the extension.
  * @param hierarchy - The type of hierarchy to visualize.
  */
-export function startVisualize(context: vscode.ExtensionContext, hierarchy: Hierarchy) {
+export function startVisualize(
+    context: vscode.ExtensionContext,
+    hierarchy: Hierarchy,
+    uri?: vscode.Uri,
+) {
     const direction =
         hierarchy === Hierarchy.CALL
             ? RelationDirection.SUPER
@@ -109,13 +113,16 @@ export function startVisualize(context: vscode.ExtensionContext, hierarchy: Hier
 
     withVizProgress(
         async (token?: vscode.CancellationToken) => {
-            if (vscode.window.activeTextEditor) {
-                const input = new vscode.Location(
-                    vscode.window.activeTextEditor.document.uri,
-                    vscode.window.activeTextEditor.selection.active,
-                );
+            const fileUri = uri ?? vscode.window.activeTextEditor?.document.uri;
+            const position = uri
+                ? new vscode.Position(0, 0)
+                : (vscode.window.activeTextEditor?.selection.active ?? new vscode.Position(0, 0));
+            const languageId = fileUri?.path.endsWith('.gpr')
+                ? 'gpr'
+                : (vscode.window.activeTextEditor?.document.languageId ?? 'ada');
 
-                const languageId = vscode.window.activeTextEditor.document.languageId;
+            if (fileUri) {
+                const input = new vscode.Location(fileUri, position);
 
                 const middleNode = await createHandler(languageId).provideHierarchy(
                     input,

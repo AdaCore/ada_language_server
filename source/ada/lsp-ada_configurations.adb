@@ -466,6 +466,13 @@ package body LSP.Ada_Configurations is
                --  that each setting is documented.
                null;
 
+            elsif Name = "projectView.flatMode"
+              or else Name = "projectView.showObjectDirectories"
+              or else Name = "projectView.showRuntimeFiles"
+            then
+               --  Same as above
+               null;
+
             elsif Name = "trace"
             then
                --  Same as above. Do not merge this branch with the previous one.

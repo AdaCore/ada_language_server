@@ -382,6 +382,31 @@
             },
             {
                 "type": "object",
+                "title": "Project View",
+                "order": 1,
+                "properties": {
+                    "ada.projectView.flatMode": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show all projects as a flat list instead of a hierarchy in the Project View."
+                    },
+                    "ada.projectView.showObjectDirectories": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show the object directory as a child of each project in the Project View."
+                    },
+                    "ada.projectView.showRuntimeFiles": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show the Ada runtime project and its source files in the Project View."
+                    }
+                }
+            },
+            {
+                "type": "object",
                 "title": "Formatting",
                 "order": 1,
                 "properties": {
@@ -1228,6 +1253,12 @@
                 "when": "view == projectView && ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.projectView.viewOptions",
+                "title": "View Options",
+                "category": "Ada",
+                "icon": "$(ellipsis)"
+            },
+            {
                 "command": "als-open-project-file",
                 "title": "Edit current project file",
                 "category": "Ada"
@@ -1393,6 +1424,21 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.projectView.revealInExplorer",
+                "title": "Reveal in Explorer",
+                "category": "Ada"
+            },
+            {
+                "command": "ada.projectView.visualizeFiles",
+                "title": "Show File Dependencies Graph",
+                "category": "Ada"
+            },
+            {
+                "command": "ada.projectView.visualizeGPR",
+                "title": "Show GPR Dependencies Graph",
+                "category": "Ada"
+            },
+            {
                 "command": "ada.issueReporter",
                 "category": "Ada",
                 "title": "Report Issue"
@@ -1439,6 +1485,18 @@
                 {
                     "command": "ada.subprogramBox",
                     "when": "editorLangId == ada"
+                },
+                {
+                    "command": "ada.projectView.revealInExplorer",
+                    "when": "false"
+                },
+                {
+                    "command": "ada.projectView.visualizeFiles",
+                    "when": "false"
+                },
+                {
+                    "command": "ada.projectView.visualizeGPR",
+                    "when": "false"
                 }
             ],
             "issue/reporter": [
@@ -1532,6 +1590,11 @@
                     "group": "navigation",
                     "when": "view == projectView && ADA_PROJECT_CONTEXT && projectViewFilterActive",
                     "icon": "$(filter-filled)"
+                },
+                {
+                    "command": "ada.projectView.viewOptions",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT"
                 }
             ],
             "view/item/context": [
@@ -1589,6 +1652,21 @@
                     "command": "ada.spark.tasks.proveProject",
                     "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
                     "group": "2_spark_tasks@3"
+                },
+                {
+                    "command": "ada.projectView.visualizeFiles",
+                    "when": "view == projectView && viewItem == sourceFile && ADA_PROJECT_CONTEXT",
+                    "group": "3_visualize@1"
+                },
+                {
+                    "command": "ada.projectView.visualizeGPR",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "3_visualize@1"
+                },
+                {
+                    "command": "ada.projectView.revealInExplorer",
+                    "when": "view == projectView && (viewItem == sourceFile || viewItem == gprFile)",
+                    "group": "4_file_ops@1"
                 }
             ]
         },

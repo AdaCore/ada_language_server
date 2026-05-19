@@ -31,6 +31,10 @@ import {
     CMD_EDIT_PROJECT_FILE,
     CMD_SET_PROJECT_VIEW_FILTER,
     CMD_UNSET_PROJECT_VIEW_FILTER,
+    CMD_PROJECT_VIEW_OPTIONS,
+    CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
+    CMD_PROJECT_VIEW_VISUALIZE_FILES,
+    CMD_PROJECT_VIEW_VISUALIZE_GPR,
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
@@ -83,13 +87,13 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.visualizeFiles', () =>
-            startVisualize(context, Hierarchy.FILE),
+        vscode.commands.registerCommand('ada.visualizeFiles', (uri?: vscode.Uri) =>
+            startVisualize(context, Hierarchy.FILE, uri),
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.visualizeGPR', () =>
-            startVisualize(context, Hierarchy.GPR),
+        vscode.commands.registerCommand('ada.visualizeGPR', (uri?: vscode.Uri) =>
+            startVisualize(context, Hierarchy.GPR, uri),
         ),
     );
     context.subscriptions.push(
@@ -155,6 +159,25 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_UNSET_PROJECT_VIEW_FILTER, setProjectViewFilter),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_OPTIONS, showProjectViewOptions),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
+            (item: ProjectViewItem) => vscode.commands.executeCommand('revealInExplorer', item.uri),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_FILES, (item: ProjectViewItem) =>
+            startVisualize(context, Hierarchy.FILE, item.uri),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_GPR, (item: ProjectViewItem) =>
+            startVisualize(context, Hierarchy.GPR, item.uri),
+        ),
     );
 
     // This is a hidden command that gets called in the default debug
@@ -1376,4 +1399,68 @@ async function deleteMetricsForFile(fileUri: vscode.Uri) {
             );
         }
     }
+}
+
+/**
+ * Shows a quick-pick for the Project View settings.
+ */
+function showProjectViewOptions() {
+    const provider = adaExtState.projectViewProvider;
+    if (!provider) {
+        return;
+    }
+
+    interface SettingItem extends vscode.QuickPickItem {
+        key: 'flatMode' | 'showObjectDirs' | 'showRuntimeFiles';
+    }
+
+    const items: SettingItem[] = [
+        {
+            label: 'Flat Mode',
+            description: 'Show all projects as a flat list instead of a hierarchy',
+            key: 'flatMode',
+        },
+        {
+            label: 'Show Object Directories',
+            description: 'Show the object directories',
+            key: 'showObjectDirs',
+        },
+        {
+            label: 'Show Runtime Files',
+            description: 'Show the runtime sources',
+
+            key: 'showRuntimeFiles',
+        },
+    ];
+
+    const qp = vscode.window.createQuickPick<SettingItem>();
+    qp.title = 'Project View Options';
+    qp.placeholder = 'Toggle display options';
+    qp.canSelectMany = true;
+    qp.items = items;
+    qp.selectedItems = items.filter((item) => provider[item.key]);
+
+    qp.onDidChangeSelection((selected) => {
+        const flatMode = selected.some((i) => i.key === 'flatMode');
+        const showObjectDirs = selected.some((i) => i.key === 'showObjectDirs');
+        const showRuntimeFiles = selected.some((i) => i.key === 'showRuntimeFiles');
+        provider.setViewSettings(flatMode, showObjectDirs, showRuntimeFiles);
+
+        // Persist the new values to VS Code settings so they survive restarts
+        const config = vscode.workspace.getConfiguration('ada');
+        void config.update('projectView.flatMode', flatMode, vscode.ConfigurationTarget.Global);
+        void config.update(
+            'projectView.showObjectDirectories',
+            showObjectDirs,
+            vscode.ConfigurationTarget.Global,
+        );
+        void config.update(
+            'projectView.showRuntimeFiles',
+            showRuntimeFiles,
+            vscode.ConfigurationTarget.Global,
+        );
+    });
+
+    qp.onDidHide(() => qp.dispose());
+    qp.show();
 }
