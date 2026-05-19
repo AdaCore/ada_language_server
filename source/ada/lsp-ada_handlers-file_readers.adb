@@ -69,6 +69,12 @@ package body LSP.Ada_Handlers.File_Readers is
       --  present
    --  Default flags for the text decoder.
 
+   function Match_Excluded
+     (Self     : LSP_File_Reader'Class;
+      Filename : Virtual_File)
+      return Boolean;
+   --  Return True if Filename match a regexp in Self.Excluded_Regexps
+
    ----------------
    -- Initialize --
    ----------------
@@ -114,15 +120,23 @@ package body LSP.Ada_Handlers.File_Readers is
                declare
                   Name : constant GPR2.Filename_Optional :=
                     GPR2.Filename_Optional (Value.Text);
-
-                  Source : constant GPR2.Build.Source.Object :=
-                    (if GPR2.Is_Simple_Name (Name)
-                     then Tree.Root_Project.Visible_Source (Name)
-                     else GPR2.Build.Source.Undefined);
                begin
-                  if Source.Is_Defined then
-                     Self.Excluded_Files.Insert
-                        (Source.Path_Name.Virtual_File);
+                  if GPR2.Is_Simple_Name (Name) then
+                     declare
+                        Source : constant GPR2.Build.Source.Object :=
+                          Tree.Root_Project.Visible_Source (Name);
+                     begin
+                        if Source.Is_Defined then
+                           Self.Excluded_Files.Insert
+                             (Source.Path_Name.Virtual_File);
+                        else
+                           --  Name is not a source, handle it as a regexp
+                           Self.Excluded_Regexps.Append
+                             (GPR2.Compile_Regexp (Name));
+                        end if;
+                     end;
+                  else
+                     Self.Excluded_Regexps.Append (GPR2.Compile_Regexp (Name));
                   end if;
                end;
             end loop;
@@ -240,7 +254,9 @@ package body LSP.Ada_Handlers.File_Readers is
       if Doc /= null then
          Text := Doc.Text;
 
-      elsif Self.Excluded_Files.Contains (File) then
+      elsif Self.Excluded_Files.Contains (File)
+        or else Match_Excluded (Self, File)
+      then
          Contents :=
            Langkit_Support.File_Readers.Create_Decoded_File_Contents ("");
 
@@ -322,5 +338,22 @@ package body LSP.Ada_Handlers.File_Readers is
            (Text, Contents.Buffer.all);
       end if;
    end Read;
+
+   --------------------
+   -- Match_Excluded --
+   --------------------
+
+   function Match_Excluded
+     (Self     : LSP_File_Reader'Class;
+      Filename : Virtual_File)
+      return Boolean is
+   begin
+      for Reg of Self.Excluded_Regexps loop
+         if GNAT.Regexp.Match (Filename.Display_Full_Name, Reg) then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Match_Excluded;
 
 end LSP.Ada_Handlers.File_Readers;
