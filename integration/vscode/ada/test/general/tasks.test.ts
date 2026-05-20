@@ -26,7 +26,6 @@ import {
 } from '../utils';
 
 suite('Task Providers', function () {
-    const isWindows = process.platform === 'win32';
     let projectPath: string;
 
     this.beforeAll(async () => {
@@ -273,6 +272,10 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
             await assert.rejects(prov.resolveTask(invalidTask));
         }
     });
+});
+
+suite('Task diagnostics', function () {
+    const isWindows = process.platform === 'win32';
 
     /**
      * Helper function to test problem matchers with compiler messages
@@ -438,7 +441,7 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 0: this is a low warning`.trim(),
         );
     });
-});
+})
 
 suite('Task Execution', function () {
     /**
