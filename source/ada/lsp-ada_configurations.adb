@@ -470,7 +470,16 @@ package body LSP.Ada_Configurations is
               or else Name = "projectView.showObjectDirectories"
               or else Name = "projectView.showRuntimeFiles"
             then
-               --  Same as above
+               --  These are VS Code only settings, treated at the VS Code
+               --  extension's level. We still include them here to mark them
+               --  as recognized and to support the settings-doc test that
+               --  checks that each setting is documented.
+               null;
+
+            elsif Name.Starts_With ("projectView")
+            then
+               --  Fallback for when VS Code sends projectView settings as a
+               --  nested JSON object rather than individual flat keys.
                null;
 
             elsif Name = "trace"
