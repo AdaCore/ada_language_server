@@ -28,7 +28,7 @@ Run an individual test or a series of tests with `./testsuite/testsuite.py <test
 The server consists in
 
 - a server task containing a main loop that listens for incoming requests
-- a processingtask taking care of handling the requests
+- a processing task taking care of handling the requests
 
 The processing task is the one containing and maintaining a Libadalang context
 which represents the project being loaded.
