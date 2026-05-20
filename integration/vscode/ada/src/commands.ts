@@ -713,7 +713,9 @@ async function openProjectFile(projectFileURI?: vscode.Uri) {
 
     if (selection && selection.length > 0 && selection[0]) {
         const selectedFile = vscode.workspace.asRelativePath(selection[0]);
-        await vscode.workspace.getConfiguration('ada').update('projectFile', selectedFile);
+        await vscode.workspace
+            .getConfiguration('ada')
+            .update('projectFile', selectedFile, vscode.ConfigurationTarget.Workspace);
     }
 }
 
