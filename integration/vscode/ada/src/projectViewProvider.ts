@@ -258,7 +258,13 @@ export class ProjectViewItem extends vscode.TreeItem {
         this.uri = uri;
         this.projectId = projectId;
         this.parentProjectId = parentProjectId;
-        this.iconPath = this.getIcon();
+        // For source files, let the active file icon theme supply the icon by
+        // setting resourceUri and leaving iconPath unset.
+        if (itemKind === ProjectViewItemKind.SOURCE_FILE) {
+            this.resourceUri = uri;
+        } else {
+            this.iconPath = this.getIcon();
+        }
         this.id = this.getUniqueID(itemKind, projectId, parentProjectId, uri);
 
         if (itemKind === ProjectViewItemKind.SOURCE_FILE) {
@@ -308,7 +314,8 @@ export class ProjectViewItem extends vscode.TreeItem {
     private getIcon(): vscode.ThemeIcon | undefined {
         switch (this.itemKind) {
             case ProjectViewItemKind.SOURCE_FILE:
-                return new vscode.ThemeIcon('file-code');
+                // Icon is driven by the file icon theme via resourceUri; no iconPath needed.
+                return undefined;
             case ProjectViewItemKind.SOURCE_DIRECTORY:
                 return new vscode.ThemeIcon('folder');
             case ProjectViewItemKind.OBJECT_DIRECTORY:
