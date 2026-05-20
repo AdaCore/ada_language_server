@@ -347,6 +347,99 @@ suite('Project View', function () {
         }
     });
 
+    test('Filter shows parent project and source directory when child file matches', async () => {
+        // Verify the new deep-filtering logic: if only a source file matches the filter,
+        // its parent source directory and grandparent project must both be visible even
+        // though neither of them contains the filter string in their own name or path.
+
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        // 'main_1' is a substring of 'main_1.adb' but does NOT appear in any project
+        // name ('Project_1', 'Project_2') or in the shared source-directory label ('src').
+        provider.setFilter('main_1');
+
+        const rootItem = (await provider.getChildren())[0];
+
+        // Both sub-projects share the src/ directory which contains main_1.adb, so both
+        // must be visible even though neither project name contains 'main_1'.
+        const subProjects = await provider.getChildren(rootItem);
+        assert.deepStrictEqual(
+            subProjects.map((i) => String(i.label)).sort(),
+            ['Project_1', 'Project_2'],
+            'Both sub-projects must be visible because their shared source directory ' +
+                "contains 'main_1.adb', even though no project name contains 'main_1'",
+        );
+
+        // For each visible sub-project, the source directory must be exposed and must
+        // contain only the file(s) that match the filter.
+        for (const subProject of subProjects) {
+            const children = await provider.getChildren(subProject);
+            const sourceDirs = children.filter(
+                (i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY,
+            );
+            assert.ok(
+                sourceDirs.length > 0,
+                `'${String(subProject.label)}' must have a visible source directory ` +
+                    "because the directory contains 'main_1.adb'",
+            );
+
+            for (const dirItem of sourceDirs) {
+                const files = await provider.getChildren(dirItem);
+
+                // main_1.adb must be present
+                assert.ok(
+                    files.some((f) => String(f.label) === 'main_1.adb'),
+                    `'main_1.adb' must appear in source directory '${String(dirItem.label)}' ` +
+                        `of '${String(subProject.label)}'`,
+                );
+
+                // Non-matching siblings must be hidden
+                assert.ok(
+                    files.every((f) => String(f.label).toLowerCase().includes('main_1')),
+                    `Only files whose name contains 'main_1' should be shown in ` +
+                        `'${String(dirItem.label)}' – 'main_2.adb' and 'main_3.adb' ` +
+                        `must be filtered out`,
+                );
+            }
+        }
+    });
+
+    test('Flat mode filter hides projects with no matching descendants', async () => {
+        // In flat mode every project is shown as a root-level item.  The filter must
+        // hide a project entirely when neither the project itself nor any of its
+        // descendants (source files, source directories, sub-projects) match.
+
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+
+        provider.setViewSettings(true, false, false); // enable flat mode
+        provider.setFilter('project_2');
+
+        const flatRoots = await provider.getChildren();
+        const flatRootLabels = flatRoots.map((i) => String(i.label));
+
+        // Project_2 matches directly via its name.
+        assert.ok(
+            flatRootLabels.includes('Project_2'),
+            "Project_2 must be visible because its name contains 'project_2'",
+        );
+
+        // Project_1 has no content (name, file path, source dirs, or source files)
+        // that matches 'project_2' and must therefore be hidden.
+        assert.ok(
+            !flatRootLabels.includes('Project_1'),
+            "Project_1 must be hidden because nothing in it matches 'project_2'",
+        );
+
+        // Aggr has no sources of its own and its name / file path do not match, but
+        // Project_2 is one of its aggregated sub-projects, so Aggr must be visible.
+        assert.ok(
+            flatRootLabels.includes('Aggr'),
+            'Aggr must be visible because its descendant Project_2 matches the filter',
+        );
+    });
+
     test('Ada task commands use the project passed as context-menu argument', async () => {
         // Verify that when a project-level Ada task is invoked from the
         // Project View context menu (i.e. with a ProjectViewItem argument),
@@ -542,6 +635,41 @@ suite('Project View', function () {
                 );
             }
         }
+
+        // Filter: object directory items are shown/hidden based on matchesFilter, which
+        // checks the item label and its URI path.
+        const allObjDirItems = childrenWithSetting
+            .flat()
+            .filter((i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY);
+        assert.ok(
+            allObjDirItems.length > 0,
+            'Expected at least one OBJECT_DIRECTORY item for filter test',
+        );
+
+        // A filter matching the object directory's label must keep it visible.
+        const objDirLabel = String(allObjDirItems[0].label).toLowerCase();
+        provider.setFilter(objDirLabel);
+        const childrenMatchingFilter = await Promise.all(
+            subProjects.map((sp) => provider.getChildren(sp)),
+        );
+        assert.ok(
+            childrenMatchingFilter.some((ch) =>
+                ch.some((i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY),
+            ),
+            'An OBJECT_DIRECTORY item should remain visible when the filter matches its label',
+        );
+
+        // A filter that cannot match any object directory must hide all of them.
+        provider.setFilter('__no_object_dir_will_match_this__');
+        const childrenNotMatchingFilter = await Promise.all(
+            subProjects.map((sp) => provider.getChildren(sp)),
+        );
+        assert.ok(
+            !childrenNotMatchingFilter.some((ch) =>
+                ch.some((i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY),
+            ),
+            'OBJECT_DIRECTORY items should be hidden when the filter does not match',
+        );
     });
 
     test('showRuntimeFiles: runtime project item and its source children are listed', async () => {
