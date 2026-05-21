@@ -114,3 +114,7 @@ out/
 # Alire-generated directories
 alire/
 config/
+
+# For people who are experimenting with agents
+CLAUDE.md
+AGENTS.md
