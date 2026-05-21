@@ -142,7 +142,7 @@
                            "end": { "line": 3, "character": 15 }
                         },
                         "source": "libadalang",
-                        "message": "expected Boolean, got universal integer"
+                        "message": "expected 'Boolean', got 'universal integer'"
                      }
                   ]
                }
