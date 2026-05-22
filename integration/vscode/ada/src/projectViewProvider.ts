@@ -513,6 +513,8 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             // don't match the filter string at all.
             if (this.filterString && this.flatMode) {
                 return roots.filter((item) => {
+                    // The 'runtime' project item is just a logical group, so it should
+                    // always match: the runtime sources are still filtered though.
                     if (item.itemKind === ProjectViewItemKind.RUNTIME_PROJECT) return true;
                     const entry = this.projectViewInfo?.projects.get(item.projectId!);
                     return entry ? this.projectOrDescendantMatchesFilter(entry) : false;
