@@ -258,7 +258,13 @@ export class ProjectViewItem extends vscode.TreeItem {
         this.uri = uri;
         this.projectId = projectId;
         this.parentProjectId = parentProjectId;
-        this.iconPath = this.getIcon();
+        // For source files, let the active file icon theme supply the icon by
+        // setting resourceUri and leaving iconPath unset.
+        if (itemKind === ProjectViewItemKind.SOURCE_FILE) {
+            this.resourceUri = uri;
+        } else {
+            this.iconPath = this.getIcon();
+        }
         this.id = this.getUniqueID(itemKind, projectId, parentProjectId, uri);
 
         if (itemKind === ProjectViewItemKind.SOURCE_FILE) {
@@ -308,7 +314,8 @@ export class ProjectViewItem extends vscode.TreeItem {
     private getIcon(): vscode.ThemeIcon | undefined {
         switch (this.itemKind) {
             case ProjectViewItemKind.SOURCE_FILE:
-                return new vscode.ThemeIcon('file-code');
+                // Icon is driven by the file icon theme via resourceUri; no iconPath needed.
+                return undefined;
             case ProjectViewItemKind.SOURCE_DIRECTORY:
                 return new vscode.ThemeIcon('folder');
             case ProjectViewItemKind.OBJECT_DIRECTORY:
@@ -410,7 +417,10 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         // Source directory items return their source files as children
         if (element?.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY) {
             if (!element.sources) return [];
-            return element.sources.map((source) => {
+            const filteredSources = this.filterString
+                ? element.sources.filter((s) => this.sourceInfoMatchesFilter(s))
+                : element.sources;
+            return filteredSources.map((source) => {
                 const sourceUri = vscode.Uri.file(source.file_name);
                 return new ProjectViewItem(
                     source.simple_name,
@@ -428,7 +438,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             if (!this.projectViewInfo?.runtime_project) return [];
             const items = this.getProjectChildren(this.projectViewInfo.runtime_project);
             if (this.filterString) {
-                return items.filter((item) => this.matchesFilter(item));
+                return items.filter((item) => this.filterProjectChild(item));
             }
             return items;
         }
@@ -499,6 +509,18 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
                 );
             }
 
+            // In flat mode, filter out projects whose names and descendants
+            // don't match the filter string at all.
+            if (this.filterString && this.flatMode) {
+                return roots.filter((item) => {
+                    // The 'runtime' project item is just a logical group, so it should
+                    // always match: the runtime sources are still filtered though.
+                    if (item.itemKind === ProjectViewItemKind.RUNTIME_PROJECT) return true;
+                    const entry = this.projectViewInfo?.projects.get(item.projectId!);
+                    return entry ? this.projectOrDescendantMatchesFilter(entry) : false;
+                });
+            }
+
             return roots;
         }
 
@@ -525,7 +547,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
 
         // Filter items if a filter is active
         if (this.filterString) {
-            return filtered.filter((item) => this.matchesFilter(item));
+            return filtered.filter((item) => this.filterProjectChild(item));
         }
         return filtered;
     }
@@ -669,15 +691,105 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
 
     /**
      * Checks if a given ProjectViewItem matches the current filter string.
-     * An item matches the filter if its label includes the filter string
-     * (case-insensitive).
+     * An item matches the filter if its label or its full URI path includes
+     * the filter string (case-insensitive).
      *
      * @param item - The ProjectViewItem to check
      * @returns True if the item matches the filter, false otherwise
      */
     private matchesFilter(item: ProjectViewItem): boolean {
+        const filter = this.filterString;
         const label = item.label?.toString().toLowerCase() ?? '';
-        return label.includes(this.filterString);
+        if (label.includes(filter)) return true;
+        return item.uri.fsPath.toLowerCase().includes(filter);
+    }
+
+    /**
+     * Checks if a source file matches the current filter string.
+     * Matches against the file's base name only; directory matching is
+     * handled separately by sourceDirOrChildMatchesFilter.
+     */
+    private sourceInfoMatchesFilter(source: ProjectSourceInfo): boolean {
+        return source.simple_name.toLowerCase().includes(this.filterString);
+    }
+
+    /**
+     * Checks if a source directory or any of its source files match the
+     * current filter string.
+     */
+    private sourceDirOrChildMatchesFilter(dirPath: string, sources: ProjectSourceInfo[]): boolean {
+        const filter = this.filterString;
+        if (dirPath.toLowerCase().includes(filter)) return true;
+        return sources.some((s) => this.sourceInfoMatchesFilter(s));
+    }
+
+    /**
+     * Checks if a project entry or any of its descendants (source directories,
+     * source files, object directory, sub-projects) match the current filter.
+     *
+     * A visited set is kept to guard against cycles in the project graph.
+     */
+    private projectOrDescendantMatchesFilter(
+        entry: ProjectEntry,
+        visited = new Set<string>(),
+    ): boolean {
+        if (!this.projectViewInfo || visited.has(entry.project.id)) return false;
+        visited.add(entry.project.id);
+
+        const filter = this.filterString;
+
+        // Match on project name or project file path
+        if (entry.project.name.toLowerCase().includes(filter)) return true;
+        if (entry.project.file_name.toLowerCase().includes(filter)) return true;
+
+        // Match on source directories and their files
+        const sourcesByDir = new Map<string, ProjectSourceInfo[]>();
+        for (const source of entry.sources) {
+            const dir = source.directory;
+            if (!sourcesByDir.has(dir)) sourcesByDir.set(dir, []);
+            sourcesByDir.get(dir)!.push(source);
+        }
+        for (const [dir, sources] of sourcesByDir) {
+            if (this.sourceDirOrChildMatchesFilter(dir, sources)) return true;
+        }
+
+        // Match on object directory path
+        if (this.showObjectDirs && entry.project.object_dir) {
+            if (entry.project.object_dir.toLowerCase().includes(filter)) return true;
+        }
+
+        // Recurse into sub-projects
+        const subIds = [...entry.imports, ...entry.aggregated, ...entry.extended];
+        for (const subId of subIds) {
+            const subEntry = this.projectViewInfo.projects.get(subId);
+            if (subEntry && this.projectOrDescendantMatchesFilter(subEntry, visited)) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines whether a direct child of a project item should be shown
+     * when a filter is active.
+     *
+     * - Source directories: shown if the directory path or any contained file matches.
+     * - Sub-projects: shown if the project itself or any descendant matches.
+     * - Other items (object directory): shown if their label or URI path matches.
+     */
+    private filterProjectChild(item: ProjectViewItem): boolean {
+        if (!this.filterString) return true;
+        switch (item.itemKind) {
+            case ProjectViewItemKind.SOURCE_DIRECTORY:
+                return this.sourceDirOrChildMatchesFilter(item.uri.fsPath, item.sources ?? []);
+            case ProjectViewItemKind.SUB_PROJECT:
+            case ProjectViewItemKind.ROOT_PROJECT: {
+                if (!item.projectId || !this.projectViewInfo) return false;
+                const entry = this.projectViewInfo.projects.get(item.projectId);
+                return entry ? this.projectOrDescendantMatchesFilter(entry) : false;
+            }
+            default:
+                return this.matchesFilter(item);
+        }
     }
 
     /**
