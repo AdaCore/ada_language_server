@@ -1,0 +1,6 @@
+package body My_Package is
+   procedure Hello is
+   begin
+      null;
+   end Hello;
+end My_Package;

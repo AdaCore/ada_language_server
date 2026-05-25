@@ -16,7 +16,11 @@ import {
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
-import { ProjectViewItem, ProjectViewProvider } from './projectViewProvider';
+import {
+    ProjectViewItem,
+    ProjectViewProvider,
+    applyLanguageOverrideToDocument,
+} from './projectViewProvider';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
@@ -175,6 +179,20 @@ export class ExtensionState {
         for (const doc of vscode.workspace.textDocuments) {
             await updateMetricsDiagnostics(doc);
         }
+
+        // Override VS Code's language detection for source files whose
+        // language is reported by the GPR project (e.g. Ada files that do
+        // not carry a standard extension due to a custom Naming package).
+        this.context.subscriptions.push(
+            vscode.workspace.onDidOpenTextDocument(async (doc) => {
+                if (this.projectViewProvider) {
+                    await applyLanguageOverrideToDocument(
+                        doc,
+                        this.projectViewProvider.getLanguageForUri(doc.uri),
+                    );
+                }
+            }),
+        );
     };
 
     public dispose = () => {

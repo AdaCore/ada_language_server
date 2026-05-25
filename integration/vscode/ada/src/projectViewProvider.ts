@@ -28,6 +28,7 @@ interface Raw_ProjectSourceInfo {
     'file-name': string;
     'simple-name': string;
     directory: string;
+    language?: string;
 }
 
 interface Raw_ProjectInfo {
@@ -80,6 +81,8 @@ export interface ProjectSourceInfo {
     file_name: string;
     simple_name: string;
     directory: string;
+    /** GPR-reported language name (e.g. 'ada', 'c'), if available */
+    language?: string;
 }
 
 /**
@@ -126,6 +129,24 @@ export interface ProjectViewInformation {
 // Parsing helper
 // ---------------------------------------------------------------------------
 
+/**
+ * Applies the given VS Code language ID to a single document when the
+ * document's current language does not already match. Errors are silently
+ * ignored (e.g. the language ID is not registered in the current environment).
+ */
+export async function applyLanguageOverrideToDocument(
+    doc: vscode.TextDocument,
+    langId: string | undefined,
+): Promise<void> {
+    if (langId && doc.languageId !== langId) {
+        try {
+            await vscode.languages.setTextDocumentLanguage(doc, langId);
+        } catch {
+            // Ignore: can fail if the language ID is not registered
+        }
+    }
+}
+
 function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInformation {
     const projects = new Map<string, ProjectEntry>();
 
@@ -164,6 +185,7 @@ function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInfo
                 file_name: s['file-name'],
                 simple_name: s['simple-name'],
                 directory: s.directory,
+                language: s.language,
             })),
         };
         projects.set(entry.project.id, entry);
@@ -344,6 +366,12 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     /** Cached and parsed project view information */
     private projectViewInfo: ProjectViewInformation | undefined;
     private filterString: string = '';
+    /**
+     * Maps a normalized file URI string to the VS Code language ID reported
+     * by the GPR project for that source file.  Rebuilt each time project
+     * information is (re-)loaded from the server.
+     */
+    private fileLanguageMap: Map<string, string> = new Map();
 
     /** When true, all projects are shown as a flat list instead of a hierarchy */
     public flatMode: boolean = false;
@@ -652,6 +680,8 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             }
 
             this.projectViewInfo = parseProjectViewResponse(raw);
+            this.buildFileLanguageMap();
+            await this.applyLanguageOverridesToOpenDocuments();
         } catch (error) {
             console.log(`Failed to fetch project view information:`, error);
         }
@@ -804,5 +834,64 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         this.showObjectDirs = showObjectDirs;
         this.showRuntimeFiles = showRuntimeFiles;
         this._onDidChangeTreeData.fire();
+    }
+
+    /**
+     * Returns the VS Code language ID for a source file as reported by the
+     * GPR project, or undefined if the file is not in the project or its
+     * language does not require an override (e.g. plain C/C++).
+     */
+    getLanguageForUri(uri: vscode.Uri): string | undefined {
+        return this.fileLanguageMap.get(uri.toString());
+    }
+
+    /**
+     * Maps a GPR language name to a VS Code language ID.
+     * It used to handle cases where the GPR language ID does not match
+     * the VS Code one (e,g. 'c++' vs 'cpp'). Othwerwise, it just returns
+     * the lowercased GPR language name, which works for most
+     * languages (e.g. 'ada', 'c').
+     */
+    private static gprToVscodeLangId(gprLang: string): string | undefined {
+        switch (gprLang.toLowerCase()) {
+            case 'c++':
+                return 'cpp';
+            default:
+                return gprLang.toLowerCase();
+        }
+    }
+
+    /**
+     * (Re-)builds `fileLanguageMap` from the currently loaded project info.
+     * Only sources whose GPR language maps to a known VS Code language ID
+     * are entered into the map.
+     */
+    private buildFileLanguageMap(): void {
+        this.fileLanguageMap = new Map();
+        if (!this.projectViewInfo) return;
+
+        for (const entry of this.projectViewInfo.projects.values()) {
+            for (const source of entry.sources) {
+                if (!source.language) continue;
+                const langId = ProjectViewProvider.gprToVscodeLangId(source.language);
+                if (langId) {
+                    this.fileLanguageMap.set(vscode.Uri.file(source.file_name).toString(), langId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Iterates over all currently open text documents and overrides the
+     * VS Code language ID for any document whose language is known from
+     * the GPR project metadata but does not yet match.
+     *
+     * This handles files that were already open when the project info was
+     * first (or re-)loaded.
+     */
+    async applyLanguageOverridesToOpenDocuments(): Promise<void> {
+        for (const doc of vscode.workspace.textDocuments) {
+            await applyLanguageOverrideToDocument(doc, this.getLanguageForUri(doc.uri));
+        }
     }
 }

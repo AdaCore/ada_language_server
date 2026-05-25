@@ -1,0 +1,4 @@
+// my_module body (custom .cpp_src extension used to test language detection)
+#include "my_module.cpp_hdr"
+
+void my_function() {}
