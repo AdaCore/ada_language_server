@@ -26,6 +26,7 @@ with Langkit_Support.Slocs;
 
 with LSP.Ada_Handlers.Formatting;
 with LSP.Constants;
+with LSP.Env;
 with LSP.Enumerations;
 with LSP.Errors;
 with LSP.Formatters.Fallback_Indenter;
@@ -515,6 +516,51 @@ package body LSP.GPR_Handlers is
                   legend  =>
                     (tokenTypes => Types, tokenModifiers => Modifiers),
                   others  => <>)));
+      end;
+
+      --  Load configuration files (.als.json etc.) so that settings such as
+      --  scenarioVariables are known before project loading.
+      declare
+         use LSP.Env;
+
+         procedure Logger
+           (Messages : VSS.String_Vectors.Virtual_String_Vector;
+            File     : GNATCOLL.VFS.Virtual_File);
+
+         ------------
+         -- Logger --
+         ------------
+
+         procedure Logger
+           (Messages : VSS.String_Vectors.Virtual_String_Vector;
+            File     : GNATCOLL.VFS.Virtual_File)
+         is
+         begin
+            for Msg of Messages loop
+               Self.Sender.On_LogMessage_Notification
+                 ((LSP.Enumerations.Warning,
+                   VSS.Strings.Conversions.To_Virtual_String
+                     (File.Display_Full_Name)
+                   & ": "
+                   & Msg));
+            end loop;
+         end Logger;
+
+         Candidates : constant GNATCOLL.VFS.File_Array :=
+           [ALS_User_Config_File, ALS_Workspace_Config_File];
+
+         New_Configuration : LSP.Ada_Configurations.Configuration;
+         Config_Processed  : Boolean;
+      begin
+         New_Configuration.Load_From_Files
+           (Candidates => Candidates,
+            Tracer     => Self.Tracer,
+            Processed  => Config_Processed,
+            Logger     => Logger'Access);
+
+         if Config_Processed then
+            Self.Set_Configuration (New_Configuration);
+         end if;
       end;
 
       --  If settings were given in initializationOptions, parse and apply them.

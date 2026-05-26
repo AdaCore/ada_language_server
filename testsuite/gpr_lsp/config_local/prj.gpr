@@ -1,0 +1,4 @@
+project Prj is
+   type Build_Mode_Type is ("debug", "release");
+   Build_Mode : Build_Mode_Type := External ("BUILD_MODE");
+end Prj;

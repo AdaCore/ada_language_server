@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.VFS;
 with GNATdoc.Comments.Options;
 
 private with VSS.Characters.Latin;
@@ -23,6 +24,7 @@ with VSS.String_Vectors;
 
 with LSP.Enumerations;
 with LSP.Structures;
+with LSP.Tracers;
 
 with GPR2.Context;
 with GPR2.Path_Name;
@@ -64,6 +66,22 @@ package LSP.Ada_Configurations is
      (Self     : in out Configuration'Class;
       File     : VSS.Strings.Virtual_String;
       Messages : out VSS.String_Vectors.Virtual_String_Vector);
+
+   procedure Load_From_Files
+     (Self       : in out Configuration;
+      Candidates : GNATCOLL.VFS.File_Array;
+      Tracer     : not null LSP.Tracers.Tracer_Access;
+      Logger     :
+        access procedure
+          (Message : VSS.String_Vectors.Virtual_String_Vector;
+           File    : GNATCOLL.VFS.Virtual_File);
+      Processed  : out Boolean);
+   --  For each non-empty path in Candidates that refers to an existing file,
+   --  read it into Self via Read_File.
+   --  Tracer is used to trace errors related to file reading.
+   --  Logger is used to log messages related to configuration parsing: can
+   --  be used to either send messages to the LSP client or just log them.
+   --  Processed is set to True if at least one file was successfully read.
 
    function Project_File
      (Self : Configuration'Class) return VSS.Strings.Virtual_String;
