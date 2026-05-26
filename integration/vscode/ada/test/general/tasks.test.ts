@@ -348,8 +348,16 @@ suite.only('Task diagnostics', function () {
          * because the messages get sometimes truncated for an unknown reason.
          */
         if (isWindows) {
-            alsDiagnostics.forEach((d, idx) => {
-                assert.deepEqual(d.severity, expectedDiagnostics[idx].severity, 'Expected severity does not match.');
+            alsDiagnostics.forEach((problem, idx) => {
+                const matched = expectedDiagnostics.find((diagnostic) =>
+                    diagnostic.message.includes(problem.message),
+                );
+                assert(matched, `No diagnostic found matching "${problem.message}"!`);
+                assert.deepEqual(
+                    problem.severity,
+                    matched.severity,
+                    `Problem [${idx}] should have severity ${problem.severity}, not ${matched.severity}`,
+                );
             });
         } else {
             alsDiagnostics.forEach((d, idx) => {
