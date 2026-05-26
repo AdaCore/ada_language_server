@@ -276,8 +276,23 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 
 suite.only('Task diagnostics', function () {
     const isWindows = process.platform === 'win32';
-    type TestDiagnostic = { severity: number, message: string};
-    function makeDiag(s: number, msg: string): TestDiagnostic { return {severity: s, message: msg} };
+    type TestDiagnostic = { severity: number; message: string };
+    function problem(s: number, msg: string): TestDiagnostic {
+        return { severity: s, message: msg };
+    }
+    let projectDiagnosticsEnabled: boolean | undefined = undefined;
+    this.beforeAll(async function () {
+        await activate();
+        const projectDiagnosticsCfg = vscode.workspace
+            .getConfiguration('ada')
+            .get<boolean | null>('projectDiagnostics');
+        projectDiagnosticsEnabled = projectDiagnosticsCfg != false;
+        assert.notEqual(
+            projectDiagnosticsEnabled,
+            undefined,
+            'Should have successfully queried projectDiagnostics setting',
+        );
+    });
 
     /**
      * Helper function to test problem matchers with compiler messages
@@ -309,6 +324,13 @@ suite.only('Task diagnostics', function () {
 
         const execStatus: number | undefined = await runTaskAndGetResult(resolved);
 
+        if (projectDiagnosticsEnabled) {
+            const projectLoadWarning = problem(
+                1,
+                'The project file was loaded but contains warnings.',
+            );
+            expectedDiagnostics.push(projectLoadWarning);
+        }
         /**
          * Wait for the problemMatchers
          */
