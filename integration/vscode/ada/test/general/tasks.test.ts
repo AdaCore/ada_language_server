@@ -334,10 +334,12 @@ suite.only('Task diagnostics', function () {
         /**
          * Wait for the problemMatchers
          */
-        const expectedMessages: string[] = expectedDiagnostics.map(d=>d.message);
+        const expectedMessages: string[] = expectedDiagnostics.map((d) => d.message);
 
-        const alsDiagnostics: vscode.Diagnostic[] =
-            await waitForExpectedDiagnostics(expectedMessages);
+        let alsDiagnostics: vscode.Diagnostic[] = [];
+        await assert.doesNotReject(async () => {
+            alsDiagnostics = await waitForExpectedDiagnostics(expectedMessages);
+        });
 
         /**
          * Check that we have the expected number of diagnostics, with the
