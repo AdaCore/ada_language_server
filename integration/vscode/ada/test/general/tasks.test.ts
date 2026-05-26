@@ -361,8 +361,16 @@ suite.only('Task diagnostics', function () {
             });
         } else {
             alsDiagnostics.forEach((d, idx) => {
-                assert.deepEqual(d.severity, expectedDiagnostics[idx].severity, 'Expected severity does not match.');
-                assert.deepEqual(d.message, expectedMessages[idx], 'Expected message does not match.');
+                assert.deepEqual(
+                    d.severity,
+                    expectedDiagnostics[idx].severity,
+                    'Expected severity does not match.',
+                );
+                assert.deepEqual(
+                    d.message,
+                    expectedMessages[idx],
+                    'Expected message does not match.',
+                );
             });
         }
     }
@@ -405,7 +413,7 @@ suite.only('Task diagnostics', function () {
             problem(1, 'use clause for package "Commands" has no effect [-gnatwu]'),
             problem(1, 'use clause for package "GUI_Utils" has no effect [-gnatwu]'),
             problem(1, 'no entities of "Language_Handlers" are referenced [-gnatwu]'),
-            problem(1, `use clause for package "Guage_Handlers" has no effect [-gnatwu]`),
+            problem(1, `use clause for package "Language_Handlers" has no effect [-gnatwu]`),
             problem(1, `no entities of "String_Utils" are referenced [-gnatwu]`),
             problem(1, 'use clause for package "String_Utils" has no effect [-gnatwu]'),
             problem(1, 'use clause for package "Known" has no effect [-gnatwu]'),
@@ -477,7 +485,8 @@ suite.only('Task diagnostics', function () {
             problem(0, 'this is a low warning'),
         ];
         await testProblemMatchersWithCompilerMessages(
-            'compiler_messages_fallback.txt', expectedDiagnostics
+            'compiler_messages_fallback.txt',
+            expectedDiagnostics,
         );
     });
 });
