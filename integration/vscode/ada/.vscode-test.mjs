@@ -94,6 +94,9 @@ export default defineConfig(
                 // windows visible, but we consider this a minor use case for
                 // now. A workaround is to remove this line.
                 DISPLAY: process.env.DISPLAY ?? ':99',
+                window: {
+                    newWindowDimensions: 'maximized',
+                },
             },
             launchArgs: [
                 // It's important to use the --user-data-dir=<path> form. The
