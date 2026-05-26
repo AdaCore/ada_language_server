@@ -20,6 +20,8 @@
 --  - return empty text if file is excluded
 --  - preprocess code on the fly
 
+with Ada.Containers.Indefinite_Vectors;
+with GNAT.Regexp;
 with GPR2.Project.View;
 
 with Langkit_Support.File_Readers;
@@ -43,6 +45,11 @@ package LSP.Ada_Handlers.File_Readers is
 
 private
 
+   package Regexp_Vector is new Ada.Containers.Indefinite_Vectors
+     (Index_Type   => Positive,
+      Element_Type => GNAT.Regexp.Regexp,
+      "="          => GNAT.Regexp."=");
+
    type LSP_File_Reader (Handler : access Message_Handler'Class) is
      new Langkit_Support.File_Readers.File_Reader_Interface
    with record
@@ -51,6 +58,8 @@ private
 
       Excluded_Files : LSP.Ada_File_Sets.File_Sets.Set;
       --  Set of files from IDE.Excluded_Source_Files project attribute
+
+      Excluded_Regexps : Regexp_Vector.Vector;
    end record;
 
    overriding

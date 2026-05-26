@@ -1,0 +1,7 @@
+project Default is
+   for Source_Dirs use (".", "excluded");
+
+   package IDE is
+      for Excluded_Source_Files use ("*2.adb", "*excluded*");
+   end IDE;
+end Default;
