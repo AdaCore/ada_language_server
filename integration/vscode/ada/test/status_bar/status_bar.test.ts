@@ -21,8 +21,14 @@ suite('Status Bar Test Suite', function () {
         prjUri: vscode.Uri,
         nbDiags: integer,
         severity: vscode.DiagnosticSeverity,
+        action?: () => Promise<void>,
     ) {
-        // Get the diagnostics with the expected severity
+        // Register the onDidChangeDiagnostics listener before running the action
+        // so that we cannot miss the diagnostic event even if it fires during an
+        // async operation inside the action (e.g. inside CMD_RELOAD_PROJECT
+        // middleware). The updateStatusBarItem handler, registered at extension
+        // startup, runs before this listener, so the status bar is always up to
+        // date by the time this promise resolves.
         const diagnostics = new Promise<vscode.Diagnostic[]>((resolve) => {
             const disposable = vscode.languages.onDidChangeDiagnostics(
                 (e: vscode.DiagnosticChangeEvent) => {
@@ -36,6 +42,11 @@ suite('Status Bar Test Suite', function () {
                 },
             );
         });
+
+        if (action) {
+            await action();
+        }
+
         const alsDiagnostics = await diagnostics;
 
         // Check that we have the diagnostics we expect
@@ -118,10 +129,14 @@ ${JSON.stringify(alsDiagnostics)}`,
                 );
                 writeFileSync(prjUri.fsPath, newContent, 'utf-8');
 
-                // Reload the project
-                await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
-
-                await checkDiagnosticsAndStatusBar(prjUri, 1, vscode.DiagnosticSeverity.Warning);
+                await checkDiagnosticsAndStatusBar(
+                    prjUri,
+                    1,
+                    vscode.DiagnosticSeverity.Warning,
+                    async () => {
+                        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+                    },
+                );
             } finally {
                 // Restore the old .gpr file content
                 writeFileSync(prjUri.fsPath, contentBefore);
@@ -144,10 +159,14 @@ ${JSON.stringify(alsDiagnostics)}`,
                 );
                 writeFileSync(prjUri.fsPath, newContent, 'utf-8');
 
-                // Reload the project
-                await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
-
-                await checkDiagnosticsAndStatusBar(prjUri, 1, vscode.DiagnosticSeverity.Error);
+                await checkDiagnosticsAndStatusBar(
+                    prjUri,
+                    1,
+                    vscode.DiagnosticSeverity.Error,
+                    async () => {
+                        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+                    },
+                );
             } finally {
                 // Restore the old .gpr file content
                 writeFileSync(prjUri.fsPath, contentBefore);

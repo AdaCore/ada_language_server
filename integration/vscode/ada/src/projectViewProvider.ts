@@ -811,7 +811,7 @@ export class ProjectViewDragAndDropController
 
     /**
      * @param onFilesMoved - Async callback invoked after one or more files
-     *   have been successfully moved.  Typically triggers a project reload.
+     *   have been successfully moved. Typically triggers a project reload.
      */
     constructor(private readonly onFilesMoved: () => Promise<void>) {}
 
