@@ -531,7 +531,10 @@ package body LSP.Ada_Contexts is
         ("iso-8859-1");
       Self.Reader_Reference := Create_File_Reader_Reference (File_Reader);
 
-      --  Tab stop is set 1 to disable "visible character guessing" by LAL.
+      --  By enforcing the size of a tab character is 1 in LAL
+      --  we are getting the number of character and not the column
+      --  when calling Source_Location.Column.
+      --  This workaround is fine for now because LSP is only supporting UTF8
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
          File_Reader   => Self.Reader_Reference,

@@ -638,11 +638,16 @@ package body LSP.GPR_Files is
 
       begin
          Reset (File);
+         --  By enforcing the size of a tab character is 1 in LAL
+         --  we are getting the number of character and not the column
+         --  when calling Source_Location.Column
+         --  This workaround is fine for now because LSP is only supporting UTF8
 
          File.Unit := Gpr_Parser.Analysis.Get_From_File
            (Context  => Gpr_Parser.Analysis.Create_Context
               ("UTF-8",
-               GPR2.File_Readers.Convert (File.File_Provider.Get_File_Reader)),
+               GPR2.File_Readers.Convert (File.File_Provider.Get_File_Reader),
+               Tab_Stop      => 1),
             Filename => String (File.Path.Value));
          if Gpr_Parser.Analysis.Root (File.Unit).Is_Null
            or else Gpr_Parser.Analysis.Has_Diagnostics (File.Unit)
@@ -651,7 +656,8 @@ package body LSP.GPR_Files is
               (Context  => Gpr_Parser.Analysis.Create_Context
                  ("Windows-1252",
                   GPR2.File_Readers.Convert
-                    (File.File_Provider.Get_File_Reader)),
+                    (File.File_Provider.Get_File_Reader),
+                    Tab_Stop      => 1),
                Filename => String (File.Path.Value));
          end if;
       end Load;
