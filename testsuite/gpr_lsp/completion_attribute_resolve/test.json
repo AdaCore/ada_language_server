@@ -158,7 +158,7 @@
                "id": 2,
                "result": {
                   "label": "Project_Files",
-                  "documentation": "Value is the list of aggregated projects.",
+                  "documentation": "List of project files aggregated by this project.",
                   "insertTextFormat": 1,
                   "data": ["", "Project_Files"]
                }
@@ -247,7 +247,7 @@
                "id": 5,
                "result": {
                   "label": "Switches",
-                  "documentation": "Index is either a language name or a source file name. Value is the list of builder switches to be used when building an executable. Index is either the source file name of the executable to be built or its language name.",
+                  "documentation": "Indexed by source file name or language name. Builder switches applied when building the matching executable.",
                   "insertTextFormat": 1,
                   "data": ["Builder", "Switches"]
                }

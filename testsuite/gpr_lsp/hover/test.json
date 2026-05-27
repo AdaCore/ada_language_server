@@ -222,7 +222,7 @@
                      "prj1.gpr:2:05",
                      {
                         "language": "plaintext",
-                        "value": "The list of source directories of the project."
+                        "value": "List of source directories for the project."
                      }
                   ]
                }
@@ -258,7 +258,7 @@
                      "prj1.gpr:4:05",
                      {
                         "language": "plaintext",
-                        "value": "Index is a source file name or a language name. Value is the list of switches to be used when invoking the compiler for the source or for its language."
+                        "value": "Indexed by source file name or language name. Switches passed to the compiler for the matching source or language."
                      }
                   ]
                }
@@ -696,7 +696,7 @@
                      "prj3.gpr:10:09",
                      {
                         "language": "plaintext",
-                        "value": "Index is a source file name or a language name. Value is the list of switches to be used when invoking the compiler for the source or for its language."
+                        "value": "Indexed by source file name or language name. Switches passed to the compiler for the matching source or language."
                      }
                   ]
                }
@@ -732,7 +732,7 @@
                      "prj3.gpr:11:09",
                      {
                         "language": "plaintext",
-                        "value": "Index is a source file name or a language name. Value is the list of switches to be used when invoking the compiler for the source or for its language."
+                        "value": "Indexed by source file name or language name. Switches passed to the compiler for the matching source or language."
                      }
                   ]
                }
@@ -768,7 +768,7 @@
                      "prj3.gpr:12:09",
                      {
                         "language": "plaintext",
-                        "value": "Index is a source file name or a language name. Value is the list of switches to be used when invoking the compiler for the source or for its language."
+                        "value": "Indexed by source file name or language name. Switches passed to the compiler for the matching source or language."
                      }
                   ]
                }
@@ -835,7 +835,7 @@
                      "prj3.gpr:10:09",
                      {
                         "language": "plaintext",
-                        "value": "Index is a source file name or a language name. Value is the list of switches to be used when invoking the compiler for the source or for its language."
+                        "value": "Indexed by source file name or language name. Switches passed to the compiler for the matching source or language."
                      }
                   ]
                }
@@ -871,7 +871,7 @@
                      "prj3.gpr:12:09",
                      {
                         "language": "plaintext",
-                        "value": "Index is a source file name or a language name. Value is the list of switches to be used when invoking the compiler for the source or for its language."
+                        "value": "Indexed by source file name or language name. Switches passed to the compiler for the matching source or language."
                      }
                   ]
                }
