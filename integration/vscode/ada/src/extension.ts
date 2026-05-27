@@ -24,8 +24,9 @@ import Transport from 'winston-transport';
 import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
-import { ProjectViewProvider } from './projectViewProvider';
+import { ProjectViewDragAndDropController, ProjectViewProvider } from './projectViewProvider';
 import { autoReloadProject, registerCommands } from './commands';
+import { CMD_RELOAD_PROJECT } from './constants';
 import {
     TERMINAL_ENV_SETTING_NAME,
     assertSupportedEnvironments,
@@ -210,9 +211,13 @@ async function activateExtension(context: vscode.ExtensionContext) {
      */
     const projectViewProvider = new ProjectViewProvider();
     adaExtState.projectViewProvider = projectViewProvider;
+    const projectViewDnD = new ProjectViewDragAndDropController(async () => {
+        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+    });
     adaExtState.projectTreeView = vscode.window.createTreeView('projectView', {
         treeDataProvider: projectViewProvider,
         showCollapseAll: true,
+        dragAndDropController: projectViewDnD,
     });
 
     /**
