@@ -324,7 +324,10 @@ suite.only('Task diagnostics', function () {
 
         const execStatus: number | undefined = await runTaskAndGetResult(resolved);
 
-        if (projectDiagnosticsEnabled) {
+        if (isWindows && projectDiagnosticsEnabled) {
+            /**
+             * On windows, project diagnostics need to be included
+             */
             const projectLoadWarning = problem(
                 1,
                 'The project file was loaded but contains warnings.',
@@ -337,6 +340,12 @@ suite.only('Task diagnostics', function () {
         const expectedMessages: string[] = expectedDiagnostics.map((d) => d.message);
 
         let alsDiagnostics: vscode.Diagnostic[] = [];
+
+        /**
+         * This helper gets all Ada diagnostics and filters down to those matching
+         * the text of expectedMessages.
+         * On Windows, a partial match is applied due to truncation.
+         */
         await assert.doesNotReject(async () => {
             alsDiagnostics = await waitForExpectedDiagnostics(expectedMessages);
         });
@@ -362,14 +371,14 @@ suite.only('Task diagnostics', function () {
         } else {
             alsDiagnostics.forEach((d, idx) => {
                 assert.deepEqual(
-                    d.severity,
-                    expectedDiagnostics[idx].severity,
-                    'Expected severity does not match.',
-                );
-                assert.deepEqual(
                     d.message,
                     expectedMessages[idx],
-                    'Expected message does not match.',
+                    `Message mismatch. \nExpected: "${d.message}"\nActual: "${expectedMessages[idx]}"`,
+                );
+                assert.deepEqual(
+                    d.severity,
+                    expectedDiagnostics[idx].severity,
+                    `Severity mismatch: expected ${d.severity}, got ${expectedDiagnostics[idx].severity}.`,
                 );
             });
         }
