@@ -17,8 +17,6 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
-import { CMD_PROJECT_VIEW_INFORMATION } from './constants';
 
 // ---------------------------------------------------------------------------
 // Raw wire types – match the JSON field names returned by the server
@@ -63,7 +61,7 @@ interface Raw_RuntimeProjectInfo {
     sources?: Raw_ProjectSourceInfo[];
 }
 
-interface Raw_ProjectViewResponse {
+export interface Raw_ProjectViewResponse {
     info?: { 'generated-on': string; version: string };
     tree: { 'root-project': { name: string; id: string } };
     projects: Raw_ProjectEntry[];
@@ -147,7 +145,7 @@ export async function applyLanguageOverrideToDocument(
     }
 }
 
-function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInformation {
+export function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInformation {
     const projects = new Map<string, ProjectEntry>();
 
     for (const rawEntry of raw.projects) {
@@ -361,17 +359,9 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     readonly onDidChangeTreeData: vscode.Event<ProjectViewItem | undefined | null | void> =
         this._onDidChangeTreeData.event;
 
-    private adaClient: LanguageClient;
-    private rootProjectUri: vscode.Uri | undefined;
-    /** Cached and parsed project view information */
+    /** Cached and parsed project view information, set externally by ExtensionState */
     private projectViewInfo: ProjectViewInformation | undefined;
     private filterString: string = '';
-    /**
-     * Maps a normalized file URI string to the VS Code language ID reported
-     * by the GPR project for that source file.  Rebuilt each time project
-     * information is (re-)loaded from the server.
-     */
-    private fileLanguageMap: Map<string, string> = new Map();
 
     /** When true, all projects are shown as a flat list instead of a hierarchy */
     public flatMode: boolean = false;
@@ -382,9 +372,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     /** When true, the runtime project (if returned by the server) is shown */
     public showRuntimeFiles: boolean = false;
 
-    constructor(adaClient: LanguageClient) {
-        this.adaClient = adaClient;
-
+    constructor() {
         // Restore persisted display preferences from VS Code settings
         const config = vscode.workspace.getConfiguration('ada');
         this.flatMode = config.get<boolean>('projectView.flatMode', false);
@@ -393,18 +381,15 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     }
 
     /**
-     * Sets the root project URI for the Project View and
-     * refreshes it.
-     * This should be called when the root project changes
-     * (e.g. after opening a new folder or after refreshing the project).
+     * Sets the project view information and refreshes the tree.
+     * Called by ExtensionState whenever the project is (re-)loaded.
      *
-     * @param uri - The URI of the new root project, or undefined
-     * if there is no root project
+     * @param info - The newly fetched project view information, or undefined
+     * if no project is loaded
      */
-    setRootProjectUri(uri: vscode.Uri | undefined): void {
-        this.rootProjectUri = uri;
-        this.projectViewInfo = undefined;
-        this.refresh();
+    setProjectViewInfo(info: ProjectViewInformation | undefined): void {
+        this.projectViewInfo = info;
+        this._onDidChangeTreeData.fire();
     }
 
     /**
@@ -431,7 +416,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
      * @returns A promise that resolves to an array of ProjectViewItem
      * representing the children of the given element
      */
-    async getChildren(element?: ProjectViewItem): Promise<ProjectViewItem[]> {
+    getChildren(element?: ProjectViewItem): ProjectViewItem[] {
         // Source files have no children
         if (element?.itemKind === ProjectViewItemKind.SOURCE_FILE) {
             return [];
@@ -470,9 +455,6 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             }
             return items;
         }
-
-        // Ensure project information is loaded
-        await this.ensureProjectInfoLoaded();
 
         // If no element is provided, return the root item(s)
         if (!element) {
@@ -658,41 +640,10 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     }
 
     /**
-     * Ensures that project information is loaded from the server.
-     * If already cached, this is a no-op.
-     */
-    private async ensureProjectInfoLoaded(): Promise<void> {
-        if (this.projectViewInfo) {
-            return;
-        }
-
-        if (!this.rootProjectUri) {
-            return;
-        }
-
-        try {
-            const raw = await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
-                CMD_PROJECT_VIEW_INFORMATION,
-            );
-
-            if (!raw?.projects) {
-                return;
-            }
-
-            this.projectViewInfo = parseProjectViewResponse(raw);
-            this.buildFileLanguageMap();
-            await this.applyLanguageOverridesToOpenDocuments();
-        } catch (error) {
-            console.log(`Failed to fetch project view information:`, error);
-        }
-    }
-
-    /**
      * Refreshes the Project View by firing the onDidChangeTreeData event.
      * This will cause VS Code to call getChildren again for all visible items.
      */
     refresh(): void {
-        this.projectViewInfo = undefined;
         this._onDidChangeTreeData.fire();
     }
 
@@ -834,64 +785,5 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         this.showObjectDirs = showObjectDirs;
         this.showRuntimeFiles = showRuntimeFiles;
         this._onDidChangeTreeData.fire();
-    }
-
-    /**
-     * Returns the VS Code language ID for a source file as reported by the
-     * GPR project, or undefined if the file is not in the project or its
-     * language does not require an override (e.g. plain C/C++).
-     */
-    getLanguageForUri(uri: vscode.Uri): string | undefined {
-        return this.fileLanguageMap.get(uri.toString());
-    }
-
-    /**
-     * Maps a GPR language name to a VS Code language ID.
-     * It used to handle cases where the GPR language ID does not match
-     * the VS Code one (e,g. 'c++' vs 'cpp'). Othwerwise, it just returns
-     * the lowercased GPR language name, which works for most
-     * languages (e.g. 'ada', 'c').
-     */
-    private static gprToVscodeLangId(gprLang: string): string | undefined {
-        switch (gprLang.toLowerCase()) {
-            case 'c++':
-                return 'cpp';
-            default:
-                return gprLang.toLowerCase();
-        }
-    }
-
-    /**
-     * (Re-)builds `fileLanguageMap` from the currently loaded project info.
-     * Only sources whose GPR language maps to a known VS Code language ID
-     * are entered into the map.
-     */
-    private buildFileLanguageMap(): void {
-        this.fileLanguageMap = new Map();
-        if (!this.projectViewInfo) return;
-
-        for (const entry of this.projectViewInfo.projects.values()) {
-            for (const source of entry.sources) {
-                if (!source.language) continue;
-                const langId = ProjectViewProvider.gprToVscodeLangId(source.language);
-                if (langId) {
-                    this.fileLanguageMap.set(vscode.Uri.file(source.file_name).toString(), langId);
-                }
-            }
-        }
-    }
-
-    /**
-     * Iterates over all currently open text documents and overrides the
-     * VS Code language ID for any document whose language is known from
-     * the GPR project metadata but does not yet match.
-     *
-     * This handles files that were already open when the project info was
-     * first (or re-)loaded.
-     */
-    async applyLanguageOverridesToOpenDocuments(): Promise<void> {
-        for (const doc of vscode.workspace.textDocuments) {
-            await applyLanguageOverrideToDocument(doc, this.getLanguageForUri(doc.uri));
-        }
     }
 }

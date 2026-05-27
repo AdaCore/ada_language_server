@@ -99,7 +99,7 @@ suite('Project View', function () {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
-        const rootItems = await provider.getChildren();
+        const rootItems = provider.getChildren();
         assert.strictEqual(rootItems.length, 1, 'Expected exactly one root project item');
 
         const rootItem = rootItems[0];
@@ -116,7 +116,7 @@ suite('Project View', function () {
         );
     });
 
-    test('Context values: project items use gprFile, others use distinct values', async () => {
+    test('Context values: project items use gprFile, others use distinct values', () => {
         // The "Edit Project File" context menu entry uses `viewItem == gprFile` to restrict
         // visibility to project items only.  This test verifies that the contextValue assigned
         // to each item kind matches those expectations so that a code change cannot silently
@@ -125,7 +125,7 @@ suite('Project View', function () {
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
         // Root project item
-        const rootItems = await provider.getChildren();
+        const rootItems = provider.getChildren();
         assert.strictEqual(rootItems.length, 1, 'Expected exactly one root project item');
         const rootItem = rootItems[0];
         assert.strictEqual(
@@ -135,7 +135,7 @@ suite('Project View', function () {
         );
 
         // Sub-project items
-        const aggrChildren = await provider.getChildren(rootItem);
+        const aggrChildren = provider.getChildren(rootItem);
         const subProjects = aggrChildren.filter(
             (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT,
         );
@@ -149,7 +149,7 @@ suite('Project View', function () {
         }
 
         // Source directory and source file items
-        const subChildren = await provider.getChildren(subProjects[0]);
+        const subChildren = provider.getChildren(subProjects[0]);
         const sourceDirs = subChildren.filter(
             (i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY,
         );
@@ -162,7 +162,7 @@ suite('Project View', function () {
                     `have contextValue "sourceDirectory"`,
             );
 
-            const files = await provider.getChildren(dirItem);
+            const files = provider.getChildren(dirItem);
             assert.ok(files.length > 0, 'Expected at least one source file item');
             for (const fileItem of files) {
                 assert.strictEqual(
@@ -175,12 +175,12 @@ suite('Project View', function () {
         }
     });
 
-    test('Tree structure: source directories before dependencies', async () => {
+    test('Tree structure: source directories before dependencies', () => {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
         // Calling getChildren() with no argument returns the single root project item.
-        const rootItems = await provider.getChildren();
+        const rootItems = provider.getChildren();
         assert.strictEqual(rootItems.length, 1, 'Expected exactly one root project item');
 
         const rootItem = rootItems[0];
@@ -197,7 +197,7 @@ suite('Project View', function () {
 
         // The aggregate project has no sources of its own, so its children
         // should be exclusively the two aggregated sub-projects.
-        const aggrChildren = await provider.getChildren(rootItem);
+        const aggrChildren = provider.getChildren(rootItem);
 
         const aggrSourceDirs = aggrChildren.filter(
             (i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY,
@@ -226,7 +226,7 @@ suite('Project View', function () {
 
         // Sub-project children: source directories come first
         for (const subItem of aggrSubProjects) {
-            const children = await provider.getChildren(subItem);
+            const children = provider.getChildren(subItem);
 
             assert.ok(
                 children.length > 0,
@@ -268,7 +268,7 @@ suite('Project View', function () {
                     'Directory item should have kind SOURCE_DIRECTORY',
                 );
 
-                const files = await provider.getChildren(dirItem);
+                const files = provider.getChildren(dirItem);
                 assert.ok(
                     files.length > 0,
                     `Source directory '${String(dirItem.label)}' ` +
@@ -286,7 +286,7 @@ suite('Project View', function () {
                 }
 
                 // Source files should have no children.
-                const grandChildren = await provider.getChildren(files[0]);
+                const grandChildren = provider.getChildren(files[0]);
                 assert.strictEqual(
                     grandChildren.length,
                     0,
@@ -318,7 +318,7 @@ suite('Project View', function () {
 
         try {
             // Verify initial state: no filter and all items visible.
-            const rootItems = await provider.getChildren();
+            const rootItems = provider.getChildren();
             assert.strictEqual(rootItems.length, 1, 'Expected exactly one root project item');
             assert.strictEqual(rootItems[0].label, 'Aggr');
 
@@ -331,7 +331,7 @@ suite('Project View', function () {
             assert.strictEqual(treeView.message, 'Filtered by: "Project_1"');
 
             // Verify that the tree view now only shows items matching the filter.
-            const filteredChildren = await provider.getChildren(rootItems[0]);
+            const filteredChildren = provider.getChildren(rootItems[0]);
             assert.deepStrictEqual(
                 filteredChildren.map((item) => String(item.label)),
                 ['Project_1'],
@@ -347,7 +347,7 @@ suite('Project View', function () {
         }
     });
 
-    test('Filter shows parent project and source directory when child file matches', async () => {
+    test('Filter shows parent project and source directory when child file matches', () => {
         // Verify the new deep-filtering logic: if only a source file matches the filter,
         // its parent source directory and grandparent project must both be visible even
         // though neither of them contains the filter string in their own name or path.
@@ -359,11 +359,11 @@ suite('Project View', function () {
         // name ('Project_1', 'Project_2') or in the shared source-directory label ('src').
         provider.setFilter('main_1');
 
-        const rootItem = (await provider.getChildren())[0];
+        const rootItem = provider.getChildren()[0];
 
         // Both sub-projects share the src/ directory which contains main_1.adb, so both
         // must be visible even though neither project name contains 'main_1'.
-        const subProjects = await provider.getChildren(rootItem);
+        const subProjects = provider.getChildren(rootItem);
         assert.deepStrictEqual(
             subProjects.map((i) => String(i.label)).sort(),
             ['Project_1', 'Project_2'],
@@ -374,7 +374,7 @@ suite('Project View', function () {
         // For each visible sub-project, the source directory must be exposed and must
         // contain only the file(s) that match the filter.
         for (const subProject of subProjects) {
-            const children = await provider.getChildren(subProject);
+            const children = provider.getChildren(subProject);
             const sourceDirs = children.filter(
                 (i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY,
             );
@@ -385,7 +385,7 @@ suite('Project View', function () {
             );
 
             for (const dirItem of sourceDirs) {
-                const files = await provider.getChildren(dirItem);
+                const files = provider.getChildren(dirItem);
 
                 // main_1.adb must be present
                 assert.ok(
@@ -405,7 +405,7 @@ suite('Project View', function () {
         }
     });
 
-    test('Flat mode filter hides projects with no matching descendants', async () => {
+    test('Flat mode filter hides projects with no matching descendants', () => {
         // In flat mode every project is shown as a root-level item.  The filter must
         // hide a project entirely when neither the project itself nor any of its
         // descendants (source files, source directories, sub-projects) match.
@@ -416,7 +416,7 @@ suite('Project View', function () {
         provider.setViewSettings(true, false, false); // enable flat mode
         provider.setFilter('project_2');
 
-        const flatRoots = await provider.getChildren();
+        const flatRoots = provider.getChildren();
         const flatRootLabels = flatRoots.map((i) => String(i.label));
 
         // Project_2 matches directly via its name.
@@ -449,9 +449,9 @@ suite('Project View', function () {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
-        const rootItems = await provider.getChildren();
+        const rootItems = provider.getChildren();
         const rootItem = rootItems[0];
-        const aggrChildren = await provider.getChildren(rootItem);
+        const aggrChildren = provider.getChildren(rootItem);
         const project1Item = aggrChildren.find(
             (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT && i.label === 'Project_1',
         );
@@ -521,7 +521,7 @@ suite('Project View', function () {
             }) as unknown as vscode.WorkspaceConfiguration;
 
         try {
-            const provider = new ProjectViewProvider(adaExtState.adaClient);
+            const provider = new ProjectViewProvider();
             assert.strictEqual(
                 provider.flatMode,
                 true,
@@ -542,12 +542,12 @@ suite('Project View', function () {
         }
     });
 
-    test('Flat mode: all projects appear at root level with root project first', async () => {
+    test('Flat mode: all projects appear at root level with root project first', () => {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
         // Hierarchical mode (default): only the root project appears at root level
-        const hierarchicalRoots = await provider.getChildren();
+        const hierarchicalRoots = provider.getChildren();
         assert.strictEqual(
             hierarchicalRoots.length,
             1,
@@ -562,7 +562,7 @@ suite('Project View', function () {
         // Enable flat mode: all projects (Aggr + sub-projects) appear at root level
         provider.setViewSettings(true, false, false);
 
-        const flatRoots = await provider.getChildren();
+        const flatRoots = provider.getChildren();
         assert.ok(flatRoots.length > 1, 'Flat mode should expose more than one item at root level');
 
         // The aggregate project must come first and keep its ROOT_PROJECT kind
@@ -591,8 +591,8 @@ suite('Project View', function () {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
-        const rootItems = await provider.getChildren();
-        const aggrChildren = await provider.getChildren(rootItems[0]);
+        const rootItems = provider.getChildren();
+        const aggrChildren = provider.getChildren(rootItems[0]);
         const subProjects = aggrChildren.filter(
             (i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT,
         );
@@ -600,7 +600,7 @@ suite('Project View', function () {
 
         // Without showObjectDirs: no OBJECT_DIRECTORY items in any sub-project's children
         for (const subProject of subProjects) {
-            const children = await provider.getChildren(subProject);
+            const children = provider.getChildren(subProject);
             assert.ok(
                 !children.some((i) => i.itemKind === ProjectViewItemKind.OBJECT_DIRECTORY),
                 `Sub-project '${String(subProject.label)}' should have no ` +
@@ -672,20 +672,20 @@ suite('Project View', function () {
         );
     });
 
-    test('showRuntimeFiles: runtime project item and its source children are listed', async () => {
+    test('showRuntimeFiles: runtime project item and its source children are listed', () => {
         const provider = adaExtState.projectViewProvider;
         assert.ok(provider, 'Project view provider should be initialized after activation');
 
         provider.setViewSettings(false, false, true);
 
-        const rootItems = await provider.getChildren();
+        const rootItems = provider.getChildren();
         const runtimeItem = rootItems.find(
             (i) => i.itemKind === ProjectViewItemKind.RUNTIME_PROJECT,
         );
         assert.ok(runtimeItem, 'Expected a RUNTIME_PROJECT item when showRuntimeFiles is enabled');
         assert.strictEqual(runtimeItem.contextValue, 'runtimeProject');
 
-        const children = await provider.getChildren(runtimeItem);
+        const children = provider.getChildren(runtimeItem);
         assert.ok(
             children.length > 0,
             'Expected RUNTIME_PROJECT to have source directory children',
@@ -697,7 +697,7 @@ suite('Project View', function () {
 
         // Verify that each runtime source directory exposes SOURCE_FILE children
         for (const dirItem of children) {
-            const files = await provider.getChildren(dirItem);
+            const files = provider.getChildren(dirItem);
             assert.ok(
                 files.length > 0,
                 `Source directory '${String(dirItem.label)}' of the runtime project ` +

@@ -23,26 +23,24 @@ import { activate } from '../utils';
 suite('Custom Naming Convention – Language Detection', function () {
     this.beforeAll(async () => {
         await activate();
-        // Trigger project info loading so that fileLanguageMap is populated.
-        // refreshProjectView() only fires a tree-data-change event; the actual
-        // server request happens lazily inside getChildren().
+        // Fetch project information eagerly so the language map is populated
+        // before the tests run.  refreshProjectView() now contacts the server
+        // directly without requiring the Project View panel to be open.
         await adaExtState.refreshProjectView();
-        await adaExtState.projectViewProvider?.getChildren();
     });
 
     test('getLanguageForUri maps custom-extension Ada files to "ada"', () => {
-        // Verify that the fileLanguageMap was built correctly from the GPR
+        // Verify that the language map was built correctly from the GPR
         // Naming package declarations.  No document needs to be opened for
         // this: it exercises the map-lookup layer in isolation.
-        const provider = adaExtState.projectViewProvider;
-        assert.ok(provider, 'Project view provider should be initialized after activation');
+        assert.ok(adaExtState, 'Extension state should be initialized after activation');
 
         const folder = vscode.workspace.workspaceFolders![0].uri;
 
         for (const fileName of ['my_package.ada_spec', 'my_package.ada_body']) {
             const uri = vscode.Uri.joinPath(folder, 'src', fileName);
             assert.strictEqual(
-                provider.getLanguageForUri(uri),
+                adaExtState.getLanguageForUri(uri),
                 'ada',
                 `Expected getLanguageForUri to return 'ada' for '${fileName}' ` +
                     `(custom Ada extension defined in the GPR Naming package)`,
@@ -52,15 +50,14 @@ suite('Custom Naming Convention – Language Detection', function () {
 
     test('getLanguageForUri maps custom-extension C++ files to "cpp"', () => {
         // Same as the Ada map-lookup test but for C++ sources.
-        const provider = adaExtState.projectViewProvider;
-        assert.ok(provider, 'Project view provider should be initialized after activation');
+        assert.ok(adaExtState, 'Extension state should be initialized after activation');
 
         const folder = vscode.workspace.workspaceFolders![0].uri;
 
         for (const fileName of ['my_module.cpp_hdr', 'my_module.cpp_src']) {
             const uri = vscode.Uri.joinPath(folder, 'src', fileName);
             assert.strictEqual(
-                provider.getLanguageForUri(uri),
+                adaExtState.getLanguageForUri(uri),
                 'cpp',
                 `Expected getLanguageForUri to return 'cpp' for '${fileName}' ` +
                     `(custom C++ extension defined in the GPR Naming package)`,
@@ -69,8 +66,7 @@ suite('Custom Naming Convention – Language Detection', function () {
     });
 
     test('Opening a custom-extension Ada file gives it the "ada" language ID', async () => {
-        const provider = adaExtState.projectViewProvider;
-        assert.ok(provider, 'Project view provider should be initialized after activation');
+        assert.ok(adaExtState, 'Extension state should be initialized after activation');
 
         const folder = vscode.workspace.workspaceFolders![0].uri;
         const fileUri = vscode.Uri.joinPath(folder, 'src', 'my_package.ada_spec');
@@ -89,8 +85,7 @@ suite('Custom Naming Convention – Language Detection', function () {
     });
 
     test('Opening a custom-extension C++ file gives it the "cpp" language ID', async () => {
-        const provider = adaExtState.projectViewProvider;
-        assert.ok(provider, 'Project view provider should be initialized after activation');
+        assert.ok(adaExtState, 'Extension state should be initialized after activation');
 
         const folder = vscode.workspace.workspaceFolders![0].uri;
         const fileUri = vscode.Uri.joinPath(folder, 'src', 'my_module.cpp_src');
@@ -113,8 +108,7 @@ suite('Custom Naming Convention – Language Detection', function () {
     });
 
     test('Files already open when project (re-)loads get their language corrected', async () => {
-        const provider = adaExtState.projectViewProvider;
-        assert.ok(provider, 'Project view provider should be initialized after activation');
+        assert.ok(adaExtState, 'Extension state should be initialized after activation');
 
         const folder = vscode.workspace.workspaceFolders![0].uri;
         const fileUri = vscode.Uri.joinPath(folder, 'src', 'my_package.ada_body');
@@ -123,11 +117,10 @@ suite('Custom Naming Convention – Language Detection', function () {
         // it is "already open" when the map is rebuilt.
         const doc = await vscode.workspace.openTextDocument(fileUri);
 
-        // Simulating a project reload: refresh() clears cached info so the
-        // next getChildren() call re-fetches from the server and rebuilds the
-        // map, then applies language overrides to all currently open documents.
-        provider.refresh();
-        await provider.getChildren();
+        // Simulating a project reload: refreshProjectView() fetches fresh info
+        // from the server, rebuilds the language map, and applies language
+        // overrides to all currently open documents.
+        await adaExtState.refreshProjectView();
 
         assert.strictEqual(
             doc.languageId,
