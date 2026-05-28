@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -126,24 +126,6 @@ export interface ProjectViewInformation {
 // ---------------------------------------------------------------------------
 // Parsing helper
 // ---------------------------------------------------------------------------
-
-/**
- * Applies the given VS Code language ID to a single document when the
- * document's current language does not already match. Errors are silently
- * ignored (e.g. the language ID is not registered in the current environment).
- */
-export async function applyLanguageOverrideToDocument(
-    doc: vscode.TextDocument,
-    langId: string | undefined,
-): Promise<void> {
-    if (langId && doc.languageId !== langId) {
-        try {
-            await vscode.languages.setTextDocumentLanguage(doc, langId);
-        } catch {
-            // Ignore: can fail if the language ID is not registered
-        }
-    }
-}
 
 export function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInformation {
     const projects = new Map<string, ProjectEntry>();
@@ -637,14 +619,6 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         }
 
         return items;
-    }
-
-    /**
-     * Refreshes the Project View by firing the onDidChangeTreeData event.
-     * This will cause VS Code to call getChildren again for all visible items.
-     */
-    refresh(): void {
-        this._onDidChangeTreeData.fire();
     }
 
     /**

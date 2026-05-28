@@ -22,7 +22,6 @@ import {
     ProjectViewProvider,
     ProjectViewInformation,
     Raw_ProjectViewResponse,
-    applyLanguageOverrideToDocument,
     parseProjectViewResponse,
 } from './projectViewProvider';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
@@ -30,7 +29,13 @@ import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
-import { TERMINAL_ENV_SETTING_NAME, which, getArgValue, getAlireEnv } from './helpers';
+import {
+    applyLanguageOverrideToDocument,
+    TERMINAL_ENV_SETTING_NAME,
+    which,
+    getArgValue,
+    getAlireEnv,
+} from './helpers';
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
@@ -190,7 +195,10 @@ export class ExtensionState {
 
         // Override VS Code's language detection for source files whose
         // language is reported by the GPR project (e.g. Ada files that do
-        // not carry a standard extension due to a custom Naming package).
+        // not carry a standard extension due to a custom `Naming` package).
+        // Already opened documents will be handled in the `refreshProjectView`
+        // method, after fetching the project view information and building the
+        // language map.
         this.context.subscriptions.push(
             vscode.workspace.onDidOpenTextDocument(async (doc) => {
                 await applyLanguageOverrideToDocument(doc, this.getLanguageForUri(doc.uri));
@@ -603,8 +611,12 @@ export class ExtensionState {
 
     /**
      * Maps a GPR language name to a VS Code language ID.
+     * If the GPR language does not map to a known VS Code language ID, returns the
+     * lowercased GPR language name as a fallback.
+     * This is a best-effort mapping used for the language-override feature: new cases can
+     * be added as needed.
      */
-    private static gprToVscodeLangId(gprLang: string): string | undefined {
+    private static gprToVscodeLangId(gprLang: string): string {
         switch (gprLang.toLowerCase()) {
             case 'c++':
                 return 'cpp';
@@ -617,6 +629,11 @@ export class ExtensionState {
      * (Re-)builds `fileLanguageMap` from the cached project view information.
      * Only sources whose GPR language maps to a known VS Code language ID
      * are entered into the map.
+     *
+     * The map is keyed by `fsPath` to avoid mismatches from URI percent-encoding
+     * or drive-letter casing differences on Windows. Symlinked workspace roots
+     * remain a potential source of silent mismatches if the server and VS Code
+     * resolve them differently.
      */
     private buildFileLanguageMap(): void {
         this.fileLanguageMap = new Map();
@@ -627,7 +644,7 @@ export class ExtensionState {
                 if (!source.language) continue;
                 const langId = ExtensionState.gprToVscodeLangId(source.language);
                 if (langId) {
-                    this.fileLanguageMap.set(vscode.Uri.file(source.file_name).toString(), langId);
+                    this.fileLanguageMap.set(vscode.Uri.file(source.file_name).fsPath, langId);
                 }
             }
         }
@@ -635,11 +652,11 @@ export class ExtensionState {
 
     /**
      * Returns the VS Code language ID for a source file as reported by the
-     * GPR project, or undefined if the file is not in the project or its
-     * language does not require an override (e.g. plain C/C++).
+     * GPR project, or undefined if the file does not belong to the loaded
+     * GPR project.
      */
     public getLanguageForUri(uri: vscode.Uri): string | undefined {
-        return this.fileLanguageMap.get(uri.toString());
+        return this.fileLanguageMap.get(uri.fsPath);
     }
 
     /**

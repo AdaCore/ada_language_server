@@ -1,24 +1,13 @@
-/*----------------------------------------------------------------------------
---                         Language Server Protocol                         --
---                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
---                                                                          --
--- This is free software;  you can redistribute it  and/or modify it  under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 3,  or (at your option) any later ver- --
--- sion.  This software is distributed in the hope  that it will be useful, --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License for  more details.  You should have  received  a copy of the GNU --
--- General  Public  License  distributed  with  this  software;   see  file --
--- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
--- of the license.                                                          --
-----------------------------------------------------------------------------*/
-
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { adaExtState } from '../../src/extension';
 import { activate } from '../utils';
+
+/**
+ * The maximum time to wait for language overrides to be applied after
+ * opening a document.
+ */
+const TIMEOUT = 1000;
 
 suite('Custom Naming Convention – Language Detection', function () {
     this.beforeAll(async () => {
@@ -74,7 +63,10 @@ suite('Custom Naming Convention – Language Detection', function () {
         const doc = await vscode.workspace.openTextDocument(fileUri);
 
         // Wait a bit before checking the language, since onDidOpenDocument is async
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const deadline = Date.now() + TIMEOUT;
+        while (doc.languageId !== 'ada' && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        }
 
         // Check that the language ID was correctly set to 'ada'
         assert.strictEqual(
@@ -95,7 +87,7 @@ suite('Custom Naming Convention – Language Detection', function () {
         // The onDidOpenTextDocument handler is async: VS Code fires the event
         // and returns without awaiting the handler's completion. Poll until
         // setTextDocumentLanguage has settled or the timeout expires.
-        const deadline = Date.now() + 5000;
+        const deadline = Date.now() + TIMEOUT;
         while (doc.languageId !== 'cpp' && Date.now() < deadline) {
             await new Promise((resolve) => setTimeout(resolve, 50));
         }

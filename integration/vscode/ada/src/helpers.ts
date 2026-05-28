@@ -147,6 +147,28 @@ export function isExtensionInstalled(extensionId: string): boolean {
 }
 
 /**
+ * Applies the given VS Code language ID to a single document when the
+ * document's current language does not already match
+ * Errors are logged but not thrown, since failure to apply the language
+ * override is not critical and should not disrupt the user workflow.
+ */
+export async function applyLanguageOverrideToDocument(
+    doc: vscode.TextDocument,
+    langId: string | undefined,
+): Promise<void> {
+    if (langId && doc.languageId !== langId) {
+        try {
+            await vscode.languages.setTextDocumentLanguage(doc, langId);
+        } catch (error) {
+            logger.error(
+                `Failed to apply language override to document ${doc.uri.toString()}: ` +
+                    `${String(error)}`,
+            );
+        }
+    }
+}
+
+/**
  *
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * without evaluation of macros such as `${env:...}`.
