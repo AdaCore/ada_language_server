@@ -26,7 +26,6 @@ import {
 } from '../utils';
 
 suite('Task Providers', function () {
-    const isWindows = process.platform === 'win32';
     let projectPath: string;
 
     this.beforeAll(async () => {
@@ -273,13 +272,34 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
             await assert.rejects(prov.resolveTask(invalidTask));
         }
     });
+});
+
+suite.only('Task diagnostics', function () {
+    const isWindows = process.platform === 'win32';
+    type TestDiagnostic = { severity: number; message: string };
+    function problem(s: number, msg: string): TestDiagnostic {
+        return { severity: s, message: msg };
+    }
+    let projectDiagnosticsEnabled: boolean | undefined = undefined;
+    this.beforeAll(async function () {
+        await activate();
+        const projectDiagnosticsCfg = vscode.workspace
+            .getConfiguration('ada')
+            .get<boolean | null>('projectDiagnostics');
+        projectDiagnosticsEnabled = projectDiagnosticsCfg != false;
+        assert.notEqual(
+            projectDiagnosticsEnabled,
+            undefined,
+            'Should have successfully queried projectDiagnostics setting',
+        );
+    });
 
     /**
      * Helper function to test problem matchers with compiler messages
      */
     async function testProblemMatchersWithCompilerMessages(
         fileName: string,
-        expectedMessages: string,
+        expectedDiagnostics: TestDiagnostic[],
     ) {
         const prov = createAdaTaskProvider();
 
@@ -304,27 +324,31 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 
         const execStatus: number | undefined = await runTaskAndGetResult(resolved);
 
+        if (isWindows && projectDiagnosticsEnabled) {
+            /**
+             * On windows, project diagnostics need to be included
+             */
+            const projectLoadWarning = problem(
+                1,
+                'The project file was loaded but contains warnings.',
+            );
+            expectedDiagnostics.push(projectLoadWarning);
+        }
         /**
          * Wait for the problemMatchers
          */
-        const expectedDiagnostics = expectedMessages
-            .trim()
-            .split('\n')
-            .map((s) => s.substring(3)); // Remove severity prefix
+        const expectedMessages: string[] = expectedDiagnostics.map((d) => d.message);
 
-        const alsDiagnostics: vscode.Diagnostic[] =
-            await waitForExpectedDiagnostics(expectedDiagnostics);
+        let alsDiagnostics: vscode.Diagnostic[] = [];
 
         /**
-         * Extract expected severities from the expected messages for Windows validation
+         * This helper gets all Ada diagnostics and filters down to those matching
+         * the text of expectedMessages.
+         * On Windows, a partial match is applied due to truncation.
          */
-        const expectedSeverities = expectedMessages
-            .split('\n')
-            .map((line) => {
-                const match = line.match(/^(\d+):/);
-                return match ? parseInt(match[1], 10) : null;
-            })
-            .filter((severity) => severity !== null);
+        await assert.doesNotReject(async () => {
+            alsDiagnostics = await waitForExpectedDiagnostics(expectedMessages);
+        });
 
         /**
          * Check that we have the expected number of diagnostics, with the
@@ -333,109 +357,145 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
          * because the messages get sometimes truncated for an unknown reason.
          */
         if (isWindows) {
-            assert.deepEqual(
-                alsDiagnostics.map((d) => d.severity),
-                expectedSeverities,
-            );
+            alsDiagnostics.forEach((problem, idx) => {
+                const matched = expectedDiagnostics.find((diagnostic) =>
+                    diagnostic.message.includes(problem.message),
+                );
+                assert(matched, `No diagnostic found matching "${problem.message}"!`);
+                assert.deepEqual(
+                    problem.severity,
+                    matched.severity,
+                    `Problem [${idx}] should have severity ${problem.severity}, not ${matched.severity}`,
+                );
+            });
         } else {
-            assert.equal(
-                alsDiagnostics.map((d) => `${d.severity}: ${d.message}`).join('\n'),
-                expectedMessages,
-            );
+            alsDiagnostics.forEach((d, idx) => {
+                assert.deepEqual(
+                    d.message,
+                    expectedMessages[idx],
+                    `Message mismatch. \nExpected: "${d.message}"\nActual: "${expectedMessages[idx]}"`,
+                );
+                assert.deepEqual(
+                    d.severity,
+                    expectedDiagnostics[idx].severity,
+                    `Severity mismatch: expected ${d.severity}, got ${expectedDiagnostics[idx].severity}.`,
+                );
+            });
         }
     }
 
     test('problemMatchers severities', async () => {
-        await testProblemMatchersWithCompilerMessages(
-            'compiler_messages.txt',
-            `
-1: procedure "Hello" is not referenced [-gnatwu]
-1: bad casing of "Hello" declared at line 4 [-gnatyr]
-1: bad casing of "Hello" declared at line 4 [-gnatyr]
-1: incorrect layout [-gnatyl]
-1: "begin" in wrong column, should be in column 1 [-gnatyl]
-1: bad indentation [-gnaty0]
-1: possibly useless assignment to "X", value might not be referenced [-gnatwm]
-1: "X" may be referenced before it has a value [enabled by default]
-1: this is a low warning
-0: missing ";"
-0: this message has no severity level
-2: this is an extra message
-2: hello world (trying: to confuse the regexp here)`.trim(),
-        );
+        const expectedDiagnostics: TestDiagnostic[] = [
+            problem(1, 'procedure "Hello" is not referenced [-gnatwu]'),
+            problem(1, 'bad casing of "Hello" declared at line 4 [-gnatyr]'),
+            problem(1, 'bad casing of "Hello" declared at line 4 [-gnatyr]'),
+            problem(1, 'incorrect layout [-gnatyl]'),
+            problem(1, '"begin" in wrong column, should be in column 1 [-gnatyl]'),
+            problem(1, 'bad indentation [-gnaty0]'),
+            problem(
+                1,
+                'possibly useless assignment to "X", value might not be referenced [-gnatwm]',
+            ),
+            problem(1, '"X" may be referenced before it has a value [enabled by default]'),
+            problem(1, 'this is a low warning'),
+            problem(0, 'missing ";"'),
+            problem(0, 'this message has no severity level'),
+            problem(2, 'this is an extra message'),
+            problem(2, 'hello world (trying: to confuse the regexp here)'),
+        ];
+        await testProblemMatchersWithCompilerMessages('compiler_messages.txt', expectedDiagnostics);
     });
 
     test('problemMatchers severities (warnings only)', async () => {
+        const expectedDiagnostics = [
+            problem(1, 'no entities of "Ada.Strings.Fixed" are referenced [-gnatwu]'),
+            problem(1, 'use clause for package "Fixed" has no effect [-gnatwu]'),
+            problem(1, 'no entities of "GNAT.Strings" are referenced [-gnatwu]'),
+            problem(1, 'use clause for package "Strings" has no effect [-gnatwu]'),
+            problem(1, 'no entities of "GNATCOLL.Utils" are referenced [-gnatwu]'),
+            problem(1, 'use clause for package "Utils" has no effect [-gnatwu]'),
+            problem(1, 'no entities of "GPS.Intl" are referenced [-gnatwu]'),
+            problem(1, 'use clause for package "Intl" has no effect [-gnatwu]'),
+            problem(1, 'no entities of "GPS.Kernel.Task_Manager" are referenced [-gnatwu]'),
+            problem(1, 'use clause for package "Task_Manager" has no effect [-gnatwu]'),
+            problem(1, 'no entities of "Commands" are referenced [-gnatwu]'),
+            problem(1, 'use clause for package "Commands" has no effect [-gnatwu]'),
+            problem(1, 'use clause for package "GUI_Utils" has no effect [-gnatwu]'),
+            problem(1, 'no entities of "Language_Handlers" are referenced [-gnatwu]'),
+            problem(1, `use clause for package "Language_Handlers" has no effect [-gnatwu]`),
+            problem(1, `no entities of "String_Utils" are referenced [-gnatwu]`),
+            problem(1, 'use clause for package "String_Utils" has no effect [-gnatwu]'),
+            problem(1, 'use clause for package "Known" has no effect [-gnatwu]'),
+            problem(1, 'function "Get_Or_Create_Manager" is not referenced [-gnatwu]'),
+        ];
         await testProblemMatchersWithCompilerMessages(
             'compiler_messages_warnings_only.txt',
-            `
-1: no entities of "Ada.Strings.Fixed" are referenced [-gnatwu]
-1: use clause for package "Fixed" has no effect [-gnatwu]
-1: no entities of "GNAT.Strings" are referenced [-gnatwu]
-1: use clause for package "Strings" has no effect [-gnatwu]
-1: no entities of "GNATCOLL.Utils" are referenced [-gnatwu]
-1: use clause for package "Utils" has no effect [-gnatwu]
-1: no entities of "GPS.Intl" are referenced [-gnatwu]
-1: use clause for package "Intl" has no effect [-gnatwu]
-1: no entities of "GPS.Kernel.Task_Manager" are referenced [-gnatwu]
-1: use clause for package "Task_Manager" has no effect [-gnatwu]
-1: no entities of "Commands" are referenced [-gnatwu]
-1: use clause for package "Commands" has no effect [-gnatwu]
-1: use clause for package "GUI_Utils" has no effect [-gnatwu]
-1: no entities of "Language_Handlers" are referenced [-gnatwu]
-1: use clause for package "Language_Handlers" has no effect [-gnatwu]
-1: no entities of "String_Utils" are referenced [-gnatwu]
-1: use clause for package "String_Utils" has no effect [-gnatwu]
-1: use clause for package "Known" has no effect [-gnatwu]
-1: function "Get_Or_Create_Manager" is not referenced [-gnatwu]`.trim(),
+            expectedDiagnostics,
         );
     });
 
     test('problemMatchers severities (errors only)', async () => {
+        /**
+         * When multiple messages are produced for the same SLOC, only
+         * one is captured by the problem matcher. The choice of which one
+         * is captured is different on Windows and on Linux, hence using
+         * different expected sets of messages here.
+         */
+        const expectedDiagnostics = isWindows
+            ? [
+                  problem(0, '"New_Var_Edit" is undefined (more references follow)'),
+                  problem(0, 'unmatched actual "Title" in call'),
+                  problem(0, '"Update_Variable" is undefined (more references follow)'),
+                  problem(
+                      0,
+                      'missing argument for parameter "Flags" in call to "Gtk_New" declared at gtk-message_dialog.ads:124',
+                  ),
+                  problem(
+                      0,
+                      'missing argument for parameter "Buttons" in call to "Gtk_New" declared at gtk-message_dialog.ads:124',
+                  ),
+                  problem(
+                      0,
+                      `expected an access type with designated type "Gtk_Widget_Record'Class" defined at gtk-widget.ads:350`,
+                  ),
+                  problem(0, 'found type "Action_Filter" defined at gps-kernel.ads:458'),
+              ]
+            : [
+                  problem(0, '"New_Var_Edit" is undefined (more references follow)'),
+                  problem(0, 'no candidate interpretations match the actuals:'),
+                  problem(0, 'unmatched actual "Title" in call'),
+                  problem(0, '"Update_Variable" is undefined (more references follow)'),
+                  problem(0, 'no candidate interpretations match the actuals:'),
+                  problem(0, 'found type "Kernel_Handle" defined at gps-kernel.ads:92'),
+
+                  problem(0, 'expected type "Standard.Boolean"'),
+              ];
         await testProblemMatchersWithCompilerMessages(
             'compiler_messages_errors_only.txt',
-            /**
-             * When multiple messages are produced for the same SLOC, only
-             * one is captured by the problem matcher. The choice of which one
-             * is captured is different on Windows and on Linux, hence using
-             * different expected sets of messages here.
-             */
-            isWindows
-                ? `
-0: "New_Var_Edit" is undefined (more references follow)
-0: unmatched actual "Title" in call
-0: "Update_Variable" is undefined (more references follow)
-0: missing argument for parameter "Flags" in call to "Gtk_New" declared at gtk-message_dialog.ads:124
-0: missing argument for parameter "Buttons" in call to "Gtk_New" declared at gtk-message_dialog.ads:124
-0: expected an access type with designated type "Gtk_Widget_Record'Class" defined at gtk-widget.ads:350
-0: found type "Action_Filter" defined at gps-kernel.ads:458
-`.trim()
-                : `
-0: "New_Var_Edit" is undefined (more references follow)
-0: no candidate interpretations match the actuals:
-0: unmatched actual "Title" in call
-0: "Update_Variable" is undefined (more references follow)
-0: no candidate interpretations match the actuals:
-0: found type "Kernel_Handle" defined at gps-kernel.ads:92
-0: expected type "Standard.Boolean"`.trim(),
+            expectedDiagnostics,
         );
     });
     test('problemMatchers severities (fallback)', async () => {
+        const expectedDiagnostics = [
+            problem(0, 'procedure "Hello" is not referenced [-gnatwu]'),
+            problem(0, 'bad casing of "Hello" declared at line 4 [-gnatyr]'),
+            problem(0, 'bad casing of "Hello" declared at line 4 [-gnatyr]'),
+            problem(0, 'incorrect layout [-gnatyl]'),
+            problem(0, '"begin" in wrong column, should be in column 1 [-gnatyl]'),
+            problem(0, 'bad indentation [-gnaty0]'),
+            problem(
+                0,
+                'possibly useless assignment to "X", value might not be referenced [-gnatwm]',
+            ),
+            problem(0, '"X" may be referenced before it has a value [enabled by default]'),
+            problem(0, 'missing ";"'),
+            problem(0, 'this is an extra message'),
+            problem(0, 'hello world (trying: to confuse the regexp here)'),
+            problem(0, 'this is a low warning'),
+        ];
         await testProblemMatchersWithCompilerMessages(
             'compiler_messages_fallback.txt',
-            `
-0: procedure "Hello" is not referenced [-gnatwu]
-0: bad casing of "Hello" declared at line 4 [-gnatyr]
-0: bad casing of "Hello" declared at line 4 [-gnatyr]
-0: incorrect layout [-gnatyl]
-0: "begin" in wrong column, should be in column 1 [-gnatyl]
-0: bad indentation [-gnaty0]
-0: possibly useless assignment to "X", value might not be referenced [-gnatwm]
-0: "X" may be referenced before it has a value [enabled by default]
-0: missing ";"
-0: this is an extra message
-0: hello world (trying: to confuse the regexp here)
-0: this is a low warning`.trim(),
+            expectedDiagnostics,
         );
     });
 });
