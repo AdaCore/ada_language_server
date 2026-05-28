@@ -20,7 +20,6 @@ pragma Ada_2022;
 with Ada.Containers.Generic_Anonymous_Array_Sort;
 
 with GNATCOLL.Traces;
-with GNATCOLL.VFS;
 
 with LSP.GNATCOLL_Tracers;
 with LSP.Utils;
@@ -510,6 +509,50 @@ package body LSP.Ada_Configurations is
          end;
       end loop;
    end Parse_Ada;
+
+   ---------------------
+   -- Load_From_Files --
+   ---------------------
+
+   procedure Load_From_Files
+     (Self       : in out Configuration;
+      Candidates : GNATCOLL.VFS.File_Array;
+      Tracer     : not null LSP.Tracers.Tracer_Access;
+      Logger     :
+        access procedure
+          (Message : VSS.String_Vectors.Virtual_String_Vector;
+           File    : GNATCOLL.VFS.Virtual_File);
+      Processed  : out Boolean)
+   is
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+   begin
+      Processed := False;
+
+      --  Iterate over candidates and read the first existing file, log the
+      --  attempt for each candidate.
+      for File of Candidates loop
+         declare
+            use VSS.Strings;
+            F_Path : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (File.Display_Full_Name);
+         begin
+            Tracer.Trace_Text ("Trying config file: " & F_Path);
+
+            if File.Is_Regular_File then
+               Tracer.Trace_Text ("Loading config file: " & F_Path);
+               Self.Read_File (F_Path, Messages);
+               Processed := True;
+            else
+               Tracer.Trace_Text (F_Path & " doesn't exist");
+            end if;
+
+            if not Messages.Is_Empty then
+               Logger.all (Message => Messages, File => File);
+            end if;
+         end;
+      end loop;
+   end Load_From_Files;
 
    ---------------
    -- Read_File --

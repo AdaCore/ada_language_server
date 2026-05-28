@@ -655,41 +655,37 @@ package body LSP.Ada_Handlers is
    is
       use LSP.Env;
       use LSP.Utils;
-      use type VSS.Strings.Virtual_String;
 
-      Candidates : constant VSS.String_Vectors.Virtual_String_Vector :=
-        [To_Virtual_String (ALS_User_Config_File),
-         To_Virtual_String (ALS_Workspace_Config_File),
-         To_Virtual_String (CLI_Config_File)];
+      procedure Logger
+        (Messages : VSS.String_Vectors.Virtual_String_Vector;
+         File     : GNATCOLL.VFS.Virtual_File);
 
-      Config_File_Processed : Boolean := False;
+      ------------
+      -- Logger --
+      ------------
+
+      procedure Logger
+        (Messages : VSS.String_Vectors.Virtual_String_Vector;
+         File     : GNATCOLL.VFS.Virtual_File) is
+      begin
+         Self.Send_Messages
+           (Show     => True,
+            Messages => Messages,
+            Severity => LSP.Enumerations.Warning,
+            File     => File);
+      end Logger;
+
+      Candidates : constant GNATCOLL.VFS.File_Array :=
+        [ALS_User_Config_File, ALS_Workspace_Config_File, CLI_Config_File];
+
+      Config_File_Processed : Boolean;
       New_Configuration     : LSP.Ada_Configurations.Configuration;
-      Messages              : VSS.String_Vectors.Virtual_String_Vector;
    begin
-      for F_Path of Candidates loop
-         if not F_Path.Is_Empty then
-            declare
-               F : constant GNATCOLL.VFS.Virtual_File :=
-                 To_Virtual_File (F_Path);
-            begin
-               Self.Tracer.Trace_Text ("Trying config file: " & F_Path);
-               if F.Is_Regular_File then
-                  Self.Tracer.Trace_Text ("Loading config file: " & F_Path);
-                  New_Configuration.Read_File (F_Path, Messages);
-
-                  Self.Send_Messages
-                    (Show     => True,
-                     Messages => Messages,
-                     Severity => LSP.Enumerations.Warning,
-                     File     => F);
-
-                  Config_File_Processed := True;
-               else
-                  Self.Tracer.Trace_Text (F_Path & " doesn't exist");
-               end if;
-            end;
-         end if;
-      end loop;
+      New_Configuration.Load_From_Files
+        (Candidates => Candidates,
+         Tracer     => Self.Tracer,
+         Processed  => Config_File_Processed,
+         Logger     => Logger'Access);
 
       --  Some old LSP clients fail to send the root directory in the LSP
       --  initialize request, so we set a default here that is later

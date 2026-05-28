@@ -1,0 +1,2 @@
+driver: pylsp
+title: 'config file (.als.json) is loaded by the GPR language server'
