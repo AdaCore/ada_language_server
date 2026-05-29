@@ -286,16 +286,6 @@ package body LSP.GPR_External_Tools is
 
       Add_Attribute
         (Package_Name          => +"IDE",
-         Attribute_Name        => +"Gnatlist",
-         Description           => "The 'gnatls' command used to find where " &
-           "the Ada run time files are installed (including optional " &
-           "arguments, e.g. gnatls --RTS=sjlj).",
-         Index_Type            => PRA.No_Index,
-         Value                 => Single,
-         Value_Case_Sensitive  => True);
-
-      Add_Attribute
-        (Package_Name          => +"IDE",
          Attribute_Name        => +"Gnat",
          Description           => "The gnat driver used to run the various " &
            "commands associated with the GNAT toolchain.",
