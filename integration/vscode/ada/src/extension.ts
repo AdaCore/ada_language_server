@@ -208,7 +208,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     /**
      * Create the Project View.
      */
-    const projectViewProvider = new ProjectViewProvider(adaExtState.adaClient);
+    const projectViewProvider = new ProjectViewProvider();
     adaExtState.projectViewProvider = projectViewProvider;
     adaExtState.projectTreeView = vscode.window.createTreeView('projectView', {
         treeDataProvider: projectViewProvider,

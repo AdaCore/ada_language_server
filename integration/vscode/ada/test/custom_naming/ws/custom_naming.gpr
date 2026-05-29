@@ -1,0 +1,16 @@
+--  Project that uses custom Ada and C++ source-file extensions via the Naming
+--  package.  Files ending in ".ada_spec"/".ada_body" are Ada specs/bodies, and
+--  files ending in ".cpp_hdr"/".cpp_src" are C++ headers/bodies.
+--  VS Code would normally treat them as plain text; the extension must use the
+--  language information supplied by the Ada Language Server to override that.
+project Custom_Naming is
+   for Languages use ("Ada", "C++");
+   for Source_Dirs use ("src");
+
+   package Naming is
+      for Spec_Suffix ("Ada") use ".ada_spec";
+      for Body_Suffix ("Ada") use ".ada_body";
+      for Spec_Suffix ("C++") use ".cpp_hdr";
+      for Body_Suffix ("C++") use ".cpp_src";
+   end Naming;
+end Custom_Naming;

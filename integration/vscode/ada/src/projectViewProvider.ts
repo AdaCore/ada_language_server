@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,8 +17,6 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
-import { CMD_PROJECT_VIEW_INFORMATION } from './constants';
 
 // ---------------------------------------------------------------------------
 // Raw wire types – match the JSON field names returned by the server
@@ -28,6 +26,7 @@ interface Raw_ProjectSourceInfo {
     'file-name': string;
     'simple-name': string;
     directory: string;
+    language?: string;
 }
 
 interface Raw_ProjectInfo {
@@ -62,7 +61,7 @@ interface Raw_RuntimeProjectInfo {
     sources?: Raw_ProjectSourceInfo[];
 }
 
-interface Raw_ProjectViewResponse {
+export interface Raw_ProjectViewResponse {
     info?: { 'generated-on': string; version: string };
     tree: { 'root-project': { name: string; id: string } };
     projects: Raw_ProjectEntry[];
@@ -80,6 +79,8 @@ export interface ProjectSourceInfo {
     file_name: string;
     simple_name: string;
     directory: string;
+    /** GPR-reported language name (e.g. 'ada', 'c'), if available */
+    language?: string;
 }
 
 /**
@@ -126,7 +127,7 @@ export interface ProjectViewInformation {
 // Parsing helper
 // ---------------------------------------------------------------------------
 
-function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInformation {
+export function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInformation {
     const projects = new Map<string, ProjectEntry>();
 
     for (const rawEntry of raw.projects) {
@@ -164,6 +165,7 @@ function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectViewInfo
                 file_name: s['file-name'],
                 simple_name: s['simple-name'],
                 directory: s.directory,
+                language: s.language,
             })),
         };
         projects.set(entry.project.id, entry);
@@ -339,9 +341,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     readonly onDidChangeTreeData: vscode.Event<ProjectViewItem | undefined | null | void> =
         this._onDidChangeTreeData.event;
 
-    private adaClient: LanguageClient;
-    private rootProjectUri: vscode.Uri | undefined;
-    /** Cached and parsed project view information */
+    /** Cached and parsed project view information, set externally by ExtensionState */
     private projectViewInfo: ProjectViewInformation | undefined;
     private filterString: string = '';
 
@@ -354,9 +354,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     /** When true, the runtime project (if returned by the server) is shown */
     public showRuntimeFiles: boolean = false;
 
-    constructor(adaClient: LanguageClient) {
-        this.adaClient = adaClient;
-
+    constructor() {
         // Restore persisted display preferences from VS Code settings
         const config = vscode.workspace.getConfiguration('ada');
         this.flatMode = config.get<boolean>('projectView.flatMode', false);
@@ -365,18 +363,15 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     }
 
     /**
-     * Sets the root project URI for the Project View and
-     * refreshes it.
-     * This should be called when the root project changes
-     * (e.g. after opening a new folder or after refreshing the project).
+     * Sets the project view information and refreshes the tree.
+     * Called by ExtensionState whenever the project is (re-)loaded.
      *
-     * @param uri - The URI of the new root project, or undefined
-     * if there is no root project
+     * @param info - The newly fetched project view information, or undefined
+     * if no project is loaded
      */
-    setRootProjectUri(uri: vscode.Uri | undefined): void {
-        this.rootProjectUri = uri;
-        this.projectViewInfo = undefined;
-        this.refresh();
+    setProjectViewInfo(info: ProjectViewInformation | undefined): void {
+        this.projectViewInfo = info;
+        this._onDidChangeTreeData.fire();
     }
 
     /**
@@ -403,7 +398,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
      * @returns A promise that resolves to an array of ProjectViewItem
      * representing the children of the given element
      */
-    async getChildren(element?: ProjectViewItem): Promise<ProjectViewItem[]> {
+    getChildren(element?: ProjectViewItem): ProjectViewItem[] {
         // Source files have no children
         if (element?.itemKind === ProjectViewItemKind.SOURCE_FILE) {
             return [];
@@ -442,9 +437,6 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             }
             return items;
         }
-
-        // Ensure project information is loaded
-        await this.ensureProjectInfoLoaded();
 
         // If no element is provided, return the root item(s)
         if (!element) {
@@ -627,43 +619,6 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         }
 
         return items;
-    }
-
-    /**
-     * Ensures that project information is loaded from the server.
-     * If already cached, this is a no-op.
-     */
-    private async ensureProjectInfoLoaded(): Promise<void> {
-        if (this.projectViewInfo) {
-            return;
-        }
-
-        if (!this.rootProjectUri) {
-            return;
-        }
-
-        try {
-            const raw = await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
-                CMD_PROJECT_VIEW_INFORMATION,
-            );
-
-            if (!raw?.projects) {
-                return;
-            }
-
-            this.projectViewInfo = parseProjectViewResponse(raw);
-        } catch (error) {
-            console.log(`Failed to fetch project view information:`, error);
-        }
-    }
-
-    /**
-     * Refreshes the Project View by firing the onDidChangeTreeData event.
-     * This will cause VS Code to call getChildren again for all visible items.
-     */
-    refresh(): void {
-        this.projectViewInfo = undefined;
-        this._onDidChangeTreeData.fire();
     }
 
     /**

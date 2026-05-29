@@ -10,19 +10,32 @@ import {
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { AdaLanguageClient, createClient } from './clients';
 import {
+    CMD_PROJECT_VIEW_INFORMATION,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
-import { ProjectViewItem, ProjectViewProvider } from './projectViewProvider';
+import {
+    ProjectViewItem,
+    ProjectViewProvider,
+    ProjectViewInformation,
+    Raw_ProjectViewResponse,
+    parseProjectViewResponse,
+} from './projectViewProvider';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
-import { TERMINAL_ENV_SETTING_NAME, which, getArgValue, getAlireEnv } from './helpers';
+import {
+    applyLanguageOverrideToDocument,
+    TERMINAL_ENV_SETTING_NAME,
+    which,
+    getArgValue,
+    getAlireEnv,
+} from './helpers';
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
@@ -98,6 +111,8 @@ export class ExtensionState {
     cachedDebugServerAddress: string | undefined | null;
     cachedGdb: string | undefined | null = undefined;
     projectAttributeCache: Map<string, Promise<string | string[]>> = new Map();
+    private cachedProjectViewInfo: ProjectViewInformation | undefined;
+    private fileLanguageMap: Map<string, string> = new Map();
 
     private adaTaskProvider?: SimpleTaskProvider;
     private sparkTaskProvider?: SimpleTaskProvider;
@@ -113,6 +128,8 @@ export class ExtensionState {
         this.cachedDebugServerAddress = undefined;
         this.cachedGdb = undefined;
         this.projectAttributeCache.clear();
+        this.cachedProjectViewInfo = undefined;
+        this.fileLanguageMap = new Map();
     }
 
     constructor(context: vscode.ExtensionContext) {
@@ -175,6 +192,18 @@ export class ExtensionState {
         for (const doc of vscode.workspace.textDocuments) {
             await updateMetricsDiagnostics(doc);
         }
+
+        // Override VS Code's language detection for source files whose
+        // language is reported by the GPR project (e.g. Ada files that do
+        // not carry a standard extension due to a custom `Naming` package).
+        // Already opened documents will be handled in the `refreshProjectView`
+        // method, after fetching the project view information and building the
+        // language map.
+        this.context.subscriptions.push(
+            vscode.workspace.onDidOpenTextDocument(async (doc) => {
+                await applyLanguageOverrideToDocument(doc, this.getLanguageForUri(doc.uri));
+            }),
+        );
     };
 
     public dispose = () => {
@@ -581,19 +610,107 @@ export class ExtensionState {
     }
 
     /**
-     * Refreshes the Project View by fetching the new root project URI, if
-     * any, and updating the view provider.
+     * Maps a GPR language name to a VS Code language ID.
+     * If the GPR language does not map to a known VS Code language ID, returns the
+     * lowercased GPR language name as a fallback.
+     * This is a best-effort mapping used for the language-override feature: new cases can
+     * be added as needed.
+     */
+    private static gprToVscodeLangId(gprLang: string): string {
+        switch (gprLang.toLowerCase()) {
+            case 'c++':
+                return 'cpp';
+            default:
+                return gprLang.toLowerCase();
+        }
+    }
+
+    /**
+     * (Re-)builds `fileLanguageMap` from the cached project view information.
+     * Only sources whose GPR language maps to a known VS Code language ID
+     * are entered into the map.
+     *
+     * The map is keyed by `fsPath` to avoid mismatches from URI percent-encoding
+     * or drive-letter casing differences on Windows. Symlinked workspace roots
+     * remain a potential source of silent mismatches if the server and VS Code
+     * resolve them differently.
+     */
+    private buildFileLanguageMap(): void {
+        this.fileLanguageMap = new Map();
+        if (!this.cachedProjectViewInfo) return;
+
+        for (const entry of this.cachedProjectViewInfo.projects.values()) {
+            for (const source of entry.sources) {
+                if (!source.language) continue;
+                const langId = ExtensionState.gprToVscodeLangId(source.language);
+                if (langId) {
+                    this.fileLanguageMap.set(vscode.Uri.file(source.file_name).fsPath, langId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the VS Code language ID for a source file as reported by the
+     * GPR project, or undefined if the file does not belong to the loaded
+     * GPR project.
+     */
+    public getLanguageForUri(uri: vscode.Uri): string | undefined {
+        return this.fileLanguageMap.get(uri.fsPath);
+    }
+
+    /**
+     * Iterates over all currently open text documents and overrides the
+     * VS Code language ID for any document whose language is known from
+     * the GPR project metadata but does not yet match.
+     *
+     * This handles files that were already open when the project info was
+     * first (or re-)loaded.
+     */
+    private async applyLanguageOverridesToOpenDocuments(): Promise<void> {
+        for (const doc of vscode.workspace.textDocuments) {
+            await applyLanguageOverrideToDocument(doc, this.getLanguageForUri(doc.uri));
+        }
+    }
+
+    /**
+     * Refreshes the Project View by fetching project view information from the
+     * ALS, rebuilding the language map, applying language overrides to open
+     * documents, and notifying the Project View provider of the new data.
+     *
+     * This runs unconditionally so that the language-override feature works
+     * even when the Project View panel is closed or has never been opened.
      */
     public async refreshProjectView(): Promise<void> {
         // Clear the cached project URI to fetch a fresh one
         this.cachedProjectUri = undefined;
-
-        // Get the potentially new root project URI
         const projectUri = await this.getProjectUri();
 
-        // Update the project view provider if it exists
+        if (projectUri) {
+            try {
+                const raw = await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
+                    CMD_PROJECT_VIEW_INFORMATION,
+                );
+                if (raw?.projects) {
+                    this.cachedProjectViewInfo = parseProjectViewResponse(raw);
+                    this.buildFileLanguageMap();
+                    await this.applyLanguageOverridesToOpenDocuments();
+                } else {
+                    this.cachedProjectViewInfo = undefined;
+                    this.fileLanguageMap = new Map();
+                }
+            } catch (error) {
+                logger.error(`Failed to fetch project view information: ${String(error)}`);
+                this.cachedProjectViewInfo = undefined;
+                this.fileLanguageMap = new Map();
+            }
+        } else {
+            this.cachedProjectViewInfo = undefined;
+            this.fileLanguageMap = new Map();
+        }
+
         if (this.projectViewProvider) {
-            this.projectViewProvider.setRootProjectUri(projectUri);
+            this.projectViewProvider.setProjectViewInfo(this.cachedProjectViewInfo);
         }
     }
 

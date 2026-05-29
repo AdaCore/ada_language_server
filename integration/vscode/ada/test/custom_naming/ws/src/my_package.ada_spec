@@ -1,0 +1,3 @@
+package My_Package is
+   procedure Hello;
+end My_Package;

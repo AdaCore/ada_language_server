@@ -1,0 +1,7 @@
+// my_module header (custom .cpp_hdr extension used to test language detection)
+#ifndef MY_MODULE_H
+#define MY_MODULE_H
+
+void my_function();
+
+#endif
