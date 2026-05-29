@@ -1,5 +1,5 @@
 project Project_1 is
-   for Source_Dirs use ("src");
+   for Source_Dirs use ("src", "empty_src");
    for Main use ("main_1.adb", "main_2.adb");
 
    package Builder is

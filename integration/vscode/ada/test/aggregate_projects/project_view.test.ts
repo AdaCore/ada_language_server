@@ -163,7 +163,25 @@ suite('Project View', function () {
             );
 
             const files = provider.getChildren(dirItem);
-            assert.ok(files.length > 0, 'Expected at least one source file item');
+
+            // The "empty_src" directory in Project_1 has no source files,
+            // so ensure that it is still exposed as a SOURCE_DIRECTORY item
+            //  but with no children.
+            if (dirItem.label === 'empty_src') {
+                assert.strictEqual(
+                    files.length,
+                    0,
+                    'The "empty_src" directory should have no children ' +
+                        'because it contains no source files',
+                );
+            } else {
+                assert.ok(
+                    files.length > 0,
+                    `Expected at least one source file item for  ` +
+                        `directory '${String(dirItem.label)}'`,
+                );
+            }
+
             for (const fileItem of files) {
                 assert.strictEqual(
                     fileItem.contextValue,
@@ -260,7 +278,7 @@ suite('Project View', function () {
                     'should have at least one source directory',
             );
 
-            // Source directory children: only source files
+            // Source directory children: only source files (empty directories have none)
             for (const dirItem of srcDirs) {
                 assert.strictEqual(
                     dirItem.itemKind,
@@ -269,13 +287,6 @@ suite('Project View', function () {
                 );
 
                 const files = provider.getChildren(dirItem);
-                assert.ok(
-                    files.length > 0,
-                    `Source directory '${String(dirItem.label)}' ` +
-                        `of '${String(subItem.label)}' ` +
-                        `should contain at least one source file`,
-                );
-
                 for (const file of files) {
                     assert.strictEqual(
                         file.itemKind,
@@ -286,14 +297,35 @@ suite('Project View', function () {
                 }
 
                 // Source files should have no children.
-                const grandChildren = provider.getChildren(files[0]);
-                assert.strictEqual(
-                    grandChildren.length,
-                    0,
-                    'SOURCE_FILE items should have no children',
-                );
+                if (files.length > 0) {
+                    const grandChildren = provider.getChildren(files[0]);
+                    assert.strictEqual(
+                        grandChildren.length,
+                        0,
+                        'SOURCE_FILE items should have no children',
+                    );
+                }
             }
         }
+
+        // Project_1 declares "empty_src" which has no source files; verify it
+        // is still exposed as a SOURCE_DIRECTORY item with no children.
+        const project1Item = aggrSubProjects.find((i) => String(i.label) === 'Project_1');
+        assert.ok(project1Item, 'Expected to find Project_1 in sub-projects');
+        const project1Dirs = provider
+            .getChildren(project1Item)
+            .filter((i) => i.itemKind === ProjectViewItemKind.SOURCE_DIRECTORY);
+        const emptySrcDir = project1Dirs.find((i) => String(i.label) === 'empty_src');
+        assert.ok(
+            emptySrcDir,
+            'Project_1 must expose "empty_src" as a SOURCE_DIRECTORY item ' +
+                'even though it contains no source files',
+        );
+        assert.strictEqual(
+            provider.getChildren(emptySrcDir).length,
+            0,
+            '"empty_src" must have no children because it contains no source files',
+        );
     });
 
     test('Set project view filter command updates provider and tree contents', async () => {
