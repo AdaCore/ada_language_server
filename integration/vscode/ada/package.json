@@ -1673,11 +1673,17 @@
         "configurationDefaults": {
             "[ada]": {
                 "editor.tabSize": 3,
-                "editor.detectIndentation": false
+                "editor.detectIndentation": false,
+                "editor.quickSuggestions": {
+                    "comments": "off"
+                }
             },
             "[gpr]": {
                 "editor.tabSize": 3,
-                "editor.detectIndentation": false
+                "editor.detectIndentation": false,
+                "editor.quickSuggestions": {
+                    "comments": "off"
+                }
             }
         },
         "walkthroughs": [
@@ -1873,7 +1879,7 @@
         "copy": "node -e \"fs.mkdirSync('out/src/visualizing', {recursive: true}); fs.copyFileSync('src/visualizing/visualizerStyleSheet.css','out/src/visualizing/visualizerStyleSheet.css')\"",
         "pretest": "npm run compile",
         "lint": "npm run cilint -- --quiet --fix",
-        "cilint": "node ./node_modules/eslint/bin/eslint.js \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\"",
+        "cilint": "node ./node_modules/eslint/bin/eslint.js \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\" --fix",
         "test": "vscode-test",
         "resolve-backtrace": "npx stacktracify",
         "clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
