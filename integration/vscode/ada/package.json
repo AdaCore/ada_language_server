@@ -65,7 +65,11 @@
                     ".adc",
                     ".ads"
                 ],
-                "configuration": "./language-configuration.json"
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "dark": "./icons/ada-pink.svg",
+                    "light": "./icons/ada-pink.svg"
+                }
             },
             {
                 "id": "ali",
