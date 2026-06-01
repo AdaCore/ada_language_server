@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;     use Ada.Characters.Handling;
+with Ada.Unchecked_Deallocation;
 
 with GNATCOLL.Traces;             use GNATCOLL.Traces;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
@@ -32,6 +33,7 @@ with GPR2.Build.Source.Sets;
 with VSS.Strings.Conversions;
 
 with Libadalang.Common;           use Libadalang.Common;
+with Libadalang.Generic_API.Unparsing;
 with Langkit_Support.Slocs;
 
 with Langkit_Support.Text;
@@ -45,6 +47,11 @@ package body LSP.Ada_Contexts is
      Create ("ALS.INDEXING.DEBUG", Off);
 
    use type Libadalang.Analysis.Analysis_Unit;
+
+   procedure Free_Unparsing_Configuration_Cache is new
+     Ada.Unchecked_Deallocation
+       (Gnatformat.Configuration.Unparsing_Configuration_Cache_Type,
+        Unparsing_Configuration_Cache_Access);
 
    type LSP_Context_Event_Handler_Type
    is new Libadalang.Analysis.Event_Handler_Interface with record
@@ -533,6 +540,23 @@ package body LSP.Ada_Contexts is
          Tab_Stop      => 1);
       Self.Style := Style;
       Self.Is_Fallback_Context := As_Fallback_Context;
+
+      --  Initialize is only called on a freshly created context, so the
+      --  cache should always be null here. If it isn't, trace the anomaly
+      --  and free the stale cache before allocating a new one.
+      if Self.Unparsing_Config_Cache /= null then
+         Self.Tracer.Trace
+           ("Unparsing configuration cache already allocated when "
+            & "initializing the context");
+         Free_Unparsing_Configuration_Cache (Self.Unparsing_Config_Cache);
+      end if;
+
+      Self.Unparsing_Config_Cache :=
+        new Gnatformat.Configuration.Unparsing_Configuration_Cache_Type'
+          (Gnatformat.Configuration.Create_Unparsing_Configuration_Cache
+             (GNATCOLL.VFS.Create_From_UTF8
+                (Libadalang.Generic_API.Unparsing
+                   .Default_Configuration_Filename)));
    end Initialize;
 
    -------------------------
@@ -749,7 +773,38 @@ package body LSP.Ada_Contexts is
       Self.Source_Files.Clear;
       Self.Source_Dirs.Clear;
       Self.Tree := GPR2.Project.Tree.Undefined;
+      Free_Unparsing_Configuration_Cache (Self.Unparsing_Config_Cache);
    end Free;
+
+   ---------------------------------
+   -- Get_Unparsing_Configuration --
+   ---------------------------------
+
+   function Get_Unparsing_Configuration
+     (Self            : Context;
+      Format_Options  : Gnatformat.Configuration.Format_Options_Type;
+      Source_Filename : String;
+      Diagnostics     :
+        out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
+      return Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration
+   is
+      Configuration :
+        constant Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration
+          := Self.Unparsing_Config_Cache.Get
+               (Source_Filename => Source_Filename,
+                Format_Options  => Format_Options,
+                Diagnostics     => Diagnostics);
+   begin
+      --  On error, Langkit reports diagnostics and returns
+      --  No_Unparsing_Configuration, which cannot be used for formatting.
+      --  Fall back to the default configuration so that callers always get a
+      --  usable result; Diagnostics is left populated for them to log.
+      if Diagnostics.Is_Empty then
+         return Configuration;
+      else
+         return Gnatformat.Configuration.Default_Unparsing_Configuration;
+      end if;
+   end Get_Unparsing_Configuration;
 
    --------
    -- Id --

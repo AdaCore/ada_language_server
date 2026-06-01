@@ -21,6 +21,7 @@ with GNATCOLL.VFS;
 with Gnatformat.Edits;
 with Gnatformat.Formatting;
 
+with Langkit_Support.Diagnostics;
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 with Langkit_Support.Token_Data_Handlers;
@@ -488,13 +489,32 @@ package body LSP.Ada_Documents is
       Options : Gnatformat.Configuration.Format_Options_Type;
       Result  : out LSP.Structures.TextEdit_Vector)
    is
+      Unparsing_Diagnostics :
+        Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
 
       Formatted_Document : constant VSS.Strings.Virtual_String :=
         VSS.Strings.Conversions.To_Virtual_String
-          (Gnatformat.Formatting.Format (Self.Unit (Context),
-           Options));
+          (Gnatformat.Formatting.Format
+             (Unit           => Self.Unit (Context),
+              Format_Options => Options,
+              Configuration  =>
+                Context.Get_Unparsing_Configuration
+                  (Format_Options  => Options,
+                   Source_Filename =>
+                     Context.URI_To_File (Self.URI).Display_Base_Name,
+                   Diagnostics     => Unparsing_Diagnostics)));
 
    begin
+      if not Unparsing_Diagnostics.Is_Empty then
+         Self.Tracer.Trace
+           ("Diagnostics found while loading the unparsing configuration for "
+            & Context.URI_To_File (Self.URI).Display_Base_Name & ":");
+         for Diagnostic of Unparsing_Diagnostics loop
+            Self.Tracer.Trace
+              (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
+         end loop;
+      end if;
+
       Self.Diff_C
         (New_Text => Formatted_Document,
          Span     => LSP.Text_Documents.Empty_Range,
@@ -1146,12 +1166,34 @@ package body LSP.Ada_Documents is
 
       Text : VSS.Strings.Virtual_String;
 
+      Unparsing_Diagnostics :
+        Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
+
       Range_Formatted_Document :
         constant Gnatformat.Edits.Formatting_Edit_Type :=
-          Gnatformat.Formatting.Range_Format (Unit, Format_Range, Options);
+          Gnatformat.Formatting.Range_Format
+            (Unit            => Unit,
+             Selection_Range => Format_Range,
+             Format_Options  => Options,
+             Configuration   =>
+               Context.Get_Unparsing_Configuration
+                 (Format_Options  => Options,
+                  Source_Filename =>
+                    Context.URI_To_File (Self.URI).Display_Base_Name,
+                  Diagnostics     => Unparsing_Diagnostics));
 
       Ok : Boolean;
    begin
+      if not Unparsing_Diagnostics.Is_Empty then
+         Self.Tracer.Trace
+           ("Diagnostics found while loading the unparsing configuration for "
+            & Context.URI_To_File (Self.URI).Display_Base_Name & ":");
+         for Diagnostic of Unparsing_Diagnostics loop
+            Self.Tracer.Trace
+              (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
+         end loop;
+      end if;
+
       LSP.Ada_Handlers.Formatting.Narrow_Range_Format
         (Unit, Excluded, Range_Formatted_Document, Text, Ok);
 

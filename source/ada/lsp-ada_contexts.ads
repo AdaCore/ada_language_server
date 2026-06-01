@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,7 +28,9 @@ with Gnatformat.Configuration;
 with GPR2.Project.Tree;
 with GPR2.Project.View;
 
+with Langkit_Support.Diagnostics;
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
+with Langkit_Support.Generic_API.Unparsing;
 with Laltools.Common;
 
 with Libadalang.Analysis;
@@ -194,6 +196,23 @@ package LSP.Ada_Contexts is
    --  it doesn't take in consideration the request options. Please use
    --  LSP.Ada_Handlers.Formatting.Get_Formatting_Options
 
+   function Get_Unparsing_Configuration
+     (Self            : Context;
+      Format_Options  : Gnatformat.Configuration.Format_Options_Type;
+      Source_Filename : String;
+      Diagnostics     :
+        out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
+      return Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration;
+   --  Return the GNATformat unparsing configuration for Source_Filename,
+   --  derived from Format_Options.
+   --  The result is cached for the lifetime of the context: per source when
+   --  Source_Filename has source-specific options, otherwise at language
+   --  level. A source with no source-specific options falls back to the
+   --  language-level configuration.
+   --  Diagnostics is set to any problems encountered while loading the
+   --  configuration and is empty on success. The returned configuration is
+   --  always usable: callers may log Diagnostics and continue.
+
    function Get_Documentation_Style
      (Self : Context) return GNATdoc.Comments.Options.Documentation_Style;
    --  Get the documentation style used for this context.
@@ -334,6 +353,9 @@ package LSP.Ada_Contexts is
 
 private
 
+   type Unparsing_Configuration_Cache_Access is
+     access Gnatformat.Configuration.Unparsing_Configuration_Cache_Type;
+
    type Context (Tracer : not null LSP.Tracers.Tracer_Access) is tagged limited
    record
       Id             : VSS.Strings.Virtual_String;
@@ -361,6 +383,10 @@ private
       --  All the ada extensions valid for the current project
 
       Format_Options : Gnatformat.Configuration.Format_Options_Type;
+
+      Unparsing_Config_Cache : Unparsing_Configuration_Cache_Access;
+      --  GNATformat unparsing configurations, cached per source.
+      --  Allocated in Initialize and released in Free.
 
       Style : GNATdoc.Comments.Options.Documentation_Style :=
         GNATdoc.Comments.Options.GNAT;

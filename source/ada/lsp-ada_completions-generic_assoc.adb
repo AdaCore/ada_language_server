@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2025, AdaCore                     --
+--                     Copyright (C) 2022-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -387,13 +387,14 @@ package body LSP.Ada_Completions.Generic_Assoc is
                        Self.Compute_Doc_And_Details);
 
                   Pretty_Print_Snippet
-                    (Context => Self.Context.all,
-                     Prefix  => Prefix,
+                    (Context  => Self.Context.all,
+                     Document => Self.Document.all,
+                     Prefix   => Prefix,
                      --  "column = offset - 1"
-                     Offset  => Integer (Column) - 1,
-                     Span    => Prefix_Span,
-                     Rule    => Pretty_Print_Rule,
-                     Result  => Item);
+                     Offset   => Integer (Column) - 1,
+                     Span     => Prefix_Span,
+                     Rule     => Pretty_Print_Rule,
+                     Result   => Item);
                   Unsorted_Res.Append (Item);
                end;
             end if;
