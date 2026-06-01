@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2025, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,8 +20,13 @@ with Ada.Containers.Hashed_Sets;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;   use Ada.Strings.Unbounded;
 
+with GNATCOLL.VFS;
+
 with Gnatformat;
 with Gnatformat.Formatting;
+
+with Langkit_Support.Diagnostics;
+
 with VSS.Characters.Latin;
 with VSS.Regular_Expressions;
 with VSS.Strings;              use VSS.Strings;
@@ -198,12 +203,13 @@ package body LSP.Ada_Completions is
    --------------------------
 
    procedure Pretty_Print_Snippet
-     (Context : LSP.Ada_Contexts.Context;
-      Prefix  : VSS.Strings.Virtual_String;
-      Offset  : Natural;
-      Span    : LSP.Structures.A_Range;
-      Rule    : Libadalang.Common.Grammar_Rule;
-      Result  : in out LSP.Structures.CompletionItem)
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document;
+      Prefix   : VSS.Strings.Virtual_String;
+      Offset   : Natural;
+      Span     : LSP.Structures.A_Range;
+      Rule     : Libadalang.Common.Grammar_Rule;
+      Result   : in out LSP.Structures.CompletionItem)
    is
       use LSP.Ada_Contexts;
 
@@ -450,6 +456,8 @@ package body LSP.Ada_Completions is
                Full : constant String :=
                  VSS.Strings.Conversions.To_UTF_8_String
                    (Prefix & Encode_String (Result.insertText));
+               Unparsing_Diagnostics :
+                 Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
             begin
                Tmp_Unit :=
                  Libadalang.Analysis.Get_From_Buffer
@@ -457,9 +465,33 @@ package body LSP.Ada_Completions is
                     Filename => "",
                     Buffer   => Full,
                     Rule     => Rule);
+               --  Tmp_Unit above is a synthetic buffer with Filename => "",
+               --  but we deliberately resolve the unparsing configuration
+               --  using Document's base name: this honours any source-specific
+               --  formatting overrides of the destination document (e.g.
+               --  keyword casing) when formatting the snippet.
                Output := Gnatformat.Formatting.Format
                  (Unit           => Tmp_Unit,
-                  Format_Options => Context.Get_Format_Options);
+                  Format_Options => Context.Get_Format_Options,
+                  Configuration  =>
+                    Context.Get_Unparsing_Configuration
+                      (Format_Options  => Context.Get_Format_Options,
+                       Source_Filename =>
+                         Context.URI_To_File (Document.URI).Display_Base_Name,
+                       Diagnostics     => Unparsing_Diagnostics));
+
+               if not Unparsing_Diagnostics.Is_Empty then
+                  Context.Tracer.Trace
+                    ("Diagnostics found while loading the unparsing "
+                     & "configuration for "
+                     & Context.URI_To_File (Document.URI).Display_Base_Name
+                     & ":");
+                  for Diagnostic of Unparsing_Diagnostics loop
+                     Context.Tracer.Trace
+                       (Langkit_Support.Diagnostics.To_Pretty_String
+                          (Diagnostic));
+                  end loop;
+               end if;
             exception
                when E : others =>
                   --  Failed to pretty print the snippet, keep the previous

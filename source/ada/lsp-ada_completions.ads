@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -123,14 +123,16 @@ package LSP.Ada_Completions is
    --  labelDetails, which are displayed next to the completion item labels.
 
    procedure Pretty_Print_Snippet
-     (Context : LSP.Ada_Contexts.Context;
-      Prefix  : VSS.Strings.Virtual_String;
-      Offset  : Natural;
-      Span    : LSP.Structures.A_Range;
-      Rule    : Libadalang.Common.Grammar_Rule;
-      Result  : in out LSP.Structures.CompletionItem);
-   --  If Result is a snippet then generate a textEdit over span using GNATpp.
-   --  Rule must match the content of "Prefix & Result.insertText.Value"
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document;
+      Prefix   : VSS.Strings.Virtual_String;
+      Offset   : Natural;
+      Span     : LSP.Structures.A_Range;
+      Rule     : Libadalang.Common.Grammar_Rule;
+      Result   : in out LSP.Structures.CompletionItem);
+   --  If Result is a snippet then generate a textEdit over span using
+   --  GNATformat.
+   --  Rule must match the content of "Prefix & Result.insertText.Value".
 
    type Completion_Provider_Access is
      access all LSP.Ada_Completions.Completion_Provider'Class;
