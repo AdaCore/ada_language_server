@@ -556,17 +556,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
             return items;
         }
 
-        // Group sources by directory and add source directory items first
-        const sourcesByDir = new Map<string, ProjectSourceInfo[]>();
-        for (const source of entry.sources) {
-            const dir = source.directory;
-            let group = sourcesByDir.get(dir);
-            if (!group) {
-                group = [];
-                sourcesByDir.set(dir, group);
-            }
-            group.push(source);
-        }
+        const sourcesByDir = this.buildSourcesByDir(entry);
 
         for (const [dir, sources] of sourcesByDir) {
             const dirItem = new ProjectViewItem(
@@ -619,6 +609,44 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         }
 
         return items;
+    }
+
+    /**
+     * Groups a project entry's source files by their normalized directory path
+     * and unions the result with the project's declared source directories
+     * (which may be empty).
+     * Keys are normalized via `path.resolve` so that the
+     * trailing separators and other path variations are handled correctly on all
+     * platforms.
+     */
+    private buildSourcesByDir(entry: ProjectEntry): Map<string, ProjectSourceInfo[]> {
+        const sourcesByDir = new Map<string, ProjectSourceInfo[]>();
+
+        // Normalize directory keys via path.resolve to remove any trailing
+        // separators and ensure consistent formatting across platforms.
+        const normalizeDir = (dir: string): string => path.resolve(dir);
+
+        // First group sources by their directory path
+        for (const source of entry.sources) {
+            const key = normalizeDir(source.directory);
+            let group = sourcesByDir.get(key);
+            if (!group) {
+                group = [];
+                sourcesByDir.set(key, group);
+            }
+            group.push(source);
+        }
+
+        // Then ensure that all declared project source directories are present
+        // in the map, even if they have no source files: we want to display
+        // empty source directories in the Project View
+        for (const dir of entry.project.source_directories) {
+            const key = normalizeDir(dir);
+            if (!sourcesByDir.has(key)) {
+                sourcesByDir.set(key, []);
+            }
+        }
+        return sourcesByDir;
     }
 
     /**
@@ -697,13 +725,8 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         if (entry.project.name.toLowerCase().includes(filter)) return true;
         if (entry.project.file_name.toLowerCase().includes(filter)) return true;
 
-        // Match on source directories and their files
-        const sourcesByDir = new Map<string, ProjectSourceInfo[]>();
-        for (const source of entry.sources) {
-            const dir = source.directory;
-            if (!sourcesByDir.has(dir)) sourcesByDir.set(dir, []);
-            sourcesByDir.get(dir)!.push(source);
-        }
+        // Match on source directories and their files.
+        const sourcesByDir = this.buildSourcesByDir(entry);
         for (const [dir, sources] of sourcesByDir) {
             if (this.sourceDirOrChildMatchesFilter(dir, sources)) return true;
         }
