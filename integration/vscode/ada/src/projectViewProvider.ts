@@ -800,8 +800,9 @@ export const PROJECT_VIEW_MIME_TYPE = 'application/vnd.code.tree.projectview';
  * a no-op.  If a file with the same name already exists in the target
  * directory the user is asked to confirm before overwriting.
  *
- * After all moves succeed, `onFilesMoved` is called so the caller can trigger
- * a project reload and view refresh.
+ * After one or more files are successfully moved, `onFilesMoved` is called so
+ * the caller can trigger a project reload and view refresh. If a rename fails
+ * the loop continues so that already-moved files are still reflected in the view.
  */
 export class ProjectViewDragAndDropController
     implements vscode.TreeDragAndDropController<ProjectViewItem>
@@ -810,8 +811,9 @@ export class ProjectViewDragAndDropController
     readonly dropMimeTypes = [PROJECT_VIEW_MIME_TYPE];
 
     /**
-     * @param onFilesMoved - Async callback invoked after one or more files
-     *   have been successfully moved. Typically triggers a project reload.
+     * @param onFilesMoved - Async callback invoked after one or more files have
+     *   been successfully moved. Typically triggers a project reload.
+     *   Called even if some files in the batch failed to move.
      */
     constructor(private readonly onFilesMoved: () => Promise<void>) {}
 
@@ -882,11 +884,20 @@ export class ProjectViewDragAndDropController
             }
 
             try {
-                await vscode.workspace.fs.rename(srcUri, destUri, { overwrite: true });
-                anyMoved = true;
+                // Use applyEdit so that any open editor for the source URI is
+                // automatically redirected to the new location.
+                const edit = new vscode.WorkspaceEdit();
+                edit.renameFile(srcUri, destUri, { overwrite: true });
+                const ok = await vscode.workspace.applyEdit(edit);
+                if (ok) {
+                    anyMoved = true;
+                } else {
+                    void vscode.window.showErrorMessage(`Failed to move '${fileName}'.`);
+                }
             } catch (err) {
                 void vscode.window.showErrorMessage(`Failed to move '${fileName}': ${String(err)}`);
-                return;
+                // Do not return – continue moving remaining files and let
+                // onFilesMoved() fire so the view stays in sync with disk.
             }
         }
 
