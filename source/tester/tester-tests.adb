@@ -277,7 +277,9 @@ package body Tester.Tests is
                raise Program_Error with "Unexpected 'id' type!";
          end case;
 
-         if Self.Known_Ids.Contains (Id) then
+         if Id.Starts_With ("intentionally_duplicated") then
+            Self.Known_Ids.Include (Id);
+         elsif Self.Known_Ids.Contains (Id) then
             declare
                Text : Spawn.String_Vectors.UTF_8_String_Vector;
             begin

@@ -173,7 +173,7 @@ function build_langkit_raw() {
 
       echo "GPR_PROJECT_PATH=$GPR_PROJECT_PATH"
 
-      sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
+      sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/utils/__init__.py
       pip install .
 
       python manage.py make --no-mypy --generate-auto-dll-dirs \

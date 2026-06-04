@@ -38,7 +38,7 @@ package body LSP.Known_Requests is
    is
       Cursor : constant Request_Maps.Cursor := Self.Parent.Map.Find (Value.id);
    begin
-      if Request_Maps.Has_Element (Cursor) then
+      if not Self.Parent.Removing and Request_Maps.Has_Element (Cursor) then
          Request_Maps.Element (Cursor).Canceled := True;
       end if;
    end On_CancelRequest_Notification;
@@ -63,9 +63,9 @@ package body LSP.Known_Requests is
       Value : LSP.Server_Requests.Server_Request'Class) is
    begin
       if Self.Parent.Removing then
-         Self.Parent.Map.Delete (Value.Id);
+         Self.Parent.Map.Exclude (Value.Id);
       else
-         Self.Parent.Map.Insert (Value.Id, Cast (Value'Unchecked_Access));
+         Self.Parent.Map.Include (Value.Id, Cast (Value'Unchecked_Access));
       end if;
    end On_Server_Request;
 
@@ -90,6 +90,7 @@ package body LSP.Known_Requests is
       Message : LSP.Server_Messages.Server_Message'Class) is
    begin
       Self.Removing := True;
+      Message.Visit_Server_Message_Visitor (Self.Visitor);
    end Remove_Request;
 
 end LSP.Known_Requests;
