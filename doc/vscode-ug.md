@@ -123,7 +123,7 @@ To do that you must close all VS Code Remote windows, and kill all VS Code serve
 
 The extension provides a number of auto-detected tasks under the `/Terminal/Run Task...` menu. These
 predefined tasks are all prefixed by `ada:` and belong to the `ada` group.
-They can be used to build and run your program (`ada: Build current project` task) or launch external tools such as GNAT SAS, GNATprove and a few others.
+They can be used to build and run your program (`ada: Build current project` task) or launch external tools such as GNAT SAS, GNATprove and a few others. Most of these tools are integrated using [SARIF](https://sarifweb.azurewebsites.net/), a standard interchange format that can be easily parsed and displayed using the third-party [SARIF Viewer extension](https://marketplace.visualstudio.com/items?itemName=MS-SarifVSCode.sarif-viewer).
 
 ![Ada Tasks](media/run-task-ada-tasks.png)
 
@@ -362,6 +362,10 @@ Once your project is set up, just open the VS Code
 `Run and Debug` panel and then click on the `Run and Debug` button.
 
 For more advanced use cases or if your program cannot be debugged remotely via GDB, you can try creating your custom VS Code debug launch configuration following [VS Code User's Guide for Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
+
+## GNAT SAS
+
+To learn more about using GNAT SAS with VS Code, consult the [GNAT SAS User's Guide](https://docs.adacore.com/live/wave/gnatsas/html/user_guide/using_gnatsas_in_vscode.html#using-gnat-sas-in-vscode), which contains a comprehensive section on this topic.
 
 ## SPARK Support
 
