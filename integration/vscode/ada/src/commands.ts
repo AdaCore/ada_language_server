@@ -696,20 +696,25 @@ async function buildAndRunMainAsk() {
  * If not provided, the user will be prompted to select a project file.
  */
 async function openProjectFile(projectFileURI?: vscode.Uri) {
-    const selection = projectFileURI
-        ? [projectFileURI]
-        : await vscode.window.showOpenDialog({
-              defaultUri: vscode.workspace.workspaceFolders
-                  ? vscode.workspace.workspaceFolders[0].uri
-                  : undefined,
-              canSelectFiles: true,
-              canSelectFolders: false,
-              canSelectMany: false,
-              filters: {
-                  'GPR Project Files': ['gpr'],
-              },
-              title: 'Select a GPR project file to load',
-          });
+    // When called from the view/title menu, VS Code may pass the currently selected tree item
+    // as the first argument instead of a URI.
+    // The `instanceof vscode.Uri` check guards against that case and falls
+    // back to showing the file dialog.
+    const selection =
+        projectFileURI instanceof vscode.Uri
+            ? [projectFileURI]
+            : await vscode.window.showOpenDialog({
+                  defaultUri: vscode.workspace.workspaceFolders
+                      ? vscode.workspace.workspaceFolders[0].uri
+                      : undefined,
+                  canSelectFiles: true,
+                  canSelectFolders: false,
+                  canSelectMany: false,
+                  filters: {
+                      'GPR Project Files': ['gpr'],
+                  },
+                  title: 'Select a GPR project file to load',
+              });
 
     if (selection && selection.length > 0 && selection[0]) {
         const selectedFile = vscode.workspace.asRelativePath(selection[0]);

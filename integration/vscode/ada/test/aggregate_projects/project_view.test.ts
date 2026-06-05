@@ -74,7 +74,7 @@ suite('Project View', function () {
         workspaceWithPatch.getConfiguration = () => fakeConfiguration;
 
         // Verify that executing the command results in the expected configuration
-        //  update with the correct relative path.
+        // update with the correct relative path.
         try {
             await vscode.commands.executeCommand(CMD_OPEN_PROJECT_FILE);
 
@@ -88,6 +88,16 @@ suite('Project View', function () {
                 'project_1.gpr',
                 'The selected project file should be stored relative to the workspace root',
             );
+
+            // Also verify that passing a tree item (as VS Code does when the toolbar
+            // button is clicked while an item is selected) falls back to the dialog.
+            updatedSection = undefined;
+            updatedValue = undefined;
+            const treeItem = adaExtState.projectViewProvider?.getChildren()[0];
+            assert.ok(treeItem, 'Expected at least one root project item');
+            await vscode.commands.executeCommand(CMD_OPEN_PROJECT_FILE, treeItem);
+            assert.strictEqual(updatedSection, 'projectFile');
+            assert.strictEqual(updatedValue, 'project_1.gpr');
         } finally {
             // Restore the original methods to avoid affecting other tests.
             windowWithPatch.showOpenDialog = originalShowOpenDialog;
