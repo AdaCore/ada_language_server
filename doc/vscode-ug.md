@@ -288,9 +288,13 @@ see [Working with Multiple Projects in the Same VS Code Workspace](#working-with
 
 GNATcoverage coverage reports can be imported in VS Code as follows:
 
-1. Instruct GNATcoverage to produce an [XML report](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/cov_source.html#xml-report-xml-xml)
-2. Invoke the VS Code command `ada: GNATcoverage - Load an existing XML coverage report`
-3. Browse to the location of the GNATcoverage XML report and select the `index.xml` file
+1. Instruct GNATcoverage to produce an [XML report](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/cov_source.html#xml-report-xml-xml) or a [Cobertura report](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/cov_source.html#cobertura-report-cobertura)
+2. Invoke the VS Code command `ada: GNATcoverage - Load an existing coverage report`
+3. Browse to and select the report file:
+   - For the GNATcoverage XML format: select the `index.xml` file
+   - For the Cobertura format: select the Cobertura XML file
+
+The format is detected automatically from the file contents.
 
 ![GNATcoverage report in VS Code](media/gnatcov-report.png)
 

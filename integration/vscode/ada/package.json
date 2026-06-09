@@ -1381,9 +1381,9 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
-                "command": "ada.loadGnatCovXMLReport",
+                "command": "ada.loadGnatCovReport",
                 "category": "Ada",
-                "title": "GNATcoverage - Load an existing XML coverage report"
+                "title": "GNATcoverage - Load an existing coverage report"
             },
             {
                 "command": "ada.tasks.buildProject",
