@@ -18,6 +18,18 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+/**
+ * Normalizes a file-system path for equality comparison.
+ * On Windows, file paths are case-insensitive, so we lower-case after
+ * resolving to avoid mismatches between paths returned by VS Code
+ * (e.g. lowercase drive letter from `fsPath`) and paths returned by
+ * the Ada language server (typically uppercase drive letter).
+ */
+function normalizeFsPath(p: string): string {
+    const resolved = path.resolve(p);
+    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+}
+
 // ---------------------------------------------------------------------------
 // Raw wire types – match the JSON field names returned by the server
 // ---------------------------------------------------------------------------
@@ -246,6 +258,11 @@ export class ProjectViewItem extends vscode.TreeItem {
     /** For source directory items: the source files belonging to this directory */
     public sources?: ProjectSourceInfo[];
 
+    /** For source file items: the normalized directory path of the source file,
+     * as reported by the server. Used by `getParent` to locate the parent
+     * SOURCE_DIRECTORY item without recomputing it. */
+    public sourceDirectory?: string;
+
     constructor(
         public label: string,
         public collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState
@@ -387,6 +404,188 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     }
 
     /**
+     * Returns the parent of a given ProjectViewItem, or `undefined` if the
+     * item is a root-level item. Required by VS Code for `TreeView.reveal()`
+     * to work.
+     *
+     * Items are not cached — `getChildren()` recreates them on every call.
+     * VS Code matches items by their `id` (from `getUniqueID()`), so the items
+     * returned here just need to carry the right IDs, not be the same object
+     * instances as those already in the tree.
+     *
+     * We cannot delegate to `getChildren(undefined)` here: in hierarchical mode
+     * that only returns the single root project, so any source file whose owning
+     * project is a sub-project would appear parentless to VS Code. Instead we
+     * construct parent items directly from `projectViewInfo`.
+     *
+     * @param element - The ProjectViewItem whose parent to retrieve
+     * @returns The parent ProjectViewItem, or undefined for root-level items
+     */
+    getParent(element: ProjectViewItem): ProjectViewItem | undefined {
+        if (!this.projectViewInfo) return undefined;
+
+        switch (element.itemKind) {
+            case ProjectViewItemKind.ROOT_PROJECT:
+            case ProjectViewItemKind.RUNTIME_PROJECT:
+                return undefined;
+
+            case ProjectViewItemKind.SUB_PROJECT: {
+                // In flat mode all projects are shown at root level.
+                if (this.flatMode) return undefined;
+                if (!element.parentProjectId) return undefined;
+                return this.makeProjectItem(element.parentProjectId);
+            }
+
+            case ProjectViewItemKind.SOURCE_DIRECTORY:
+            case ProjectViewItemKind.OBJECT_DIRECTORY: {
+                if (!element.parentProjectId) return undefined;
+                if (element.parentProjectId === this.projectViewInfo.runtime_project?.project.id) {
+                    return this.makeRuntimeProjectItem();
+                }
+                return this.makeProjectItem(element.parentProjectId);
+            }
+
+            case ProjectViewItemKind.SOURCE_FILE: {
+                if (!element.parentProjectId) return undefined;
+
+                // Reconstruct the SOURCE_DIRECTORY that is the logical parent of
+                // this source file directly from projectViewInfo, without going
+                // through getChildren().  Using getChildren(undefined) would not
+                // work here because in hierarchical mode it only returns the root
+                // project; source files in a sub-project would therefore appear
+                // parentless to VS Code.
+                let entry: ProjectEntry | undefined;
+                if (element.parentProjectId === this.projectViewInfo.runtime_project?.project.id) {
+                    entry = this.projectViewInfo.runtime_project;
+                } else {
+                    entry = this.projectViewInfo.projects.get(element.parentProjectId);
+                }
+                if (!entry) return undefined;
+
+                // Use the directory carried on the item if available (set by
+                // findSourceFileItem / getChildren from source.directory);
+                // fall back to dirname(uri) only for items created by older
+                // code paths that do not set sourceDirectory.
+                const normalizedDir =
+                    element.sourceDirectory ?? normalizeFsPath(path.dirname(element.uri.fsPath));
+
+                const sourcesByDir = this.buildSourcesByDir(entry);
+                const sources = sourcesByDir.get(normalizedDir) ?? [];
+
+                const dirItem = new ProjectViewItem(
+                    path.basename(normalizedDir),
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    ProjectViewItemKind.SOURCE_DIRECTORY,
+                    vscode.Uri.file(normalizedDir),
+                    undefined,
+                    element.parentProjectId,
+                );
+                dirItem.sources = sources;
+                dirItem.description = normalizedDir;
+                return dirItem;
+            }
+        }
+    }
+
+    /**
+     * Constructs a ProjectViewItem for the given project id with the correct
+     * kind (ROOT_PROJECT vs SUB_PROJECT) and parentProjectId, so that its
+     * `id` matches what `getChildren()` would produce for the same node.
+     * Used internally by `getParent`.
+     */
+    private makeProjectItem(projectId: string): ProjectViewItem | undefined {
+        if (!this.projectViewInfo) return undefined;
+        const entry = this.projectViewInfo.projects.get(projectId);
+        if (!entry) return undefined;
+
+        const isRoot = projectId === this.projectViewInfo.root_project_id;
+        const kind = isRoot ? ProjectViewItemKind.ROOT_PROJECT : ProjectViewItemKind.SUB_PROJECT;
+
+        // In flat mode all projects are at root level (no parentProjectId).
+        // In hierarchical mode use the first importer as the canonical parent
+        // so we always follow one consistent path to the root.
+        const parentProjectId = !isRoot && !this.flatMode ? entry.imported_by[0] : undefined;
+
+        return new ProjectViewItem(
+            entry.project.name,
+            vscode.TreeItemCollapsibleState.Collapsed,
+            kind,
+            vscode.Uri.file(entry.project.file_name),
+            projectId,
+            parentProjectId,
+        );
+    }
+
+    /**
+     * Constructs the ProjectViewItem for the runtime project.
+     * Used internally by `getParent`.
+     */
+    private makeRuntimeProjectItem(): ProjectViewItem | undefined {
+        if (!this.projectViewInfo?.runtime_project) return undefined;
+        const rp = this.projectViewInfo.runtime_project;
+        return new ProjectViewItem(
+            rp.project.name,
+            vscode.TreeItemCollapsibleState.Collapsed,
+            ProjectViewItemKind.RUNTIME_PROJECT,
+            vscode.Uri.file(''),
+        );
+    }
+
+    /**
+     * Searches the project view data for a source file matching `fileUri` and
+     * returns a `ProjectViewItem` that can be passed to `TreeView.reveal()`.
+     *
+     * The runtime project is only searched when `showRuntimeFiles` is enabled,
+     * since the runtime project node is not shown otherwise.
+     *
+     * @param fileUri - The URI of the file to locate in the project tree
+     * @returns A ProjectViewItem for the file, or `undefined` if not found
+     */
+    findSourceFileItem(fileUri: vscode.Uri): ProjectViewItem | undefined {
+        if (!this.projectViewInfo) return undefined;
+
+        const filePath = normalizeFsPath(fileUri.fsPath);
+
+        for (const entry of this.projectViewInfo.projects.values()) {
+            for (const source of entry.sources) {
+                if (normalizeFsPath(source.file_name) === filePath) {
+                    const fileItem = new ProjectViewItem(
+                        source.simple_name,
+                        vscode.TreeItemCollapsibleState.None,
+                        ProjectViewItemKind.SOURCE_FILE,
+                        vscode.Uri.file(source.file_name),
+                        undefined,
+                        entry.project.id,
+                    );
+                    fileItem.sourceDirectory = normalizeFsPath(source.directory);
+                    return fileItem;
+                }
+            }
+        }
+
+        // Also check the runtime project when it is currently shown.
+        if (this.showRuntimeFiles && this.projectViewInfo.runtime_project) {
+            const rp = this.projectViewInfo.runtime_project;
+            for (const source of rp.sources) {
+                if (normalizeFsPath(source.file_name) === filePath) {
+                    const fileItem = new ProjectViewItem(
+                        source.simple_name,
+                        vscode.TreeItemCollapsibleState.None,
+                        ProjectViewItemKind.SOURCE_FILE,
+                        vscode.Uri.file(source.file_name),
+                        undefined,
+                        rp.project.id,
+                    );
+                    fileItem.sourceDirectory = normalizeFsPath(source.directory);
+                    return fileItem;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
      * Retrieves the children of a given element in the Project View.
      * If no element is provided, this returns the root project as the only child.
      * If an element is provided but it has no project id and is not a source file,
@@ -417,7 +616,7 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
                 : element.sources;
             return filteredSources.map((source) => {
                 const sourceUri = vscode.Uri.file(source.file_name);
-                return new ProjectViewItem(
+                const fileItem = new ProjectViewItem(
                     source.simple_name,
                     vscode.TreeItemCollapsibleState.None,
                     ProjectViewItemKind.SOURCE_FILE,
@@ -425,6 +624,8 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
                     undefined,
                     element.parentProjectId,
                 );
+                fileItem.sourceDirectory = normalizeFsPath(source.directory);
+                return fileItem;
             });
         }
 
@@ -622,9 +823,11 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
     private buildSourcesByDir(entry: ProjectEntry): Map<string, ProjectSourceInfo[]> {
         const sourcesByDir = new Map<string, ProjectSourceInfo[]>();
 
-        // Normalize directory keys via path.resolve to remove any trailing
+        // Normalize directory keys via normalizeFsPath to remove any trailing
         // separators and ensure consistent formatting across platforms.
-        const normalizeDir = (dir: string): string => path.resolve(dir);
+        // On Windows this also lowercases the drive letter to avoid mismatches
+        // between paths from VS Code (lowercase drive) and the Ada server (uppercase drive).
+        const normalizeDir = (dir: string): string => normalizeFsPath(dir);
 
         // First group sources by their directory path
         for (const source of entry.sources) {

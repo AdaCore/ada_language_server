@@ -139,6 +139,11 @@ export const CMD_PROJECT_VIEW_OPTIONS = 'ada.projectView.viewOptions';
 export const CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER = 'ada.projectView.revealInExplorer';
 
 /**
+ * Identifier for the command that reveals the active editor's file in the Project View.
+ */
+export const CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE = 'ada.projectView.revealActiveFile';
+
+/**
  * Identifier for the command that shows the file dependencies graph for a source file
  * selected in the Project View.
  */
