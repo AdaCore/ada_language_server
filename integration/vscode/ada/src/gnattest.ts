@@ -868,10 +868,6 @@ async function buildTestDriverAndReportErrors(
                     .concat([
                         "'-cargs:ada'",
                         '-gnatef',
-                        '-cargs',
-                        '-g',
-                        '-fdump-scos',
-                        '-fpreserve-control-flow',
                     ]),
             }),
         );
