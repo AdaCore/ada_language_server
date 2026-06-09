@@ -89,14 +89,16 @@ package body LSP.Ada_Linked_Editing_Range is
         Self.Parent.Context.Get_Node_At (Context.all, Pos);
 
       Name : constant Libadalang.Analysis.Defining_Name :=
-        (if Node.Is_Null or else
-         Node.Kind not in Libadalang.Common.Ada_Name
+        (if Node.Is_Null
+         or else Node.Kind not in Libadalang.Common.Ada_Name
+         or else not Node.As_Name.P_Is_Defining
          then Libadalang.Analysis.No_Defining_Name
-         else Self.Parent.Context.Imprecise_Resolve_Name (Node.As_Name));
+         else Node.As_Name.P_Enclosing_Defining_Name);
+
    begin
       Status := LSP.Server_Jobs.Done;
 
-      if not Name.Is_Null and then Name.P_Is_Defining then
+      if not Name.Is_Null then
          for Item of Name.P_Find_All_References ([Name.Unit])
            when Libadalang.Analysis.Kind (Item) = Precise
          loop

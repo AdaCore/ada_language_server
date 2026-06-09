@@ -136,6 +136,33 @@
     "send": {
       "request": {
         "jsonrpc": "2.0",
+        "id": "rename-2",
+        "method": "textDocument/linkedEditingRange",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{main.adb}"
+          },
+          "position": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      },
+      "wait": [
+        {
+          "id": "rename-2",
+          "result": {
+            "ranges": [
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
         "id": "shutdown",
         "method": "shutdown",
         "params": null
