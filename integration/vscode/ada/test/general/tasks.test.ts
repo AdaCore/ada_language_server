@@ -274,7 +274,7 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
     });
 });
 
-suite.only('Task diagnostics', function () {
+suite('Task diagnostics', function () {
     const isWindows = process.platform === 'win32';
     type TestDiagnostic = { severity: number; message: string };
     function problem(s: number, msg: string): TestDiagnostic {

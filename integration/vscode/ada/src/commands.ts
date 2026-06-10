@@ -101,18 +101,18 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.createNewAdaMainUnit', () =>
-            createNewFile('ada', 'Main Procedure'),
+        vscode.commands.registerCommand('ada.createNewAdaMainUnit', (uri?: vscode.Uri) =>
+            createNewFile('ada', 'Main Procedure', 'adb', uri),
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.createNewAdaPackage', () =>
-            createNewFile('ada', 'Package Declaration or Body'),
+        vscode.commands.registerCommand('ada.createNewAdaPackage', (uri?: vscode.Uri) =>
+            createNewFile('ada', 'Package Declaration or Body', 'ads', uri),
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.createNewGPRProjectFile', () =>
-            createNewFile('gpr', 'Project Declaration'),
+        vscode.commands.registerCommand('ada.createNewGPRProjectFile', (uri?: vscode.Uri) =>
+            createNewFile('gpr', 'Project Declaration', 'gpr', uri),
         ),
     );
     context.subscriptions.push(
@@ -747,15 +747,55 @@ async function restartLanguageServers() {
 
 /**
  * Handler for commands that create new files.
- * This function creates a new editor for the given language, focus it,
+ * This function creates a new file for the given language, focus it,
  * and insert the specified snippet.
- * Used to proivide Ada/GPR file templates.
+ * Used to provide Ada/GPR file templates.
  *
  * @param langId - the new file's language ID (e.g: 'ada' or 'gpr')
- * @param snippetName - the name of the snippet to insert in the newly created editor.
+ * @param snippetName - the name of the snippet to insert in the newly created file.
+ * @param defaultExt - the default filename extension to use in the file creation dialog.
+ * @param presetUri - (optional) the URI of the file to create. If not provided,
+ * the user will be prompted to select a location.
  */
-async function createNewFile(langId: string, snippetName: string) {
-    const doc = await vscode.workspace.openTextDocument({ language: langId });
+async function createNewFile(
+    langId: string,
+    snippetName: string,
+    defaultExt: string,
+    presetUri?: vscode.Uri,
+) {
+    const workspaceUri = vscode.workspace.workspaceFolders?.[0]?.uri;
+    const filters: { [name: string]: string[] } =
+        langId === 'gpr' ? { 'GPR Project Files': ['gpr'] } : { 'Ada Files': ['ads', 'adb'] };
+
+    const uri =
+        presetUri ??
+        (await vscode.window.showSaveDialog({
+            defaultUri: workspaceUri
+                ? vscode.Uri.joinPath(workspaceUri, `new_file.${defaultExt}`)
+                : undefined,
+            filters,
+            title: `Create New ${snippetName}`,
+            saveLabel: 'Create',
+        }));
+
+    if (!uri) {
+        return;
+    }
+
+    // Create the file on disk (the snippet insertion requires an actual file to work on)
+    // Add a try/catch block to handle potential errors (e.g: invalid filename,
+    // no write permissions in the target directory, etc.) and show an error message
+    // instead of silently failing.
+    try {
+        await vscode.workspace.fs.writeFile(uri, new Uint8Array());
+    } catch (err) {
+        void vscode.window.showErrorMessage(
+            `Failed to create file: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        return;
+    }
+
+    const doc = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(doc);
     await vscode.commands.executeCommand('editor.action.insertSnippet', {
         langId: langId,
