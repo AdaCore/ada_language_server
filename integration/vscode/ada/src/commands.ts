@@ -749,7 +749,7 @@ async function restartLanguageServers() {
  * Handler for commands that create new files.
  * This function creates a new file for the given language, focus it,
  * and insert the specified snippet.
- * Used to proivide Ada/GPR file templates.
+ * Used to provide Ada/GPR file templates.
  *
  * @param langId - the new file's language ID (e.g: 'ada' or 'gpr')
  * @param snippetName - the name of the snippet to insert in the newly created file.
