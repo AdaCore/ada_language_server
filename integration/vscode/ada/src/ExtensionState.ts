@@ -284,6 +284,18 @@ export class ExtensionState {
         this.statusBar.tooltip = new vscode.MarkdownString('', true);
         this.statusBar.tooltip.isTrusted = true;
 
+        // Prepend the full project path to the tooltip if available, as a
+        // clickable link that opens the .gpr file in the editor.
+        if (this.cachedProjectUri) {
+            const openProjectCmd = `command:vscode.open?${encodeURIComponent(
+                JSON.stringify([this.cachedProjectUri]),
+            )}`;
+            this.statusBar.tooltip.appendMarkdown(
+                `**Project:** [${path.basename(this.cachedProjectUri.fsPath)}]` +
+                    `(${openProjectCmd})\n\n`,
+            );
+        }
+
         // Show the Problems view by default when clicking on the status
         // bar item.
         this.statusBar.command = 'workbench.panel.markers.view.focus';
@@ -363,6 +375,14 @@ export class ExtensionState {
             this.statusBar.tooltip.appendMarkdown('Project was loaded successfully.');
             this.statusBar.backgroundColor = undefined;
             this.statusBar.color = undefined;
+        }
+
+        // Append the project name to the status bar text if the project is known.
+        const rootProjectEntry = this.cachedProjectViewInfo
+            ? this.cachedProjectViewInfo.projects.get(this.cachedProjectViewInfo.root_project_id)
+            : undefined;
+        if (rootProjectEntry) {
+            this.statusBar.text += ` — ${rootProjectEntry.project.name}`;
         }
 
         if (this.statusBar.tooltip.value) {
@@ -712,6 +732,23 @@ export class ExtensionState {
         if (this.projectViewProvider) {
             this.projectViewProvider.setProjectViewInfo(this.cachedProjectViewInfo);
         }
+
+        // Update the project name in the tree view title. TreeView.description is only
+        // rendered for views in custom ViewContainers, not for views embedded in the
+        // Explorer panel, so we append the project name to the title instead.
+        if (this.projectTreeView) {
+            const rootEntry = this.cachedProjectViewInfo
+                ? this.cachedProjectViewInfo.projects.get(
+                      this.cachedProjectViewInfo.root_project_id,
+                  )
+                : undefined;
+            this.projectTreeView.title = rootEntry
+                ? `Project View — ${rootEntry.project.name}`
+                : 'Project View';
+        }
+
+        // Refresh the status bar to reflect the updated project name.
+        this.updateStatusBarItem();
     }
 
     /**
