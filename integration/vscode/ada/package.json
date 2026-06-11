@@ -1433,6 +1433,11 @@
                 "category": "Ada"
             },
             {
+                "command": "ada.projectView.revealActiveFile",
+                "title": "Reveal in Project View",
+                "category": "Ada"
+            },
+            {
                 "command": "ada.projectView.visualizeFiles",
                 "title": "Show File Dependencies Graph",
                 "category": "Ada"
@@ -1495,6 +1500,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "ada.projectView.revealActiveFile",
+                    "when": "ADA_PROJECT_CONTEXT"
+                },
+                {
                     "command": "ada.projectView.visualizeFiles",
                     "when": "false"
                 },
@@ -1542,6 +1551,12 @@
                     "group": "0_navigation@7",
                     "title": "Show GPR Dependencies Graph",
                     "when": "activeEditor && editorLangId == gpr"
+                },
+                {
+                    "command": "ada.projectView.revealActiveFile",
+                    "group": "0_projectview@0",
+                    "title": "Reveal in Project View",
+                    "when": "ADA_PROJECT_CONTEXT"
                 }
             ],
             "editor/title/run": [

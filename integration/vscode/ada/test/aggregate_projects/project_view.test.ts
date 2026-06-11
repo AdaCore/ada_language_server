@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import {
     CMD_EDIT_PROJECT_FILE,
     CMD_OPEN_PROJECT_FILE,
+    CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_SET_PROJECT_VIEW_FILTER,
 } from '../../src/constants';
 import { adaExtState } from '../../src/extension';
@@ -754,5 +755,79 @@ suite('Project View', function () {
                 );
             }
         }
+    });
+
+    test('Reveal in Project View: selects the active editor file in the tree', async () => {
+        const provider = adaExtState.projectViewProvider;
+        const treeView = adaExtState.projectTreeView;
+        assert.ok(provider, 'Project view provider should be initialized after activation');
+        assert.ok(treeView, 'Project tree view should be initialized after activation');
+
+        assert.ok(vscode.workspace.workspaceFolders, 'Expected a workspace folder');
+        const wsUri = vscode.workspace.workspaceFolders[0].uri;
+        const fileUri = vscode.Uri.joinPath(wsUri, 'src', 'main_1.adb');
+
+        const openAndReveal = async (uri: vscode.Uri) => {
+            await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(uri));
+            await vscode.commands.executeCommand(CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE);
+            return treeView.selection;
+        };
+
+        // ── 1. Hierarchical mode (default) ──────────────────────────────────────
+        // Deepest getParent() path: SOURCE_FILE → SOURCE_DIRECTORY → SUB_PROJECT → ROOT_PROJECT
+        let selection = await openAndReveal(fileUri);
+        assert.strictEqual(selection.length, 1, 'Hierarchical: expected one selected item');
+        assert.strictEqual(selection[0].itemKind, ProjectViewItemKind.SOURCE_FILE);
+        assert.strictEqual(selection[0].uri.fsPath, fileUri.fsPath);
+
+        // ── 2. File not in project ───────────────────────────────────────────────
+        // Open a file that is not a project source; the command should show an
+        // information message instead of revealing anything.
+        const gprUri = vscode.Uri.joinPath(wsUri, 'aggr.gpr');
+        await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(gprUri));
+
+        let infoMessageShown = false;
+        const windowWithPatch = vscode.window as typeof vscode.window & {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            showInformationMessage: (...args: any[]) => Thenable<any>;
+        };
+        const originalShowInformationMessage = vscode.window.showInformationMessage;
+        windowWithPatch.showInformationMessage = (() => {
+            infoMessageShown = true;
+            return Promise.resolve(undefined);
+        }) as typeof vscode.window.showInformationMessage;
+        try {
+            await vscode.commands.executeCommand(CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE);
+        } finally {
+            windowWithPatch.showInformationMessage = originalShowInformationMessage;
+        }
+        assert.ok(infoMessageShown, 'Expected an info message for a file not in the project');
+
+        // ── 3. Flat mode ─────────────────────────────────────────────────────────
+        // All projects appear at root level; getParent() path for a sub-project
+        // source file is: SOURCE_FILE → SOURCE_DIRECTORY → SUB_PROJECT (root-level)
+        provider.setViewSettings(true, false, false);
+        selection = await openAndReveal(fileUri);
+        assert.strictEqual(selection.length, 1, 'Flat mode: expected one selected item');
+        assert.strictEqual(selection[0].itemKind, ProjectViewItemKind.SOURCE_FILE);
+        assert.strictEqual(selection[0].uri.fsPath, fileUri.fsPath);
+
+        // ── 4. Runtime project ───────────────────────────────────────────────────
+        // Enable showRuntimeFiles so runtime sources are searchable and revealable.
+        provider.setViewSettings(false, false, true);
+        const runtimeItem = provider
+            .getChildren()
+            .find((i) => i.itemKind === ProjectViewItemKind.RUNTIME_PROJECT);
+        assert.ok(runtimeItem, 'Expected a RUNTIME_PROJECT item when showRuntimeFiles is enabled');
+        const runtimeDirs = provider.getChildren(runtimeItem);
+        assert.ok(runtimeDirs.length > 0, 'Expected runtime source directories');
+        const runtimeFiles = provider.getChildren(runtimeDirs[0]);
+        assert.ok(runtimeFiles.length > 0, 'Expected runtime source files');
+
+        const runtimeFileUri = runtimeFiles[0].uri;
+        selection = await openAndReveal(runtimeFileUri);
+        assert.strictEqual(selection.length, 1, 'Runtime: expected one selected item');
+        assert.strictEqual(selection[0].itemKind, ProjectViewItemKind.SOURCE_FILE);
+        assert.strictEqual(selection[0].uri.fsPath, runtimeFileUri.fsPath);
     });
 });

@@ -33,6 +33,7 @@ import {
     CMD_UNSET_PROJECT_VIEW_FILTER,
     CMD_PROJECT_VIEW_OPTIONS,
     CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
+    CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_PROJECT_VIEW_VISUALIZE_FILES,
     CMD_PROJECT_VIEW_VISUALIZE_GPR,
 } from './constants';
@@ -167,6 +168,12 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand(
             CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
             (item: ProjectViewItem) => vscode.commands.executeCommand('revealInExplorer', item.uri),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
+            revealActiveFileInProjectView,
         ),
     );
     context.subscriptions.push(
@@ -1445,6 +1452,38 @@ async function deleteMetricsForFile(fileUri: vscode.Uri) {
                 `Failed to delete metrics file: ${(error as Error).message}`,
             );
         }
+    }
+}
+
+/**
+ * Handler for the command that reveals the active editor's file in the Project
+ * View. This is the Project View analog of the built-in "Reveal in Explorer"
+ * command.
+ */
+async function revealActiveFileInProjectView() {
+    const provider = adaExtState.projectViewProvider;
+    const treeView = adaExtState.projectTreeView;
+    if (!provider || !treeView) return;
+
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) return;
+
+    const fileUri = activeEditor.document.uri;
+    const item = provider.findSourceFileItem(fileUri);
+
+    if (!item) {
+        void vscode.window.showInformationMessage(
+            `'${path.basename(fileUri.fsPath)}' is not found in the Project View.`,
+        );
+        return;
+    }
+
+    try {
+        await treeView.reveal(item, { select: true, focus: true, expand: true });
+    } catch {
+        void vscode.window.showInformationMessage(
+            `'${path.basename(fileUri.fsPath)}' could not be found in the Project View.`,
+        );
     }
 }
 
