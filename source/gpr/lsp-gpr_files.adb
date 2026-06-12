@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023-2025, AdaCore                     --
+--                     Copyright (C) 2023-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1717,7 +1717,12 @@ package body LSP.GPR_Files is
    begin
       Env := GPR2.Environment.Process_Environment;
 
-      if LSP.Alire.Should_Setup_Alire_Env (Client) then
+      --  The ALS will emit a warning if no Alire driver
+      --  exists in the PATH,
+      --  so we do not want to duplicate it
+      if LSP.Alire.Should_Setup_Alire_Env (Client)
+        and then LSP.Alire.Has_Alr_Driver
+      then
          --  set Environment from Alire
          LSP.Alire.Setup_Alire_Env
            (Root        => Client.Root_Directory.Display_Full_Name,
