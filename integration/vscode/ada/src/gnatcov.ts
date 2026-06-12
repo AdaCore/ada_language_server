@@ -349,6 +349,471 @@ export function parseGnatcovFileXml(path: string): source_type {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared utilities
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The format of an XML coverage report.
+ */
+export const enum CoverageFormat {
+    GnatcovXml = 'gnatcov-xml',
+    Cobertura = 'cobertura',
+}
+
+/**
+ * Identify the format of an XML coverage report by inspecting its content.
+ *
+ * GNATcoverage XML reports contain a `<coverage_report>` element (as a child
+ * of the `<document>` root), while Cobertura reports use `<coverage>` as the
+ * root element.  The first 4 KiB of the file is read to locate one of the two
+ * markers; an error is thrown when neither is present.
+ *
+ * @param filePath - path to the XML file to inspect
+ * @returns {@link CoverageFormat.GnatcovXml} or {@link CoverageFormat.Cobertura}
+ * @throws if neither marker is found in the first 4 KiB of the file
+ */
+export function detectCoverageFormat(filePath: string): CoverageFormat {
+    const fd = fs.openSync(filePath, 'r');
+    let header: string;
+    try {
+        const buf = Buffer.alloc(4096);
+        const bytesRead = fs.readSync(fd, buf, 0, 4096, 0);
+        header = buf.toString('utf-8', 0, bytesRead);
+    } finally {
+        fs.closeSync(fd);
+    }
+    if (header.includes('<coverage_report')) {
+        return CoverageFormat.GnatcovXml;
+    } else if (header.includes('<coverage')) {
+        return CoverageFormat.Cobertura;
+    } else {
+        throw new Error(
+            `Unrecognised coverage report format: neither '<coverage_report' nor` +
+                ` '<coverage' found in the first 4096 bytes of ${filePath}`,
+        );
+    }
+}
+
+/**
+ * Return the number of parallel workers to use when processing coverage files.
+ *
+ * Reads the `PROCESSORS` environment variable first (the same variable used by
+ * the rest of the build infrastructure), then falls back to the number of
+ * logical CPUs, clamped to [1, 8].
+ */
+function getConcurrencyLevel(): number {
+    let procs = process.env.PROCESSORS ? Number(process.env.PROCESSORS) : 0;
+    if (!Number.isInteger(procs) || procs === 0) {
+        procs = cpus().length ?? 1;
+    }
+    return Math.max(1, Math.min(procs, 8));
+}
+
+/**
+ * Resolves foreign source-file paths (i.e. paths recorded in a coverage
+ * report, potentially on a different machine) to local {@link vscode.Uri}s.
+ *
+ * The resolver maintains a prefix-pair cache so that once the foreign-to-local
+ * prefix mapping has been established from the first resolved file, subsequent
+ * files can be resolved without a workspace search.
+ *
+ * The path resolution strategy is:
+ *
+ *  1. If the foreign path is absolute and the prefix mapping is already known,
+ *     substitute the prefix to build a local path and check whether it exists.
+ *  2. Otherwise fall back to a workspace file search by basename.
+ *  3. Once a file is located, derive the prefix mapping so that step 1 can be
+ *     used for the remaining files.
+ */
+class ForeignPathResolver {
+    private posixForeignPrefix: string | undefined;
+    private posixLocalPrefix: string | undefined;
+
+    /**
+     * @param token    - cancellation token forwarded to workspace searches
+     * @param exclude  - optional glob pattern for paths to exclude from
+     *                   workspace searches (e.g. `**\/*gnatcov-instr\/**\/*`)
+     */
+    constructor(
+        private readonly token: vscode.CancellationToken,
+        private readonly exclude?: string,
+    ) {}
+
+    /**
+     * Resolve a foreign path to a workspace URI, or return `undefined` if the
+     * file cannot be found.
+     */
+    async resolve(foreignPath: string): Promise<vscode.Uri | undefined> {
+        const posixForeignPath = toPosix(foreignPath);
+        let srcUri: vscode.Uri | undefined;
+
+        if (path.posix.isAbsolute(posixForeignPath)) {
+            let localFullPath: string | undefined;
+            if (this.posixLocalPrefix && this.posixForeignPrefix) {
+                if (posixForeignPath.startsWith(this.posixForeignPrefix)) {
+                    const posixForeignRelPath = path.relative(
+                        this.posixForeignPrefix,
+                        posixForeignPath,
+                    );
+                    localFullPath = path.join(this.posixLocalPrefix, posixForeignRelPath);
+                }
+            }
+            localFullPath = localFullPath ?? foreignPath;
+            if (fs.existsSync(localFullPath)) {
+                srcUri = vscode.Uri.file(localFullPath);
+            }
+        }
+
+        if (srcUri === undefined) {
+            const found = await vscode.workspace.findFiles(
+                `**/${path.posix.basename(posixForeignPath)}`,
+                this.exclude,
+                1,
+                this.token,
+            );
+            if (found.length === 0) {
+                return undefined;
+            }
+            srcUri = found[0];
+        }
+
+        if (
+            this.posixForeignPrefix === undefined &&
+            this.posixLocalPrefix === undefined &&
+            path.posix.isAbsolute(posixForeignPath)
+        ) {
+            [this.posixForeignPrefix, this.posixLocalPrefix] = getMatchingPrefixes(
+                posixForeignPath,
+                toPosix(srcUri.fsPath),
+            );
+        }
+
+        return srcUri;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cobertura XML support
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * TypeScript types to represent data from Cobertura XML coverage reports.
+ *
+ * The Cobertura format is a single XML file containing per-package,
+ * per-class (source file), and per-line coverage information.
+ */
+type CoberturaDocument = {
+    coverage: CoberturaRootElement;
+};
+
+type CoberturaRootElement = {
+    packages: CoberturaPackagesElement;
+    '@_lines-valid': number;
+    '@_lines-covered': number;
+    '@_branches-covered': number;
+    '@_branches-valid': number;
+};
+
+type CoberturaPackagesElement = {
+    package?: CoberturaPackageElement[];
+};
+
+type CoberturaPackageElement = {
+    classes: CoberturaClassesElement;
+    '@_name': string;
+};
+
+type CoberturaClassesElement = {
+    class?: CoberturaClassElement[];
+};
+
+export type CoberturaClassElement = {
+    lines?: CoberturaLinesElement;
+    '@_name': string;
+    '@_filename': string;
+    '@_line-rate': number;
+    '@_branch-rate': number;
+};
+
+type CoberturaLinesElement = {
+    line?: CoberturaLineElement[];
+};
+
+export type CoberturaLineElement = {
+    conditions?: CoberturaConditionsElement;
+    /** 1-based line number */
+    '@_number': number;
+    /** Number of times the line was executed */
+    '@_hits': number;
+    /** Whether this line has branch coverage data */
+    '@_branch': string;
+    /** e.g. "50% (1/2)" */
+    '@_condition-coverage'?: string;
+};
+
+type CoberturaConditionsElement = {
+    condition?: CoberturaConditionElement[];
+};
+
+type CoberturaConditionElement = {
+    '@_number': number;
+    '@_type': string;
+    /** e.g. "50%" */
+    '@_coverage': string;
+};
+
+/**
+ * The XML paths in Cobertura XML files that should always be parsed as arrays.
+ */
+const COBERTURA_XML_ARRAY_PATHS = [
+    'coverage.packages.package',
+    'coverage.packages.package.classes.class',
+    'coverage.packages.package.classes.class.lines.line',
+    'coverage.packages.package.classes.class.lines.line.conditions.condition',
+];
+
+/**
+ * Parse a Cobertura XML coverage report.
+ *
+ * @param filePath - path to the Cobertura XML file
+ * @returns parsed document
+ */
+export function parseCoberturaXml(filePath: string): CoberturaDocument {
+    const fileContentAsBuffer = fs.readFileSync(filePath);
+
+    const options: Partial<X2jOptions> = {
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        isArray: (_, jPath) => COBERTURA_XML_ARRAY_PATHS.indexOf(jPath) !== -1,
+        trimValues: true,
+        attributeValueProcessor: (name, value) => {
+            if (
+                [
+                    'lines-valid',
+                    'lines-covered',
+                    'branches-covered',
+                    'branches-valid',
+                    'number',
+                    'hits',
+                ].includes(name)
+            ) {
+                return Number.parseInt(value);
+            }
+            if (['line-rate', 'branch-rate'].includes(name)) {
+                return Number.parseFloat(value);
+            }
+            return value;
+        },
+    };
+
+    const parser = new XMLParser(options);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const parseResult = parser.parse(fileContentAsBuffer);
+    if ('coverage' in parseResult) {
+        return parseResult as CoberturaDocument;
+    } else {
+        throw Error(`Could not parse Cobertura report: ${filePath}`);
+    }
+}
+
+/**
+ * Convert an array of Cobertura line elements into VS Code
+ * {@link vscode.StatementCoverage} objects, including branch coverage for
+ * lines that have condition data.
+ *
+ * @param lines - parsed Cobertura `<line>` elements
+ * @returns VS Code coverage details
+ */
+export function convertCoberturaLines(
+    lines: CoberturaLineElement[],
+    token?: CancellationToken,
+): vscode.StatementCoverage[] {
+    return lines.map((line) => {
+        if (token?.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
+        // VS Code uses 0-based line numbers
+        const lineNum = line['@_number'] - 1;
+        const covered = line['@_hits'] > 0;
+        const range = new vscode.Range(lineNum, 0, lineNum, 0);
+        const stmt = new vscode.StatementCoverage(covered, range);
+
+        if (line['@_branch'] === 'true') {
+            const conditions = line.conditions?.condition;
+            if (conditions && conditions.length > 0) {
+                stmt.branches = conditions.map(
+                    (cond) =>
+                        new vscode.BranchCoverage(
+                            Number.parseInt(cond['@_coverage']) > 0,
+                            range,
+                            `condition ${cond['@_number']} (${cond['@_coverage']})`,
+                        ),
+                );
+            } else if (line['@_condition-coverage']) {
+                // Fallback: derive covered/total from the "50% (1/2)" string
+                const match = line['@_condition-coverage'].match(/\((\d+)\/(\d+)\)/);
+                if (match) {
+                    const covered = Number.parseInt(match[1]);
+                    const total = Number.parseInt(match[2]);
+                    stmt.branches = Array.from(
+                        { length: total },
+                        (_, i) => new vscode.BranchCoverage(i < covered, range, `branch ${i}`),
+                    );
+                }
+            }
+        }
+
+        return stmt;
+    });
+}
+
+/**
+ * A class that holds the summary and per-line coverage data for a single
+ * source file from a Cobertura report, and provides a method to return
+ * detailed coverage information to VS Code.
+ */
+export class CoberturaFileCoverage extends vscode.FileCoverage {
+    private readonly lines: CoberturaLineElement[];
+
+    constructor(
+        uri: vscode.Uri,
+        statementCoverage: vscode.TestCoverageCount,
+        branchCoverage: vscode.TestCoverageCount | undefined,
+        lines: CoberturaLineElement[],
+    ) {
+        super(uri, statementCoverage, branchCoverage);
+        this.lines = lines;
+    }
+
+    public load(token?: CancellationToken): Promise<vscode.FileCoverageDetail[]> {
+        return Promise.resolve(convertCoberturaLines(this.lines, token));
+    }
+}
+
+/**
+ * Load coverage data from a Cobertura XML report into a VS Code test run.
+ *
+ * @param run - the test run to add coverage data to
+ * @param coberturaXmlPath - path to the Cobertura XML report file
+ */
+export async function addCoverageDataFromCobertura(run: vscode.TestRun, coberturaXmlPath: string) {
+    const data = parseCoberturaXml(coberturaXmlPath);
+
+    await vscode.window.withProgress(
+        {
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: 'Loading Cobertura coverage report',
+        },
+        async (progress, token) => {
+            const classes =
+                data.coverage.packages.package?.flatMap((pkg) => pkg.classes.class ?? []) ?? [];
+
+            let done = 0;
+            let skipped = 0;
+            let lastProgress = 0;
+            const totalFiles = classes.length;
+            progress.report({ message: `${done} / ${totalFiles} source files` });
+
+            const resolver = new ForeignPathResolver(token);
+
+            const fileCovs = (
+                await parallelize(
+                    classes,
+                    getConcurrencyLevel(),
+                    async (cls) => {
+                        if (token.isCancellationRequested) {
+                            throw new vscode.CancellationError();
+                        }
+
+                        const srcUri = await resolver.resolve(cls['@_filename']);
+                        if (srcUri === undefined) {
+                            logger.warn(
+                                'Cobertura coverage: source file not found in workspace: ' +
+                                    cls['@_filename'],
+                            );
+                            ++skipped;
+                            return undefined;
+                        }
+
+                        const lines = cls.lines?.line ?? [];
+
+                        const coveredLines = lines.filter((l) => l['@_hits'] > 0).length;
+                        const stmtCoverage: vscode.TestCoverageCount = {
+                            covered: coveredLines,
+                            total: lines.length,
+                        };
+
+                        // Compute branch coverage summary from condition-coverage attributes
+                        let branchCoverage: vscode.TestCoverageCount | undefined;
+                        const branchLines = lines.filter((l) => l['@_branch'] === 'true');
+                        if (branchLines.length > 0) {
+                            let totalBranches = 0;
+                            let coveredBranches = 0;
+                            for (const line of branchLines) {
+                                const conds = line.conditions?.condition ?? [];
+                                if (conds.length > 0) {
+                                    totalBranches += conds.length;
+                                    coveredBranches += conds.filter(
+                                        (c) => Number.parseInt(c['@_coverage']) > 0,
+                                    ).length;
+                                } else {
+                                    const match =
+                                        line['@_condition-coverage']?.match(/\((\d+)\/(\d+)\)/);
+                                    if (match) {
+                                        coveredBranches += Number.parseInt(match[1]);
+                                        totalBranches += Number.parseInt(match[2]);
+                                    }
+                                }
+                            }
+                            if (totalBranches > 0) {
+                                branchCoverage = {
+                                    covered: coveredBranches,
+                                    total: totalBranches,
+                                };
+                            }
+                        }
+
+                        const fileCov = new CoberturaFileCoverage(
+                            srcUri,
+                            stmtCoverage,
+                            branchCoverage,
+                            lines,
+                        );
+
+                        ++done;
+                        lastProgress = staggerProgress(
+                            done,
+                            totalFiles,
+                            lastProgress,
+                            (increment) => {
+                                progress.report({
+                                    message: `${done} / ${totalFiles} source files`,
+                                    increment: increment,
+                                });
+                            },
+                        );
+
+                        return fileCov;
+                    },
+                    token,
+                )
+            ).filter((v) => !!v);
+
+            fileCovs.forEach((fileCov) => run.addCoverage(fileCov));
+            if (skipped > 0) {
+                void showErrorMessageWithOpenLogButton(
+                    `Cobertura coverage: ${skipped} source file(s) could not be found in` +
+                        ` the workspace and were skipped. See the output log for details.`,
+                );
+            }
+        },
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  *
  * @param run - the test run to add coverage data to
@@ -374,179 +839,35 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                 message: `${done} / ${totalFiles} source files`,
             });
 
-            let posixForeignPrefix: string | undefined;
-            let posixLocalPrefix: string | undefined;
-
             /**
-             * Given a `file_type` object from a GNATcoverage XML report, this
-             * function searches for the corresponding source file in the
-             * workspace given the following considerations:
+             * GNATcov generates instrumented versions of the sources with
+             * the same basenames. We want to avoid associating coverage data
+             * with the instrumented sources, so we exclude any paths
+             * containing the special directory `*gnatcov-instr`. Ideally it
+             * would have been nice to exclude precisely
+             * `<obj-dir>/<prj-name>-gnatcov-instr` but that would need to be
+             * computed for each project in the closure. As we don't have
+             * access to that information, we ignore all paths containing a
+             * `*gnatcov-instr` component.
              *
-             *  - The paths in the XML report may have a different convention
-             *  that the environment of this workspace (i.e. Windows/POSIX)
-             *
-             *  - The path in the XML report may be just the basename of a
-             *  source file, or a full path to the source file on the machine
-             *  where the report was created.
-             *
-             *  - Once a file is found, the path mapping between the report
-             *  machine and the current machine can help find other files
-             *  quickly. This is achieved with the state variables
-             *  `posixForeignPrefix` and `posixLocalPrefix`.
-             *
-             * @param file - a `file_type` object from a GNATcoverage XML report
-             * @returns the URI of the corresponding source file in the workspace
+             * Note that a previous version excluded the entire object dir
+             * which did not work well on projects that use '.' as the object
+             * dir. In that case excluding the object dir would exclude the
+             * entire workspace and prevent finding any files.
              */
-            async function computeUri(file: file_type): Promise<vscode.Uri | undefined> {
-                let srcUri: vscode.Uri | undefined = undefined;
+            const resolver = new ForeignPathResolver(token, `**/*gnatcov-instr/**`);
 
-                assert(file['@_name']);
-                const foreignPath = file['@_name'];
-                /**
-                 * The foreign machine may have a different path
-                 * format, so we normalize to POSIX which is valid on
-                 * both Windows and POSIX OS-es.
-                 */
-                const posixForeignPath = toPosix(foreignPath);
-
-                /**
-                 * The goal here is to find the file in the workspace
-                 * corresponding to the name attribute in the GNATcov
-                 * report.
-                 *
-                 * The name could be a basename (older GNATcov
-                 * versions) or an absolute path (newer GNATcov
-                 * versions).
-                 *
-                 * In the case of a basename, the only course of action
-                 * is to do a file lookup in the workspace.
-                 *
-                 * In the case of an absolute path, the path
-                 * corresponds to the machine where the report was
-                 * created which might be a foreign machine or the
-                 * local host. We can't know in which situation we are
-                 * so it's best to assume that it's a foreign machine.
-                 *
-                 * Then the logic consists of searching for the first
-                 * file by basename, which gives a local absolute path.
-                 * Then by comparing the local absolute path and the
-                 * foreign absolute path, we can find a foreign prefix
-                 * path that should be mapped to the local prefix path
-                 * to compute local absolute paths. Subsequent files
-                 * can use the computed prefixes directly without a
-                 * workspace lookup.
-                 */
-
-                if (path.posix.isAbsolute(posixForeignPath)) {
-                    let localFullPath;
-                    if (posixLocalPrefix && posixForeignPrefix) {
-                        /**
-                         * The prefixes have already been determined, so
-                         * use them directly.
-                         */
-
-                        if (posixForeignPath.startsWith(posixForeignPrefix)) {
-                            // Extract the relative path based on the foreign prefix
-                            const posixForeignRelPath = path.relative(
-                                posixForeignPrefix,
-                                posixForeignPath,
-                            );
-
-                            // Resolve the relative path with the local prefix
-                            localFullPath = path.join(posixLocalPrefix, posixForeignRelPath);
-                        }
-                    }
-
-                    // Fallback to using the input path as is
-                    localFullPath = localFullPath ?? foreignPath;
-
-                    if (fs.existsSync(localFullPath)) {
-                        srcUri = vscode.Uri.file(localFullPath);
-                    }
-                }
-
-                if (srcUri === undefined) {
-                    /**
-                     * GNATcov generates instrumented versions of the
-                     * sources with the same basenames. We want to
-                     * avoid associating coverage data with the
-                     * instrumented sources, so we exclude any paths
-                     * containing the special directory
-                     * `*gnatcov-instr`. Ideally it would have been
-                     * nice to exclude precisely
-                     * `<obj-dir>/<prj-name>-gnatcov-instr` but that
-                     * would need to be computed for each project in
-                     * the closure. As we don't have access to that
-                     * information, we ignore all paths containing a
-                     * `*gnatcov-instr` component.
-                     *
-                     * Note that a previous version excluded the entire
-                     * object dir which did not work well on projects
-                     * that use '.' as the object dir. In that case
-                     * excluding the object dir would exclude the
-                     * entire workspace and prevent finding any files.
-                     */
-                    const exclude = `**/*gnatcov-instr/**/*`;
-
-                    /**
-                     * If the prefixes haven't been found yet, or
-                     * the last prefixes used were not successful,
-                     * try a workspace lookup of the basename.
-                     */
-                    const found = await vscode.workspace.findFiles(
-                        `**/${path.posix.basename(posixForeignPath)}`,
-                        exclude,
-                        1,
-                        token,
-                    );
-                    if (found.length == 0) {
-                        return undefined;
-                    }
-
-                    srcUri = found[0];
-                }
-
-                if (
-                    posixForeignPrefix === undefined &&
-                    posixLocalPrefix === undefined &&
-                    path.posix.isAbsolute(posixForeignPath)
-                ) {
-                    /**
-                     * If the prefixes haven't been calculated, and the
-                     * foreign path is absolute, let's try to compute
-                     * the prefixes based on the workspace URI that was
-                     * found.
-                     */
-
-                    const localAbsPath = srcUri.fsPath;
-                    const posixLocalAbsPath = toPosix(localAbsPath);
-
-                    [posixForeignPrefix, posixLocalPrefix] = getMatchingPrefixes(
-                        posixForeignPath,
-                        posixLocalAbsPath,
-                    );
-                }
-
-                return srcUri;
-            }
-            let procs = process.env.PROCESSORS ? Number(process.env.PROCESSORS) : 0;
-            if (!Number.isInteger(procs) || procs == 0) {
-                // If PROCESSORS is not set, or fails to convert to an integer,
-                // or is set to 0, use all available CPUs.
-                // Fallback to 1 if cpus() is undefined.
-                procs = cpus().length ?? 1;
-            }
             const fileCovs = (
                 await parallelize(
                     array,
-                    // Make sure to use at least 1 and at most 8 threads
-                    Math.max(1, Math.min(procs, 8)),
+                    getConcurrencyLevel(),
                     async (file) => {
                         if (token.isCancellationRequested) {
                             throw new vscode.CancellationError();
                         }
 
-                        const srcUri: vscode.Uri | undefined = await computeUri(file);
+                        assert(file['@_name']);
+                        const srcUri = await resolver.resolve(file['@_name']);
 
                         assert(
                             srcUri,

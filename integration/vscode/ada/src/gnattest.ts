@@ -7,7 +7,12 @@ import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
-import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
+import {
+    addCoverageData,
+    addCoverageDataFromCobertura,
+    CoberturaFileCoverage,
+    GnatcovFileCoverage,
+} from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
 import { escapeRegExp, exe, setTerminalEnvironment, slugify } from './helpers';
 import {
@@ -865,10 +870,7 @@ async function buildTestDriverAndReportErrors(
                     await getGnatTestDriverProjectPath(),
                 ]
                     .concat(getScenarioArgs())
-                    .concat([
-                        "'-cargs:ada'",
-                        '-gnatef',
-                    ]),
+                    .concat(["'-cargs:ada'", '-gnatef']),
             }),
         );
         buildTasks.push(instTask, buildTask);
@@ -1197,6 +1199,9 @@ async function loadDetailedCoverage(
     token: CancellationToken,
 ): Promise<vscode.FileCoverageDetail[]> {
     try {
+        if (fileCoverage instanceof CoberturaFileCoverage) {
+            return await fileCoverage.load(token);
+        }
         return await (fileCoverage as GnatcovFileCoverage).load(token);
     } catch (err) {
         let msg = `Error while loading detailed coverage data`;
@@ -1228,5 +1233,26 @@ export async function loadGnatCoverageReport(indexXmlPath: string) {
 
     const covDir = path.dirname(indexXmlPath);
     await addCoverageData(run, covDir);
+    run.end();
+}
+
+/**
+ * Load an external Cobertura XML coverage report in the VS Code UI.
+ *
+ * @param coberturaXmlPath - path of the Cobertura XML report file
+ */
+export async function loadCoberturaReport(coberturaXmlPath: string): Promise<void> {
+    const request = new vscode.TestRunRequest(
+        undefined,
+        undefined,
+        /**
+         * Associate the request with the coverage profile so that it becomes
+         * possible to load detailed coverage data for each file.
+         */
+        testCoverageProfile,
+    );
+    const run = fileLoadController.createTestRun(request, path.basename(coberturaXmlPath), false);
+
+    await addCoverageDataFromCobertura(run, coberturaXmlPath);
     run.end();
 }

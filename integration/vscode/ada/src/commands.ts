@@ -39,7 +39,8 @@ import {
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
-import { loadGnatCoverageReport } from './gnattest';
+import { CoverageFormat, detectCoverageFormat } from './gnatcov';
+import { loadCoberturaReport, loadGnatCoverageReport } from './gnattest';
 import { findMetricsXmlForSource } from './metricsUtils';
 import {
     findAdaMain,
@@ -298,7 +299,7 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     context.subscriptions.push(
-        commands.registerCommand('ada.loadGnatCovXMLReport', loadGnatCovXMLReport),
+        commands.registerCommand('ada.loadGnatCovReport', loadGnatCovReport),
     );
 
     context.subscriptions.push(
@@ -1410,25 +1411,37 @@ async function sparkProveSubprogram(
      */
     return await vscode.tasks.executeTask(resolvedTask);
 }
-async function loadGnatCovXMLReport() {
+async function loadGnatCovReport() {
     const selection = await vscode.window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
         filters: {
-            'index.xml': ['xml'],
+            'Coverage XML': ['xml'],
         },
-        title: "Select a 'index.xml' GNATcoverage report to load",
+        title: 'Select a GNATcoverage or Cobertura XML coverage report to load',
     });
 
     if (selection && selection.length > 0 && selection[0]) {
-        const path = selection[0].fsPath;
-        if (!path.endsWith('index.xml')) {
-            throw Error(
-                `The selected file must be 'index.xml'. Instead, the selected file was: ${path}`,
+        const filePath = selection[0].fsPath;
+        try {
+            const format = detectCoverageFormat(filePath);
+            if (format === CoverageFormat.GnatcovXml) {
+                if (path.basename(filePath) !== 'index.xml') {
+                    throw new Error(
+                        `The selected GNATcoverage report must be named 'index.xml'.` +
+                            ` Instead, the selected file was: ${path.basename(filePath)}`,
+                    );
+                }
+                await loadGnatCoverageReport(filePath);
+            } else {
+                await loadCoberturaReport(filePath);
+            }
+        } catch (e) {
+            void vscode.window.showErrorMessage(
+                `Could not load coverage report: ${e instanceof Error ? e.message : String(e)}`,
             );
         }
-        await loadGnatCoverageReport(path);
     }
 }
 

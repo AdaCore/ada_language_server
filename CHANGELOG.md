@@ -9,6 +9,8 @@ section below it for the last release. -->
 * VS Code will now check for Alire toolchains when selecting a debugger in an Alire crate.
 * VS Code now displays a custom file icon for Ada files
 * The project name is now displayed in the Ada & SPARK extension status bar
+* VS Code now displays a custom file icon for Ada files
+* Add support for loading Cobertura XML coverage reports in addition to GNATcoverage XML reports, via the unified command `ada: GNATcoverage - Load an existing coverage report`
 
 ## 2026.2.202604091
 
