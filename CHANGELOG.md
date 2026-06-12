@@ -7,7 +7,8 @@ section below it for the last release. -->
 * Switch workspace symbol search to fuzzy search by default. The search algorithm can be changed through the `workspaceSearch` setting.
 * Diagnostics are now emitted for semantic errors. Can be disabled via the `semanticDiagnostics` setting.
 * VS Code will now check for Alire toolchains when selecting a debugger in an Alire crate.
-* VS Code now display a custom file icon for Ada files
+* VS Code now displays a custom file icon for Ada files
+* The project name is now displayed in the Ada & SPARK extension status bar
 
 ## 2026.2.202604091
 
