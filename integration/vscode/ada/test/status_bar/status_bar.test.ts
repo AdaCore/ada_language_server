@@ -5,13 +5,37 @@ import * as vscode from 'vscode';
 import { adaExtState } from '../../src/extension';
 import { CMD_RELOAD_PROJECT } from '../../src/constants';
 import { readFileSync, writeFileSync } from 'fs';
+import * as path from 'path';
 import { integer } from 'vscode-languageclient';
 
 suite('Status Bar Test Suite', function () {
     // Make sure the extension is activated
     this.beforeAll(async () => {
         await activate();
+        await adaExtState.refreshProjectView();
     });
+
+    /**
+     * Assert that the status bar text includes the project name and the tooltip
+     * includes a link to the .gpr file basename.
+     */
+    function checkStatusBarProjectInfo(gprUri: vscode.Uri, projectName: string) {
+        const gprBasename = path.basename(gprUri.fsPath);
+        assert.ok(
+            adaExtState.statusBar.text.includes(projectName),
+            `Status bar text should include project name '${projectName}',` +
+                ` got: '${adaExtState.statusBar.text}'`,
+        );
+        const tooltipValue =
+            adaExtState.statusBar.tooltip instanceof vscode.MarkdownString
+                ? adaExtState.statusBar.tooltip.value
+                : String(adaExtState.statusBar.tooltip ?? '');
+        assert.ok(
+            tooltipValue.includes(gprBasename),
+            `Status bar tooltip should include GPR basename '${gprBasename}',` +
+                ` got: '${tooltipValue}'`,
+        );
+    }
 
     /**
      * This function checks diagnostics for the given URI, making sure we have
@@ -82,6 +106,10 @@ ${JSON.stringify(alsDiagnostics)}`,
             expectedFgColor,
             `Status bar foreground has wrong color for ${severity}`,
         );
+
+        // Check that the project name and GPR basename are present in the status bar
+        // regardless of whether there are diagnostics.
+        checkStatusBarProjectInfo(prjUri, 'Workspace');
     }
 
     test('Status Bar - Project loaded successfully', () => {
@@ -111,6 +139,11 @@ ${JSON.stringify(alsDiagnostics)}`,
                 undefined,
                 'Status bar foreground color should be transparent',
             );
+
+            // Check that the status bar text and tooltip reflect the loaded project
+            const folder = vscode.workspace.workspaceFolders[0].uri;
+            const prjUri = vscode.Uri.joinPath(folder, 'workspace.gpr');
+            checkStatusBarProjectInfo(prjUri, 'Workspace');
         }
     });
 
