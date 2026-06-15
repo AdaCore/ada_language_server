@@ -203,12 +203,12 @@ package body LSP.Ada_Handlers.Project_Loading is
         Self.Configuration.GPR_Configuration_File;
       Alire_Error            : VSS.Strings.Virtual_String;
       Use_Alire              : Boolean;
-      --  Only check for an Alire project if we don't already
-      --  have a configured project
+      --  True if Alire crate available and Alire
+      --  commands return successfully
 
       function Find_Alire_Project return VSS.Strings.Virtual_String;
-      --  Check for a valid Alire project,
-      --  return any errors received, or empty string for success
+      --  Check for a valid Alire project.
+      --  Fail early and return error, or empty string for success.
 
       function Configure_Alire
         (Environment : in out GPR2.Environment.Object)
@@ -298,7 +298,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          return;
       end if;
 
-      --  If Alire status unchecked, look for an Alire crate and Alire driver
+      --  Set Alire project status on startup
       if Self.Project_Status.Get_Alire_Status
          in LSP.Ada_Project_Loading.Not_Set
       then
@@ -363,17 +363,18 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  Now let's try to load.
       if not Project_File.Is_Empty then
          Have_Project_File : declare
-            Environment : GPR2.Environment.Object :=
+            Environment    : GPR2.Environment.Object :=
               GPR2.Environment.Process_Environment;
-
-            Charset : constant VSS.Strings.Virtual_String :=
+            In_Alire_Crate : constant Boolean :=
+              Self.Project_Status.Get_Alire_Status
+              = LSP.Ada_Project_Loading.Enabled;
+            Charset        : constant VSS.Strings.Virtual_String :=
               (if not Self.Configuration.Charset.Is_Empty
                then Self.Configuration.Charset
-               elsif Use_Alire
-               then
-                 VSS.Strings.Virtual_String'
-                   ("utf-8")  --  Alire projects tend to prefer utf-8
+               elsif In_Alire_Crate
+               then VSS.Strings.Virtual_String'("utf-8")
                else "iso-8859-1");
+            --  Alire projects tend to prefer utf-8
 
          begin
             if Project_File.Starts_With ("file://") then

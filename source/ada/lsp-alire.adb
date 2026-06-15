@@ -52,7 +52,7 @@ package body LSP.Alire is
      "Alire executable ('alr') not found in PATH";
 
    --  Cache ALR driver path if found
-   Alr_Driver        : constant String := "alr";
+   ALR_Driver        : constant String := "alr";
    ALR_Exe           : VSS.Strings.Virtual_String :=
      VSS.Strings.Empty_Virtual_String;
    ALR_Checked       : Boolean := False;
@@ -66,7 +66,7 @@ package body LSP.Alire is
       Text    : VSS.Strings.Virtual_String;  --  Stdout as a text
    end record;
 
-   procedure Find_And_Cache_Alr with Pre => not ALR_Checked;
+   procedure Find_And_Cache_ALR with Pre => not ALR_Checked;
    --  Set ALR_Exe if found
 
    overriding
@@ -89,14 +89,14 @@ package body LSP.Alire is
    --  parallel, since concurrent Alire invocations on the same workspace can
    --  clash with each other on shared temporary files.
    --
-   --  The actual invocation of Alire is delegated to Run_Alr_Cmd.
+   --  The actual invocation of Alire is delegated to Run_ALR_Cmd.
    --
    --  This is necessary in contexts where two ALS processes are spawned in the
    --  same workspace, one acting as an Ada language server and the other
    --  acting as a GPR language server. Both make Alire invocations to set up
    --  the environment, hence the need for synchronization.
 
-   procedure Run_Alr_Cmd
+   procedure Run_ALR_Cmd
      (Options : VSS.String_Vectors.Virtual_String_Vector;
       Root    : String;
       Error   : out VSS.Strings.Virtual_String;
@@ -279,7 +279,7 @@ package body LSP.Alire is
       Lock_File_VS : constant Virtual_String := To_Virtual_String (Lock_File);
    begin
       --  This is already checked by project loading handlers
-      if not Has_Alr_Driver then
+      if not Has_ALR_Driver then
          Error.Append (ALR_Path_Error_Msg);
          return;
       end if;
@@ -297,7 +297,7 @@ package body LSP.Alire is
 
       With_Alire_Lock : begin
          begin
-            Run_Alr_Cmd
+            Run_ALR_Cmd
               (Options => Options,
                Root    => Root,
                Error   => Error,
@@ -331,10 +331,10 @@ package body LSP.Alire is
    end Start_Alire_Sync;
 
    -----------------
-   -- Run_Alr_Cmd --
+   -- Run_ALR_Cmd --
    -----------------
 
-   procedure Run_Alr_Cmd
+   procedure Run_ALR_Cmd
      (Options : VSS.String_Vectors.Virtual_String_Vector;
       Root    : String;
       Error   : out VSS.Strings.Virtual_String;
@@ -451,7 +451,7 @@ package body LSP.Alire is
          end if;
       end if;
 
-   end Run_Alr_Cmd;
+   end Run_ALR_Cmd;
 
    ------------------------------
    -- Standard_Error_Available --
@@ -513,32 +513,32 @@ package body LSP.Alire is
    end Is_Alire_Crate;
 
    ------------------------
-   -- Find_And_Cache_Alr --
+   -- Find_And_Cache_ALR --
    ------------------------
 
-   procedure Find_And_Cache_Alr is
+   procedure Find_And_Cache_ALR is
       use type GNAT.OS_Lib.String_Access;
       ALR_Path : GNAT.OS_Lib.String_Access :=
-        GNAT.OS_Lib.Locate_Exec_On_Path (Alr_Driver);
+        GNAT.OS_Lib.Locate_Exec_On_Path (ALR_Driver);
    begin
       if ALR_Path /= null then
          ALR_Exe := VSS.Strings.Conversions.To_Virtual_String (ALR_Path.all);
       end if;
       GNAT.OS_Lib.Free (ALR_Path);
       ALR_Checked := True;
-   end Find_And_Cache_Alr;
+   end Find_And_Cache_ALR;
 
    --------------------
-   -- Has_Alr_Driver --
+   -- Has_ALR_Driver --
    --------------------
 
-   function Has_Alr_Driver return Boolean is
+   function Has_ALR_Driver return Boolean is
    begin
       if not ALR_Checked then
-         Find_And_Cache_Alr;
+         Find_And_Cache_ALR;
       end if;
       return not ALR_Exe.Is_Empty;
-   end Has_Alr_Driver;
+   end Has_ALR_Driver;
 
    ----------------------------
    -- Should_Setup_Alire_Env --

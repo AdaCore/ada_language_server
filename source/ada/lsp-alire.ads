@@ -25,7 +25,7 @@ with VSS.Strings;
 
 private package LSP.Alire is
 
-   function Has_Alr_Driver return Boolean;
+   function Has_ALR_Driver return Boolean;
    --  Check cached driver path, return false if null
 
    function Is_Alire_Crate

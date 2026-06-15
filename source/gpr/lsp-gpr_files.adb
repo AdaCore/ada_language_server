@@ -1721,7 +1721,7 @@ package body LSP.GPR_Files is
       --  exists in the PATH,
       --  so we do not want to duplicate it
       if LSP.Alire.Should_Setup_Alire_Env (Client)
-        and then LSP.Alire.Has_Alr_Driver
+        and then LSP.Alire.Has_ALR_Driver
       then
          --  set Environment from Alire
          LSP.Alire.Setup_Alire_Env
