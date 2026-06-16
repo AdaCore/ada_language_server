@@ -832,6 +832,12 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Enable experimental features still in development."
+
+                     "ada.enableExperimentalMiscellaneousFeatures": {
+                          "scope": "window",
+                          "type": "constraints",
+                          "default": false,
+                          "description": "Convert Self.Relocate_Build_Tree, Self.Relocate_Root & File to GPR2.Project.Tree.Load procedures Build_Path parameter."
                     }
                 }
             },
