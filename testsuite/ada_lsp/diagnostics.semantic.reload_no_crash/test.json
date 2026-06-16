@@ -1,0 +1,119 @@
+[
+   {
+      "comment": [
+         "Regression test: ALS must not crash with STORAGE_ERROR when a",
+         "semantic diagnostics background job is racing with a project reload."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {},
+               "initializationOptions": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "semanticDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "Open a file with a semantic error to schedule a Semantic_Diagnostics_Job.",
+         "Do NOT wait for publishDiagnostics here so that the reload below",
+         "races with the background job while Self.Document may still be",
+         "referenced by the job."
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/pkg.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Pkg is\n   X : Integer := Does_Not_Exist;\nend Pkg;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "Reload the project immediately without waiting for diagnostics.",
+         "This races with the Semantic_Diagnostics_Job."
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "reload",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-reload-project",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "reload",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "comment": "ALS survived the reload; shut down cleanly."
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

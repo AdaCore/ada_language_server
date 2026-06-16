@@ -24,6 +24,7 @@ with LSP.Server_Jobs;
 with LSP.Structures;
 limited with LSP.Servers;
 private with Ada.Unchecked_Deallocation;
+private with GNATCOLL.VFS;
 private with Libadalang.Iterators;
 private with LSP.Client_Message_Receivers;
 private with LSP.Server_Messages;
@@ -62,6 +63,9 @@ private
 
       Document : LSP.Ada_Documents.Document_Access;
       --  The document to analyze.
+
+      File_Name : GNATCOLL.VFS.Virtual_File;
+      --  Saved copy of the Document's virtual file, used for traces.
 
       Document_Version : LSP.Structures.Integer_Or_Null;
       --  The document version at the time the job was enqueued.
