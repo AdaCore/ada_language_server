@@ -25,7 +25,6 @@ with Libadalang.Semantic_Diagnostics;
 with VSS.Strings.Conversions;
 
 with GNATCOLL.Traces; use GNATCOLL.Traces;
-with GNATCOLL.VFS;
 
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents.Semantic_Diagnostics;
@@ -164,7 +163,7 @@ package body LSP.Ada_Semantic_Diagnostics is
           --  closed while this job was in the queue: discard it.
          Me_Debug.Trace
            ("Cancelling semantic diagnostics job for "
-            & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
+            & Self.File_Name.Display_Base_Name
             & " because the project was reloaded, server is shutting down, or document was closed");
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
@@ -181,7 +180,7 @@ package body LSP.Ada_Semantic_Diagnostics is
 
          Me_Debug.Trace
            ("Cancelling semantic diagnostics job for "
-            & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
+            & Self.File_Name.Display_Base_Name
             & " because the document was edited since it was enqueued");
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
@@ -205,7 +204,7 @@ package body LSP.Ada_Semantic_Diagnostics is
             if not Self.Ranges.Is_Empty then
 
                Me_Debug.Trace ("Executing a per-range semantic diagnostics job for "
-                               & Self.Handler.To_File (Self.Document.URI).Display_Base_Name
+                               & Self.File_Name.Display_Base_Name
                   & " (version "
                   & Self.Document_Version.Value'Image
                   & ")");
@@ -273,8 +272,7 @@ package body LSP.Ada_Semantic_Diagnostics is
                begin
                   Me_Debug.Trace
                     ("Semantic diagnostics traversal completed for "
-                     & Self.Handler.To_File (Self.Document.URI)
-                         .Display_Base_Name
+                     & Self.File_Name.Display_Base_Name
                      & " (version "
                      & Self.Document_Version.Value'Image
                      & ")");
@@ -349,6 +347,7 @@ package body LSP.Ada_Semantic_Diagnostics is
       begin
          Job.Project_Stamp    := Handler.Get_Project_Stamp;
          Job.Document         := Document;
+         Job.File_Name        := Handler.To_File (Document.URI);
          Job.Document_Version := Document.Identifier.version;
          Job.Ranges           := Ranges;
          Job_Access           := LSP.Server_Jobs.Server_Job_Access (Job);
