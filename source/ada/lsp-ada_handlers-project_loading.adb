@@ -206,9 +206,12 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  True if Alire crate available and Alire
       --  commands return successfully
 
-      function Find_Alire_Project return VSS.Strings.Virtual_String;
+      function Find_Alire_Project
+        (Error : out VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String;
       --  Check for a valid Alire project.
-      --  Fail early and return error, or empty string for success.
+      --  Write error messages to Error,
+      --  and return project file path if found
 
       function Configure_Alire
         (Environment : in out GPR2.Environment.Object)
@@ -221,15 +224,20 @@ package body LSP.Ada_Handlers.Project_Loading is
       -- Find_Alire_Project --
       ------------------------
 
-      function Find_Alire_Project return VSS.Strings.Virtual_String is
-         Error : VSS.Strings.Virtual_String;
+      function Find_Alire_Project
+        (Error : out VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String
+      is
+         Project_Path : VSS.Strings.Virtual_String;
       begin
          Tracer.Trace ("Workspace is an Alire crate");
          Tracer.Trace ("Performing minimal Alire sync");
          LSP.Alire.Conservative_Alire_Sync
            (Self.Client.Root_Directory.Display_Full_Name, Error);
+
+         --  Fail early
          if not Error.Is_Empty then
-            return Error;
+            return VSS.Strings.Empty_Virtual_String;
          end if;
 
          Tracer.Trace ("Determining project from 'alr show' output");
@@ -237,12 +245,9 @@ package body LSP.Ada_Handlers.Project_Loading is
          LSP.Alire.Determine_Alire_Project
            (Root    => Self.Client.Root_Directory.Display_Full_Name,
             Error   => Error,
-            Project => Project_File);
+            Project => Project_Path);
 
-         if not Error.Is_Empty then
-            return Error;
-         end if;
-         return VSS.Strings.Empty_Virtual_String;
+         return Project_Path;
       end Find_Alire_Project;
 
       ---------------------
@@ -316,11 +321,20 @@ package body LSP.Ada_Handlers.Project_Loading is
          Self.Project_Status.Set_Project_Type
            (LSP.Ada_Project_Loading.Configured_Project);
 
+      --  Then check for an Alire project
       elsif Use_Alire then
-         Alire_Error := Find_Alire_Project;
-         if not Alire_Error.Is_Empty then
-            Report_Alire_Errors;
+         Project_File := Find_Alire_Project (Alire_Error);
+
+         --  Use Alire project if found without errors,
+         --  otherwise report errors and keep looking
+         if Alire_Error.Is_Empty and not Project_File.Is_Empty then
+            Self.Project_Status.Set_Project_Type
+              (LSP.Ada_Project_Loading.Alire_Project);
+            Self.Project_Status.Set_Alire_Messages ([]);
+         else
             Use_Alire := False;
+            Report_Alire_Errors;
+            Project_File := VSS.Strings.Empty_Virtual_String;
          end if;
       end if;
 
@@ -379,18 +393,15 @@ package body LSP.Ada_Handlers.Project_Loading is
          begin
             if Project_File.Starts_With ("file://") then
                Project_File :=
-                 VSS.Strings.Conversions.To_Virtual_String
+                 To_Virtual_String
                    (URIs.Conversions.To_File
-                      (VSS.Strings.Conversions.To_UTF_8_String (Project_File),
-                       True));
+                      (To_UTF_8_String (Project_File), True));
             end if;
             if GPR_Configuration_File.Starts_With ("file://") then
                GPR_Configuration_File :=
-                 VSS.Strings.Conversions.To_Virtual_String
+                 To_Virtual_String
                    (URIs.Conversions.To_File
-                      (VSS.Strings.Conversions.To_UTF_8_String
-                         (GPR_Configuration_File),
-                       True));
+                      (To_UTF_8_String (GPR_Configuration_File), True));
             end if;
             if Use_Alire then
                Alire_Error := Configure_Alire (Environment);

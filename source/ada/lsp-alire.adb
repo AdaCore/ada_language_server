@@ -21,22 +21,22 @@ with GNAT.Lock_Files;
 with GNAT.OS_Lib;
 with GNATCOLL.VFS;
 with GNATCOLL.Traces;
-
 with LSP.GNATCOLL_Tracers;
+
+with VSS.Characters.Latin;
+with VSS.Regular_Expressions;
 with VSS.Stream_Element_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Strings.Converters.Decoders;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
 with VSS.String_Vectors;
-with VSS.Characters.Latin;
-with VSS.Regular_Expressions;
 
 with Spawn.Environments;
 with Spawn.Processes;
 with Spawn.Processes.Monitor_Loop;
 with Spawn.Process_Listeners;
 with Spawn.String_Vectors;
-with VSS.Strings.Formatters.Strings;
-with VSS.Strings.Templates;
 
 package body LSP.Alire is
 
@@ -347,6 +347,7 @@ package body LSP.Alire is
       use VSS.Strings.Formatters.Strings;
       use VSS.Strings.Conversions;
 
+      Exe_Path     : constant String := To_UTF_8_String (ALR_Exe);
       Item         : aliased Process_Listener;
       Process      : Spawn.Processes.Process renames Item.Process;
       Full_Options : VSS.String_Vectors.Virtual_String_Vector := Options;
@@ -354,7 +355,7 @@ package body LSP.Alire is
       Decoder      : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
       Text         : VSS.Strings.Virtual_String;
    begin
-      Process.Set_Program (VSS.Strings.Conversions.To_UTF_8_String (ALR_Exe));
+      Process.Set_Program (Exe_Path);
 
       if Alire_Verbose.Is_Active then
          Full_Options.Prepend ("-v");
