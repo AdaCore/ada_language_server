@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                   Copyright (C) 2023-2026, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,34 +19,43 @@ with Ada.Exceptions;
 with Ada.Streams;
 with GNAT.Lock_Files;
 with GNAT.OS_Lib;
-with GNATCOLL.Traces;
 with GNATCOLL.VFS;
-
+with GNATCOLL.Traces;
 with LSP.GNATCOLL_Tracers;
+
+with VSS.Characters.Latin;
+with VSS.Regular_Expressions;
 with VSS.Stream_Element_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Strings.Converters.Decoders;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
 with VSS.String_Vectors;
-with VSS.Characters.Latin;
-with VSS.Regular_Expressions;
 
 with Spawn.Environments;
 with Spawn.Processes;
 with Spawn.Processes.Monitor_Loop;
 with Spawn.Process_Listeners;
 with Spawn.String_Vectors;
-with VSS.Strings.Formatters.Strings;
-with VSS.Strings.Templates;
 
 package body LSP.Alire is
 
-   Trace : constant GNATCOLL_Tracers.Tracer :=
+   Trace             : constant GNATCOLL_Tracers.Tracer :=
      GNATCOLL_Tracers.Create ("ALS.ALIRE", GNATCOLL.Traces.On);
-
-   Alire_Verbose : constant GNATCOLL_Tracers.Tracer :=
+   Alire_Verbose     : constant GNATCOLL_Tracers.Tracer :=
      GNATCOLL_Tracers.Create
        ("ALS.ALIRE.VERBOSE", GNATCOLL.Traces.From_Config);
 
+   Alire_Crate_Fname : constant GNATCOLL.VFS.Filesystem_String := "alire.toml";
+
+   ALR_Path_Error_Msg : constant VSS.Strings.Virtual_String :=
+     "Alire executable ('alr') not found in PATH";
+
+   --  Cache ALR driver path if found
+   ALR_Driver        : constant String := "alr";
+   ALR_Exe           : VSS.Strings.Virtual_String :=
+     VSS.Strings.Empty_Virtual_String;
+   ALR_Checked       : Boolean := False;
    type Process_Listener is limited
      new Spawn.Process_Listeners.Process_Listener
    with record
@@ -56,6 +65,9 @@ package body LSP.Alire is
       Error   : Integer := 0;  --  Error_Occurred argument
       Text    : VSS.Strings.Virtual_String;  --  Stdout as a text
    end record;
+
+   procedure Find_And_Cache_ALR with Pre => not ALR_Checked;
+   --  Set ALR_Exe if found
 
    overriding
    procedure Standard_Output_Available (Self : in out Process_Listener);
@@ -77,20 +89,21 @@ package body LSP.Alire is
    --  parallel, since concurrent Alire invocations on the same workspace can
    --  clash with each other on shared temporary files.
    --
-   --  The actual invocation of Alire is delegated to Start_Alire_Unsynced.
+   --  The actual invocation of Alire is delegated to Run_ALR_Cmd.
    --
    --  This is necessary in contexts where two ALS processes are spawned in the
    --  same workspace, one acting as an Ada language server and the other
    --  acting as a GPR language server. Both make Alire invocations to set up
    --  the environment, hence the need for synchronization.
 
-   procedure Start_Alire_Unsynced
+   procedure Run_ALR_Cmd
      (Options : VSS.String_Vectors.Virtual_String_Vector;
       Root    : String;
       Error   : out VSS.Strings.Virtual_String;
       Lines   : out VSS.String_Vectors.Virtual_String_Vector);
-   --  This procedure starts Alire immediately with no synchronization
-   --  mechanism.
+   --  Driver function to run 'alr' commands.
+   --  Should only be called within a synchronisation mechanism
+   --  such as Start_Alire_Sync
 
    Anchored : constant VSS.Regular_Expressions.Match_Options :=
      (VSS.Regular_Expressions.Anchored_Match => True);
@@ -265,8 +278,12 @@ package body LSP.Alire is
           .Display_Full_Name;
       Lock_File_VS : constant Virtual_String := To_Virtual_String (Lock_File);
    begin
-
-      begin
+      --  This is already checked by project loading handlers
+      if not Has_ALR_Driver then
+         Error.Append (ALR_Path_Error_Msg);
+         return;
+      end if;
+      Get_Alire_Lock : begin
          Trace.Trace_Text ("Acquiring Alire lock file: " & Lock_File_VS);
          GNAT.Lock_Files.Lock_File (Lock_File_Name => Lock_File, Wait => 0.2);
       exception
@@ -276,11 +293,11 @@ package body LSP.Alire is
               "Could not acquire Alire lock file. Try deleting the lock file manually: ";
             Error.Append (Lock_File_VS);
             return;
-      end;
+      end Get_Alire_Lock;
 
-      begin
+      With_Alire_Lock : begin
          begin
-            Start_Alire_Unsynced
+            Run_ALR_Cmd
               (Options => Options,
                Root    => Root,
                Error   => Error,
@@ -310,14 +327,14 @@ package body LSP.Alire is
                & VSS.Characters.Latin.Line_Feed
                & To_Virtual_String (Ada.Exceptions.Exception_Information (E)));
             return;
-      end;
+      end With_Alire_Lock;
    end Start_Alire_Sync;
 
-   --------------------------
-   -- Start_Alire_Unsynced --
-   --------------------------
+   -----------------
+   -- Run_ALR_Cmd --
+   -----------------
 
-   procedure Start_Alire_Unsynced
+   procedure Run_ALR_Cmd
      (Options : VSS.String_Vectors.Virtual_String_Vector;
       Root    : String;
       Error   : out VSS.Strings.Virtual_String;
@@ -330,6 +347,7 @@ package body LSP.Alire is
       use VSS.Strings.Formatters.Strings;
       use VSS.Strings.Conversions;
 
+      Exe_Path     : constant String := To_UTF_8_String (ALR_Exe);
       Item         : aliased Process_Listener;
       Process      : Spawn.Processes.Process renames Item.Process;
       Full_Options : VSS.String_Vectors.Virtual_String_Vector := Options;
@@ -337,19 +355,7 @@ package body LSP.Alire is
       Decoder      : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
       Text         : VSS.Strings.Virtual_String;
    begin
-      declare
-         use type GNAT.OS_Lib.String_Access;
-         ALR : GNAT.OS_Lib.String_Access :=
-           GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
-      begin
-         if ALR = null then
-            Error := "Alire executable ('alr') not found in PATH";
-            return;
-         end if;
-
-         Process.Set_Program (ALR.all);
-         GNAT.OS_Lib.Free (ALR);
-      end;
+      Process.Set_Program (Exe_Path);
 
       if Alire_Verbose.Is_Active then
          Full_Options.Prepend ("-v");
@@ -446,7 +452,7 @@ package body LSP.Alire is
          end if;
       end if;
 
-   end Start_Alire_Unsynced;
+   end Run_ALR_Cmd;
 
    ------------------------------
    -- Standard_Error_Available --
@@ -502,10 +508,38 @@ package body LSP.Alire is
       Alire_TOML : constant GNATCOLL.VFS.Virtual_File :=
         (if Client.Root.Is_Empty
          then GNATCOLL.VFS.No_File
-         else Client.Root_Directory.Create_From_Dir ("alire.toml"));
+         else Client.Root_Directory.Create_From_Dir (Alire_Crate_Fname));
    begin
       return Alire_TOML.Is_Regular_File;
    end Is_Alire_Crate;
+
+   ------------------------
+   -- Find_And_Cache_ALR --
+   ------------------------
+
+   procedure Find_And_Cache_ALR is
+      use type GNAT.OS_Lib.String_Access;
+      ALR_Path : GNAT.OS_Lib.String_Access :=
+        GNAT.OS_Lib.Locate_Exec_On_Path (ALR_Driver);
+   begin
+      if ALR_Path /= null then
+         ALR_Exe := VSS.Strings.Conversions.To_Virtual_String (ALR_Path.all);
+      end if;
+      GNAT.OS_Lib.Free (ALR_Path);
+      ALR_Checked := True;
+   end Find_And_Cache_ALR;
+
+   --------------------
+   -- Has_ALR_Driver --
+   --------------------
+
+   function Has_ALR_Driver return Boolean is
+   begin
+      if not ALR_Checked then
+         Find_And_Cache_ALR;
+      end if;
+      return not ALR_Exe.Is_Empty;
+   end Has_ALR_Driver;
 
    ----------------------------
    -- Should_Setup_Alire_Env --

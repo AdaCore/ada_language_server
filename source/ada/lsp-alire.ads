@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                   Copyright (C) 2023-2026, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,6 +24,9 @@ with LSP.Ada_Client_Capabilities;
 with VSS.Strings;
 
 private package LSP.Alire is
+
+   function Has_ALR_Driver return Boolean;
+   --  Check cached driver path, return false if null
 
    function Is_Alire_Crate
      (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean;

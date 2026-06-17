@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -79,8 +79,8 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : GPR2_Reporter) return GPR2.Reporter.Verbosity_Level
    is (GPR2.Reporter.Regular);
 
-   LF : VSS.Characters.Virtual_Character
-     renames VSS.Characters.Latin.Line_Feed;
+   LF : VSS.Characters.Virtual_Character renames
+     VSS.Characters.Latin.Line_Feed;
 
    procedure Load_Project
      (Self            : in out Message_Handler'Class;
@@ -201,8 +201,101 @@ package body LSP.Ada_Handlers.Project_Loading is
         Self.Configuration.Project_File;
       GPR_Configuration_File : VSS.Strings.Virtual_String :=
         Self.Configuration.GPR_Configuration_File;
-      Is_Alire_Crate         : Boolean;
       Alire_Error            : VSS.Strings.Virtual_String;
+      Use_Alire              : Boolean;
+      --  True if Alire crate available and Alire
+      --  commands return successfully
+
+      function Find_Alire_Project
+        (Error : out VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String;
+      --  Check for a valid Alire project.
+      --  Write error messages to Error,
+      --  and return project file path if found
+
+      function Configure_Alire
+        (Environment : in out GPR2.Environment.Object)
+         return VSS.Strings.Virtual_String;
+      --  Setup Alire environment, return any errors encountered
+
+      procedure Report_Alire_Errors;
+
+      ------------------------
+      -- Find_Alire_Project --
+      ------------------------
+
+      function Find_Alire_Project
+        (Error : out VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String
+      is
+         Project_Path : VSS.Strings.Virtual_String;
+      begin
+         Tracer.Trace ("Workspace is an Alire crate");
+         Tracer.Trace ("Performing minimal Alire sync");
+         LSP.Alire.Conservative_Alire_Sync
+           (Self.Client.Root_Directory.Display_Full_Name, Error);
+
+         --  Fail early
+         if not Error.Is_Empty then
+            return VSS.Strings.Empty_Virtual_String;
+         end if;
+
+         Tracer.Trace ("Determining project from 'alr show' output");
+
+         LSP.Alire.Determine_Alire_Project
+           (Root    => Self.Client.Root_Directory.Display_Full_Name,
+            Error   => Error,
+            Project => Project_Path);
+
+         return Project_Path;
+      end Find_Alire_Project;
+
+      ---------------------
+      -- Configure_Alire --
+      ---------------------
+
+      function Configure_Alire
+        (Environment : in out GPR2.Environment.Object)
+         return VSS.Strings.Virtual_String
+      is
+         Error : VSS.Strings.Virtual_String;
+      begin
+         if LSP.Alire.Should_Setup_Alire_Env (Self.Client) then
+            Tracer.Trace ("Setting environment from 'alr printenv'");
+
+            LSP.Alire.Setup_Alire_Env
+              (Root        => Self.Client.Root_Directory.Display_Full_Name,
+               Error       => Error,
+               Environment => Environment);
+
+            if not Error.Is_Empty then
+               return Error;
+            end if;
+         else
+            Tracer.Trace
+              ("Alire environment already set up. Not calling 'alr printenv'.");
+         end if;
+         return VSS.Strings.Empty_Virtual_String;
+      end Configure_Alire;
+
+      -------------------------
+      -- Report_Alire_Errors --
+      -------------------------
+
+      procedure Report_Alire_Errors is
+      begin
+         --  If the error is multi-line, use a separate line for the
+         --  fallback message. Otherwise, keep a single line.
+         if Alire_Error.Split_Lines.Length > 1 then
+            Alire_Error.Append (LF);
+         else
+            Alire_Error.Append (". ");
+         end if;
+         Alire_Error.Append (Fallback_Msg);
+
+         Tracer.Trace_Text ("Encountered Alire errors: " & Alire_Error);
+         Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
+      end Report_Alire_Errors;
    begin
       if not Self.Contexts.Is_Empty then
          --  Rely on the fact that there is at least one context initialized
@@ -210,87 +303,43 @@ package body LSP.Ada_Handlers.Project_Loading is
          return;
       end if;
 
-      --  The Alire status is not set yet: check if we are dealing with
-      --  an Alire crate.
-      if Self.Project_Status.Get_Alire_Status = LSP.Ada_Project_Loading.Not_Set
+      --  Set Alire project status on startup
+      if Self.Project_Status.Get_Alire_Status
+         in LSP.Ada_Project_Loading.Not_Set
       then
-         --  Compute the Alire status and store it in the project
          Self.Project_Status.Set_Alire_Status
-           (Alire.Is_Alire_Crate (Self.Client));
+           (LSP.Alire.Is_Alire_Crate (Self.Client));
       end if;
-
-      Is_Alire_Crate :=
-        Self.Project_Status.Get_Alire_Status = LSP.Ada_Project_Loading.Enabled;
+      Use_Alire :=
+        Self.Project_Status.Get_Alire_Status
+        in LSP.Ada_Project_Loading.Enabled;
 
       --  First consider ada.projectFile
       if not Project_File.Is_Empty then
          Tracer.Trace_Text ("Found ada.projectFile = " & Project_File);
-
-         if Project_File.Starts_With ("file://") then
-            Project_File :=
-              VSS.Strings.Conversions.To_Virtual_String
-                (URIs.Conversions.To_File
-                   (VSS.Strings.Conversions.To_UTF_8_String (Project_File),
-                    True));
-         end if;
-
          --  Report how we found the project
          Self.Project_Status.Set_Project_Type
            (LSP.Ada_Project_Loading.Configured_Project);
 
-      elsif Is_Alire_Crate then
-         declare
+      --  Then check for an Alire project
+      elsif Use_Alire then
+         Project_File := Find_Alire_Project (Alire_Error);
 
-            procedure Report_Alire_Errors;
-
-            procedure Report_Alire_Errors is
-            begin
-               --  If the error is multi-line, use a separate line for the
-               --  fallback message. Otherwise, keep a single line.
-               if Alire_Error.Split_Lines.Length > 1 then
-                  Alire_Error.Append (VSS.Characters.Latin.Line_Feed);
-               else
-                  Alire_Error.Append (": ");
-               end if;
-               Alire_Error.Append (Fallback_Msg);
-
-               Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
-               Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
-            end Report_Alire_Errors;
-
-         begin
-
-            Tracer.Trace ("Workspace is an Alire crate");
-
-            Tracer.Trace ("Performing minimal Alire sync");
-            LSP.Alire.Conservative_Alire_Sync
-              (Self.Client.Root_Directory.Display_Full_Name, Alire_Error);
-
-            if not Alire_Error.Is_Empty then
-               Report_Alire_Errors;
-            else
-               Tracer.Trace ("Determining project from 'alr show' output");
-
-               LSP.Alire.Determine_Alire_Project
-                 (Root    => Self.Client.Root_Directory.Display_Full_Name,
-                  Error   => Alire_Error,
-                  Project => Project_File);
-
-               if not Alire_Error.Is_Empty then
-                  Report_Alire_Errors;
-               else
-                  --  Report how we found the project
-                  Self.Project_Status.Set_Project_Type
-                    (LSP.Ada_Project_Loading.Alire_Project);
-                  Self.Project_Status.Set_Alire_Messages ([]);
-               end if;
-
-            end if;
-         end;
-
+         --  Use Alire project if found without errors,
+         --  otherwise report errors and keep looking
+         if Alire_Error.Is_Empty and not Project_File.Is_Empty then
+            Self.Project_Status.Set_Project_Type
+              (LSP.Ada_Project_Loading.Alire_Project);
+            Self.Project_Status.Set_Alire_Messages ([]);
+         else
+            Use_Alire := False;
+            Report_Alire_Errors;
+            Project_File := VSS.Strings.Empty_Virtual_String;
+         end if;
       end if;
 
-      --  If still haven't found a project, try to find a unique project at the root
+      --  If still haven't found a project,
+      --  try to find a unique project at the root
       if Project_File.Is_Empty then
          Tracer.Trace ("Looking for a unique project at the root");
          declare
@@ -318,59 +367,48 @@ package body LSP.Ada_Handlers.Project_Loading is
                  ("Found "
                   & To_Virtual_String (Candidates.Length'Image)
                   & " projects at the root:"
-                  & VSS.Characters.Latin.Line_Feed
-                  & Candidates.Join (VSS.Characters.Latin.Line_Feed));
+                  & LF
+                  & Candidates.Join (LF));
             end if;
          end;
       end if;
 
-      --  At this stage we tried everything to find a project file. Now let's try to load.
+      --  At this stage we tried everything to find a project file.
+      --  Now let's try to load.
       if not Project_File.Is_Empty then
-         declare
-            Environment : GPR2.Environment.Object :=
+         Have_Project_File : declare
+            Environment    : GPR2.Environment.Object :=
               GPR2.Environment.Process_Environment;
-
-            Charset : constant VSS.Strings.Virtual_String :=
+            In_Alire_Crate : constant Boolean :=
+              Self.Project_Status.Get_Alire_Status
+              = LSP.Ada_Project_Loading.Enabled;
+            Charset        : constant VSS.Strings.Virtual_String :=
               (if not Self.Configuration.Charset.Is_Empty
                then Self.Configuration.Charset
-               elsif Is_Alire_Crate
-               then
-                 VSS.Strings.Virtual_String'
-                   ("utf-8")  --  Alire projects tend to prefer utf-8
+               elsif In_Alire_Crate
+               then VSS.Strings.Virtual_String'("utf-8")
                else "iso-8859-1");
+            --  Alire projects tend to prefer utf-8
 
          begin
-            --  We have an Alire crate and we did not encounter any issue
-            --  when trying to determine the project file to load via
-            --  'alr show': try to setup the needed environment through Alire.
-            if Is_Alire_Crate and then Alire_Error.Is_Empty then
-               if LSP.Alire.Should_Setup_Alire_Env (Self.Client) then
-                  Tracer.Trace ("Setting environment from 'alr printenv'");
-
-                  LSP.Alire.Setup_Alire_Env
-                    (Root        =>
-                       Self.Client.Root_Directory.Display_Full_Name,
-                     Error       => Alire_Error,
-                     Environment => Environment);
-
-                  if not Alire_Error.Is_Empty then
-                     Tracer.Trace_Text
-                       ("Encountered errors with Alire:" & LF & Alire_Error);
-                     Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
-                  end if;
-               else
-                  Tracer.Trace
-                    ("Alire environment is already set up. Not calling 'alr printenv'.");
-               end if;
+            if Project_File.Starts_With ("file://") then
+               Project_File :=
+                 To_Virtual_String
+                   (URIs.Conversions.To_File
+                      (To_UTF_8_String (Project_File), True));
             end if;
-
             if GPR_Configuration_File.Starts_With ("file://") then
                GPR_Configuration_File :=
-                 VSS.Strings.Conversions.To_Virtual_String
+                 To_Virtual_String
                    (URIs.Conversions.To_File
-                      (VSS.Strings.Conversions.To_UTF_8_String
-                         (GPR_Configuration_File),
-                       True));
+                      (To_UTF_8_String (GPR_Configuration_File), True));
+            end if;
+            if Use_Alire then
+               Alire_Error := Configure_Alire (Environment);
+               --  Proceed even if environment setup fails
+               if not Alire_Error.Is_Empty then
+                  Report_Alire_Errors;
+               end if;
             end if;
 
             Load_Project
@@ -380,7 +418,7 @@ package body LSP.Ada_Handlers.Project_Loading is
                Context         => Self.Configuration.Context,
                Environment     => Environment,
                Charset         => Charset);
-         end;
+         end Have_Project_File;
       else
          --  We didn't find a project file. Let's load an implicit project. We
          --  reach this point either because there are no GPR projects at the
@@ -546,27 +584,25 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       begin
          begin
-            Reader.Initialize
-              (Tree => Self.Project_Tree,
-               View => View);
+            Reader.Initialize (Tree => Self.Project_Tree, View => View);
          exception
             --  Fallback to a degraded mode when failing to parse preprocessing
             --  options.
             when E : Langkit_Support.Errors.Syntax_Error =>
-            Self.Send_Messages
-              (Show     => True,
-               Messages =>
-                 ["Failed to load preprocessing options: please ensure"
-                  & " your preprocessing definitions are syntactically correct."],
-               Severity => LSP.Enumerations.Error,
-               File     => GNATCOLL.VFS.No_File);
-            Tracer.Trace_Exception
-              (Error   => E,
-               Message =>
-                 "Failed to parse preprocessing options for Context Id: "
-                 & (C.Id)
-                 & ", fallback to a degraded mode without support for "
-                 & "preprocessing directives");
+               Self.Send_Messages
+                 (Show     => True,
+                  Messages =>
+                    ["Failed to load preprocessing options: please ensure"
+                     & " your preprocessing definitions are syntactically correct."],
+                  Severity => LSP.Enumerations.Error,
+                  File     => GNATCOLL.VFS.No_File);
+               Tracer.Trace_Exception
+                 (Error   => E,
+                  Message =>
+                    "Failed to parse preprocessing options for Context Id: "
+                    & (C.Id)
+                    & ", fallback to a degraded mode without support for "
+                    & "preprocessing directives");
          end;
 
          C.Initialize

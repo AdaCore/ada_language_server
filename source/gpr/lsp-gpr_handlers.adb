@@ -421,18 +421,18 @@ package body LSP.GPR_Handlers is
       Self.Client.Initialize (Value);
 
       declare
-         Alire_Error : VSS.Strings.Virtual_String;
+         Error : VSS.Strings.Virtual_String;
       begin
-         LSP.GPR_Files.Set_Environment (Self.Client, Alire_Error);
+         LSP.GPR_Files.Set_Environment (Self.Client, Error);
 
-         if not Alire_Error.Is_Empty then
+         if not Error.Is_Empty then
 
-            Alire_Error.Prepend ("Error while setting up environment: ");
+            Error.Prepend ("Error while setting up environment: ");
 
-            Self.Tracer.Trace_Text (Alire_Error);
+            Self.Tracer.Trace_Text (Error);
 
             Self.Sender.On_ShowMessage_Notification
-              ((LSP.Enumerations.Error, Alire_Error));
+              ((LSP.Enumerations.Error, Error));
 
          end if;
 
