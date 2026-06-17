@@ -237,8 +237,13 @@ export function getWsUri(...srcRelPath: string[]) {
  */
 export async function getCodeLenses(...srcRelPath: string[]) {
     const textEditor = await showTextDocument(...srcRelPath);
-    const codelenses = await adaExtState.codelensProvider.provideCodeLenses(textEditor.document);
-    return codelenses ?? [];
+    const adaCodelenses = await adaExtState.adaCodelensProvider.provideCodeLenses(
+        textEditor.document,
+    );
+    const gprCodelenses = await adaExtState.gprCodeLensProvider.provideCodeLenses(
+        textEditor.document,
+    );
+    return adaCodelenses.concat(gprCodelenses) ?? [];
 }
 
 /**

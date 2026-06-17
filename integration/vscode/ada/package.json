@@ -1553,6 +1553,12 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.project.openToolDocumentation",
+                "category": "Ada",
+                "title": "Open documentation related to project package",
+                "when": "ADA_PROJECT_CONTEXT && editorTextFocus"
+            },
+            {
                 "command": "ada.projectView.revealInExplorer",
                 "title": "Reveal in Explorer",
                 "category": "Ada"
