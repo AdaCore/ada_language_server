@@ -60,15 +60,12 @@ package body LSP.Ada_Completions.Use_Clauses is
              (Node.Unit.Root, Has_With_Clause_Node'Unrestricted_Access));
    begin
       --  Return immediately if we don't have any with-clause node on the same
-      --  line, if we are still within the with-clause node, or if we are
-      --  inside a comment.
+      --  line, if the with-clause is not yet complete (no semicolon), or if we
+      --  are inside a comment.
       if With_Node.Is_Null
         or else Filter.Is_Comma
         or else Filter.Is_Comment
-        or else
-          (not Filter.Is_Semicolon
-           and then (Sloc.Line = With_Node.Sloc_Range.End_Line
-                     and then Sloc.Column = With_Node.Sloc_Range.End_Column))
+        or else not Filter.Is_Semicolon
       then
          return;
       end if;
