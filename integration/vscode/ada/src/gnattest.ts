@@ -828,7 +828,14 @@ async function handleRunRequestedTests(
                 /**
                  * Convert GNATcoverage coverage report to VS Code
                  */
-                await addCoverageData(run, outputDir);
+                try {
+                    await addCoverageData(run, outputDir);
+                } catch (e) {
+                    void vscode.window.showErrorMessage(
+                        `Could not load coverage` +
+                            ` report: ${e instanceof Error ? e.message : String(e)}`,
+                    );
+                }
             }
         }
     } finally {
