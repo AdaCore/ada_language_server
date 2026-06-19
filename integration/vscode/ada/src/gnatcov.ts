@@ -818,10 +818,30 @@ export async function addCoverageDataFromCobertura(run: vscode.TestRun, cobertur
  *
  * @param run - the test run to add coverage data to
  * @param covDir - The path to the directory containing GNATcoverage XML
- * reports. The directory must contain a single 'index.xml' file.
+ * reports. The directory must contain a single 'index.xml' file, either
+ * directly or inside an 'xml/' subdirectory (which GNATcoverage creates when
+ * multiple --annotate formats are used simultaneously, e.g. when the project
+ * file defines Coverage.Switches with additional annotate types).
  */
 export async function addCoverageData(run: vscode.TestRun, covDir: string) {
-    const indexPath = path.join(covDir, 'index.xml');
+    // When GNATcoverage is invoked with multiple --annotate formats (e.g. via
+    // Coverage.Switches in the project file), it places each format in its own
+    // subdirectory. For XML that subdirectory is named 'xml/'. Fall back to
+    // that path when the flat layout is not present.
+    const flatIndexPath = path.join(covDir, 'index.xml');
+    const subDirIndexPath = path.join(covDir, 'xml', 'index.xml');
+    let indexPath: string;
+    if (fs.existsSync(flatIndexPath)) {
+        indexPath = flatIndexPath;
+    } else if (fs.existsSync(subDirIndexPath)) {
+        indexPath = subDirIndexPath;
+    } else {
+        throw new Error(`No GNATcoverage index.xml found under ${covDir}`);
+    }
+    // The per-file XML reports are resolved relative to the directory
+    // containing index.xml, which may differ from covDir in the subdirectory
+    // layout.
+    const reportDir = path.dirname(indexPath);
     const data = parseGnatcovIndexXml(indexPath);
 
     await vscode.window.withProgress(
@@ -890,7 +910,7 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                             return undefined;
                         }
 
-                        const fileReportPath = path.join(covDir, fileReportBasename);
+                        const fileReportPath = path.join(reportDir, fileReportBasename);
 
                         const stmtStats = getStats(file, 'Stmt') ?? { covered: 0, total: 0 };
                         const decisionStats = getStats(file, 'Decision');
