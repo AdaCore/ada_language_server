@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
-import { adaExtState } from './extension';
+import { adaExtState, logger } from './extension';
 import {
     addCoverageData,
     addCoverageDataFromCobertura,
@@ -239,6 +239,34 @@ async function getTracesDir() {
  */
 async function getGnatCovXMLReportDir() {
     return path.join(await adaExtState.getVSCodeObjectSubdir(), 'cov-xml');
+}
+
+/**
+ * Check whether the project defines `Coverage.Switches` for a given gnatcov
+ * subcommand (e.g. `'instrument'` or `'coverage'`), either via a
+ * subcommand-specific index or the wildcard `"*"` index.
+ *
+ * When the project defines coverage switches, gnatcov will pick them up from
+ * the project file and we should not inject a `--level` on the command line
+ * (which would override the project file value).
+ *
+ * When the project does not define coverage switches, we fall back to
+ * `['--level=stmt']` to ensure a valid default.
+ */
+export async function getCoverageLevelArgs(subcommand: string): Promise<string[]> {
+    for (const index of [subcommand, '*']) {
+        try {
+            await adaExtState.getProjectAttributeValue('Switches', 'Coverage', index);
+            // Switches are defined: trust the GPR file, don't add --level
+            return [];
+        } catch (err) {
+            const errMessage =
+                err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+            logger.warn(`Failed to retrieve coverage level from '${index}' command: ${errMessage}`);
+            logger.warn('Falling back to --level=stmt for coverage analysis');
+        }
+    }
+    return ['--level=stmt'];
 }
 
 /**
@@ -783,7 +811,7 @@ async function handleRunRequestedTests(
                         'coverage',
                         '-P',
                         await getGnatTestDriverProjectPath(),
-                        '--level=stmt',
+                        ...(await getCoverageLevelArgs('coverage')),
                         '--annotate=xml',
                         `--output-dir=${outputDir}`,
                         `--trace=@${traceListFile}`,
@@ -849,7 +877,7 @@ async function buildTestDriverAndReportErrors(
                 command: 'gnatcov',
                 args: [
                     'instrument',
-                    '--level=stmt',
+                    ...(await getCoverageLevelArgs('instrument')),
                     '-P',
                     await getGnatTestDriverProjectPath(),
                 ].concat(getScenarioArgs()),
