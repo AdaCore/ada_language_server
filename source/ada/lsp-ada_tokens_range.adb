@@ -20,6 +20,7 @@ with GNATCOLL.VFS;
 with Libadalang.Analysis;
 
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Server_Requests.Tokens_Range;
@@ -79,6 +80,9 @@ package body LSP.Ada_Tokens_Range is
       Context : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Parent.Context.Get_Best_Context (URI);
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Parent.Context.Get_Open_Document (URI);
+
       File : constant GNATCOLL.VFS.Virtual_File :=
         Self.Parent.Context.To_File (URI);
 
@@ -90,7 +94,9 @@ package body LSP.Ada_Tokens_Range is
    begin
       Status := LSP.Server_Jobs.Done;
 
-      if Unit.Root.Is_Null then
+      if Unit.Root.Is_Null
+        or else Document = null
+      then
          Client.On_Tokens_Range_Response (Message.Id, (Is_Null => True));
 
          return;
@@ -98,7 +104,10 @@ package body LSP.Ada_Tokens_Range is
 
       Result :=
         Self.Parent.Context.Get_Highlighter.Get_Tokens
-          (Unit, Context.Tracer.all, Message.Params.a_range);
+          (Document,
+           Unit,
+           Context.Tracer.all,
+           Message.Params.a_range);
 
       Client.On_Tokens_Range_Response (Message.Id, Response);
    end Execute_Ada_Request;

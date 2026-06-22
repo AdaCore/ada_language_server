@@ -26,6 +26,7 @@ with Libadalang.Common;
 with Libadalang.Iterators;
 
 with LSP.Ada_Client_Capabilities;
+with LSP.Ada_Documents;
 with LSP.Enumerations;
 with LSP.Structures;
 with LSP.Tracers;
@@ -41,10 +42,11 @@ package LSP.Ada_Highlighters is
       Modifiers : out LSP.Structures.Virtual_String_Vector);
 
    function Get_Tokens
-     (Self   : Ada_Highlighter'Class;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Tracer : in out LSP.Tracers.Tracer'Class;
-      Span   : LSP.Structures.A_Range)
+     (Self     : Ada_Highlighter'Class;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Unit     : Libadalang.Analysis.Analysis_Unit;
+      Tracer   : in out LSP.Tracers.Tracer'Class;
+      Span     : LSP.Structures.A_Range)
       return LSP.Structures.Natural_Vector;
    --  If Span isn't empty then return unit tokens in given Span, otherwise
    --  return all tokens in the Unit.

@@ -22,6 +22,7 @@ with Laltools.Common;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Libadalang.Common; use Libadalang.Common;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
 
 with VSS.Strings;
 
@@ -123,7 +124,7 @@ package body LSP.Ada_Highlighters is
 
          Self.First := Libadalang.Common.Index (First);
          Self.Last := Libadalang.Common.Index (Last);
-         Count := Libadalang.Common.Index (Last) - Self.First + 1;
+         Count := Self.Last - Self.First + 1;
 
          Self.Vector.Clear;
          Self.Vector.Append (None, Ada.Containers.Count_Type (Count));
@@ -221,22 +222,23 @@ package body LSP.Ada_Highlighters is
    ----------------
 
    function Get_Tokens
-     (Self   : Ada_Highlighter'Class;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Tracer : in out LSP.Tracers.Tracer'Class;
-      Span   : LSP.Structures.A_Range)
+     (Self     : Ada_Highlighter'Class;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Unit     : Libadalang.Analysis.Analysis_Unit;
+      Tracer   : in out LSP.Tracers.Tracer'Class;
+      Span     : LSP.Structures.A_Range)
       return LSP.Structures.Natural_Vector
    is
 
       First_Token : constant Libadalang.Common.Token_Reference :=
-        (if Span.an_end.line = 0 then Unit.First_Token
-         else Unit.Lookup_Token
-           ((Langkit_Support.Slocs.Line_Number (Span.start.line + 1), 1)));
+        (if Span.an_end.line = 0
+         then Unit.First_Token
+         else Unit.Lookup_Token (Document.To_Source_Location (Span.start)));
 
       Last_Token : constant Libadalang.Common.Token_Reference :=
-        (if Span.an_end.line = 0 then Unit.Last_Token
-         else Unit.Lookup_Token
-           ((Langkit_Support.Slocs.Line_Number (Span.an_end.line + 2), 1)));
+        (if Span.an_end.line = 0
+         then Unit.Last_Token
+         else Unit.Lookup_Token (Document.To_Source_Location (Span.an_end)));
 
       From_Token : constant Libadalang.Common.Token_Reference :=
         (if Libadalang.Common.Is_Trivia (First_Token)
@@ -264,8 +266,13 @@ package body LSP.Ada_Highlighters is
          return Libadalang.Common.Visit_Status
       is
          use all type LSP.Enumerations.SemanticTokenModifiers;
+         ST : constant Token_Reference := Node.Token_Start;
+         ET : constant Token_Reference := Node.Token_End;
+         KT : constant Ada_Node_Kind_Type := Node.Kind;
       begin
-         if Node.Token_End < From_Token or To_Token < Node.Token_Start then
+         if ST > To_Token
+           or else From_Token > ET
+         then
             --  Skip uninteresting nodes to speedup traversal
             return Libadalang.Common.Over;
          elsif Is_Ghost_Root_Node (Node) and then
@@ -273,16 +280,16 @@ package body LSP.Ada_Highlighters is
          then
             --  Mark all tokens in a ghost element as `documentation`
             Holder.Set_Token_Modifier
-              (Node.Token_Start, Node.Token_End, documentation);
+              (ST, ET, documentation);
          end if;
 
-         case Node.Kind is
+         case KT is
             when Libadalang.Common.Ada_Name =>
                Self.Highlight_Name (Holder, Node.As_Name);
 
             when Libadalang.Common.Ada_Finally_Part =>
                Self.Highlight_Token
-                  (Holder, Node.Token_Start, LSP.Enumerations.keyword);
+                  (Holder, ST, LSP.Enumerations.keyword);
 
             when others =>
                null;
@@ -322,7 +329,7 @@ package body LSP.Ada_Highlighters is
          return LSP.Structures.Empty;
       end if;
 
-      --  Traverse whole tree, look for intresting nodes and mark their
+      --  Traverse whole tree, look for interesting nodes and mark their
       --  tokens in Holder for further processing
       Root.Traverse (Highlight_Node'Access);
 
@@ -371,7 +378,9 @@ package body LSP.Ada_Highlighters is
       end if;
 
       --  Scan over all tokens and find a corresponding value in Holder
-      while Token < To_Token loop
+      while Token /= No_Token
+        and then Token <= To_Token
+      loop
 
          declare
             Value : constant Highlights_Holders.Semantic_Token :=
@@ -471,8 +480,6 @@ package body LSP.Ada_Highlighters is
             end;
 
             Token := Libadalang.Common.Next (Token, Exclude_Trivia => True);
-
-            exit when not (Token < To_Token);
          end;
       end loop;
    end Get_Result;
