@@ -184,6 +184,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "insertText": "Disc => 1, A => ${2:Integer}, D => ${3:Integer})$0",
                         "kind": 15,

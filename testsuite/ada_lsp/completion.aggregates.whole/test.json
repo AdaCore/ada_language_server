@@ -1,0 +1,517 @@
+[
+   {
+      "comment": [
+         "This test checks that whole aggregate completion works for simple ",
+         "cases"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 31570,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "adaFileDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Finalization; use Ada.Finalization;\n\nprocedure Test is\n   type Point is record\n      X, Y : Natural;\n   end record;\n\n   V_Point : Point := ();\n\n   Static_Value : constant := -22;\n   type TD (N : Integer) is record\n      case N is\n         when -1 .. 0 =>\n            On_Range : Boolean;\n         when Positive =>\n            On_Positive : Boolean;\n         when Static_Value =>\n            On_Static_Value : Boolean;\n         when others =>\n            On_Others : Boolean;\n      end case;\n   end record;\n\n   V_TD : TD := ();\n\n   type Dynamic is new Ada.Finalization.Controlled with null record;\n\n   V_Dynamic : Dynamic := (Controlled with null record);\n\n   type Matrix_3x3 is array (1 .. 3, 1 .. 3) of Float;\n\n   V_Matrix_3x3 : Matrix_3x3 := ();\n   U_Matrix_3x3 : Matrix_3x3 := (others => ());\n\n   type Comp is record\n      Arr : Matrix_3x3;\n      Pt  : Point;\n      Next : access Comp;\n      Char : Character;\n      Enum : Boolean;\n      Int  : Integer;\n      Real : Float;\n   end record;\n\n   V_Comp : Comp := ();\nbegin\n   null;\nend Test;\n",
+                  "version": 0,
+                  "uri": "$URI{test.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "position": {
+                  "line": 44,
+                  "character": 21
+               },
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "documentation": "(Arr => (others => (others => 0.0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)\n\ntype Comp is record\n   Arr : Matrix_3x3;\n   Pt  : Point;\n   Next : access Comp;\n   Char : Character;\n   Enum : Boolean;\n   Int  : Integer;\n   Real : Float;\nend record;\n\nat test.adb (35:4)\n\n",
+                        "insertText": "(Arr => (others => (others => ${1:0.0})), Pt => (X => ${2:0}, Y => ${3:0}), Next => ${4:null}, Char => ${5:' '}, Enum => ${6:Boolean'First}, Int => ${7:0}, Real => ${8:0.0})",
+                        "insertTextFormat": 2,
+                        "kind": 22,
+                        "label": "(Arr => (others => (others => 0",
+                        "labelDetails": {
+                           "detail": ".0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)"
+                        },
+                        "sortText": "*1",
+                        "textEdit": {
+                           "newText": "(Arr => (others => (others => ${1:0.0})), Pt => (X => ${2:0}, Y => ${3:0}), Next => ${4:null}, Char => ${5:' '}, Enum => ${6:Boolean'First}, Int => ${7:0}, Real => ${8:0.0})",
+                           "range": {
+                              "end": {
+                                 "character": 22,
+                                 "line": 44
+                              },
+                              "start": {
+                                 "character": 20,
+                                 "line": 44
+                              }
+                           }
+                        },
+                        "command": {
+                           "arguments": [
+                              {
+                                 "range": {
+                                    "end": {
+                                       "character": 0,
+                                       "line": 45
+                                    },
+                                    "start": {
+                                       "character": 20,
+                                       "line": 44
+                                    }
+                                 },
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 }
+                              }
+                           ],
+                           "command": "als-format-range",
+                           "title": "Format range"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 31,
+            "method": "textDocument/completion",
+            "params": {
+               "position": {
+                  "line": 32,
+                  "character": 44
+               },
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 31,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "documentation": "(others => 0.0)\n\ntype Matrix_3x3 is array (1 .. 3, 1 .. 3) of Float;\n\nat test.adb (30:4)\n\n",
+                        "insertText": "(others => ${1:0.0})",
+                        "insertTextFormat": 2,
+                        "kind": 22,
+                        "label": "(others => 0.0)",
+                        "labelDetails": {},
+                        "sortText": "*1",
+                        "textEdit": {
+                           "newText": "(others => ${1:0.0})",
+                           "range": {
+                              "end": {
+                                 "character": 45,
+                                 "line": 32
+                              },
+                              "start": {
+                                 "character": 43,
+                                 "line": 32
+                              }
+                           }
+                        },
+                        "command": {
+                           "arguments": [
+                              {
+                                 "range": {
+                                    "end": {
+                                       "character": 0,
+                                       "line": 33
+                                    },
+                                    "start": {
+                                       "character": 43,
+                                       "line": 32
+                                    }
+                                 },
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 }
+                              }
+                           ],
+                           "command": "als-format-range",
+                           "title": "Format range"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 32,
+            "method": "textDocument/completion",
+            "params": {
+               "position": {
+                  "line": 31,
+                  "character": 33
+               },
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 32,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "documentation": "(others => (others => 0.0))\n\ntype Matrix_3x3 is array (1 .. 3, 1 .. 3) of Float;\n\nat test.adb (30:4)\n\n",
+                        "insertText": "(others => (others => ${1:0.0}))",
+                        "insertTextFormat": 2,
+                        "kind": 22,
+                        "label": "(others => (others => 0.0))",
+                        "labelDetails": {},
+                        "sortText": "*1",
+                        "textEdit": {
+                           "newText": "(others => (others => ${1:0.0}))",
+                           "range": {
+                              "end": {
+                                 "character": 34,
+                                 "line": 31
+                              },
+                              "start": {
+                                 "character": 32,
+                                 "line": 31
+                              }
+                           }
+                        },
+                        "command": {
+                           "arguments": [
+                              {
+                                 "range": {
+                                    "end": {
+                                       "character": 0,
+                                       "line": 32
+                                    },
+                                    "start": {
+                                       "character": 32,
+                                       "line": 31
+                                    }
+                                 },
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 }
+                              }
+                           ],
+                           "command": "als-format-range",
+                           "title": "Format range"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 33,
+            "method": "textDocument/completion",
+            "params": {
+               "position": {
+                  "line": 23,
+                  "character": 17
+               },
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 33,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "documentation": "(N => -1, On_Range => Boolean'First)\n\ntype TD (N : Integer) is record\n   case N is\n      when -1 .. 0 =>\n         On_Range : Boolean;\n      when Positive =>\n         On_Positive : Boolean;\n      when Static_Value =>\n         On_Static_Value : Boolean;\n      when others =>\n         On_Others : Boolean;\n   end case;\nend record;\n\nat test.adb (11:4)\n\n",
+                        "insertText": "(N => -1, On_Range => ${1:Boolean'First})",
+                        "insertTextFormat": 2,
+                        "kind": 22,
+                        "label": "(N => -1, On_Range => Boolean'F",
+                        "labelDetails": {"detail": "irst)"},
+                        "sortText": "*1",
+                        "textEdit": {
+                           "newText": "(N => -1, On_Range => ${1:Boolean'First})",
+                           "range": {
+                              "end": {
+                                 "character": 18,
+                                 "line": 23
+                              },
+                              "start": {
+                                 "character": 16,
+                                 "line": 23
+                              }
+                           }
+                        },
+                        "command": {
+                           "arguments": [
+                              {
+                                 "range": {
+                                    "end": {
+                                       "character": 0,
+                                       "line": 24
+                                    },
+                                    "start": {
+                                       "character": 16,
+                                       "line": 23
+                                    }
+                                 },
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 }
+                              }
+                           ],
+                           "command": "als-format-range",
+                           "title": "Format range"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 34,
+            "method": "textDocument/completion",
+            "params": {
+               "position": {
+                  "line": 7,
+                  "character": 23
+               },
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 34,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "documentation": "(X => 0, Y => 0)\n\ntype Point is record\n   X, Y : Natural;\nend record;\n\nat test.adb (4:4)\n\n",
+                        "insertText": "(X => ${1:0}, Y => ${2:0})",
+                        "insertTextFormat": 2,
+                        "kind": 22,
+                        "label": "(X => 0, Y => 0)",
+                        "labelDetails": {},
+                        "sortText": "*1",
+                        "textEdit": {
+                           "newText": "(X => ${1:0}, Y => ${2:0})",
+                           "range": {
+                              "end": {
+                                 "character": 24,
+                                 "line": 7
+                              },
+                              "start": {
+                                 "character": 22,
+                                 "line": 7
+                              }
+                           }
+                        },
+                        "command": {
+                           "arguments": [
+                              {
+                                 "range": {
+                                    "end": {
+                                       "character": 0,
+                                       "line": 8
+                                    },
+                                    "start": {
+                                       "character": 22,
+                                       "line": 7
+                                    }
+                                 },
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 }
+                              }
+                           ],
+                           "command": "als-format-range",
+                           "title": "Format range"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

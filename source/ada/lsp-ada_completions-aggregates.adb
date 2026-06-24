@@ -14,26 +14,18 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
-pragma Warnings (Off);
-with Ada.Containers.Vectors;
 
-with LSP.Ada_Completions.Filters;
+with GNATdoc.Comments.Options;
+with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Format_Range_Commands;
 with LSP.Enumerations;
-with LSP.Utils;
-with VSS.Characters;
-with VSS.Characters.Latin;
 with VSS.String_Vectors;
+with VSS.Strings.Character_Iterators;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
 
 package body LSP.Ada_Completions.Aggregates is
-
-   type Token_Index is new Natural;
-
-   package Token_Index_Vectors is
-      new Ada.Containers.Vectors (Positive, Token_Index);
 
    type Code_Snippet is tagged limited record
       Plain_Text   : VSS.String_Vectors.Virtual_String_Vector := [""];
@@ -63,23 +55,18 @@ package body LSP.Ada_Completions.Aggregates is
       Text : VSS.Strings.Virtual_String);
    --  Append a single Ada token to code snippet as a placeholder
 
-   procedure Append_New_Line (Self : in out Code_Snippet'Class);
-   --  Append a single line feed
-
    procedure Append_Value
      (Self            : in out Code_Snippet'Class;
       Aggregate       : Libadalang.Analysis.Aggregate;
       Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
-      Level           : Natural;
-      Component_Name  : Wide_Wide_String := "");
+      Level           : Natural);
    --  Append Ada value of given Expression_Type, use Aggregate as origin
 
    procedure Append_Discriminant_Value
      (Self            : in out Code_Snippet'Class;
       Aggregate       : Libadalang.Analysis.Aggregate;
       Alternatives    : Libadalang.Analysis.Alternatives_List'Class;
-      Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
-      Component_Name  : Wide_Wide_String);
+      Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class);
    --  Append discriminant value taking it from given Alternatives if possible
 
    procedure Append_Record_Aggregate
@@ -113,9 +100,10 @@ package body LSP.Ada_Completions.Aggregates is
 
    procedure Create_Completion
      (Self      : Aggregate_Completion_Provider;
-      Label     : LSP.Structures.CompletionItemLabelDetails;
+      Index     : Positive;
       Snippet   : Code_Snippet'Class;
       Aggregate : Libadalang.Analysis.Aggregate;
+      Aggr_Type : Libadalang.Analysis.Base_Type_Decl;
       Result    : out LSP.Structures.CompletionItem);
 
    function Format (Self : Aggregate_Completion_Provider'Class)
@@ -138,9 +126,21 @@ package body LSP.Ada_Completions.Aggregates is
             Origin                => Origin)
        else []);
 
-   Placeholder_Template : VSS.Strings.Templates.Virtual_String_Template :=
-     "{}${{{}:{}}";
-     --  Like `[indent]${3:Foo}` with the first `{` escaped
+   Placeholder_Template :
+     constant VSS.Strings.Templates.Virtual_String_Template := "{}${{{}:{}}";
+   --  Like `[indent]${3:Foo}` with the first `{` escaped
+
+   Sort_Text_Template :
+     constant VSS.Strings.Templates.Virtual_String_Template := "*{}";
+
+   Detail_Template_Text : constant Wide_Wide_String :=
+     "{}" & Wide_Wide_Character'Val (10) & Wide_Wide_Character'Val (10) &
+     "{}" & Wide_Wide_Character'Val (10) & Wide_Wide_Character'Val (10) &
+     "{}" & Wide_Wide_Character'Val (10) & Wide_Wide_Character'Val (10) &
+     "{}";
+
+   Detail_Template : constant VSS.Strings.Templates.Virtual_String_Template :=
+     VSS.Strings.Templates.To_Virtual_String_Template (Detail_Template_Text);
 
    -------------------------------
    -- Append_Discriminant_Value --
@@ -150,8 +150,7 @@ package body LSP.Ada_Completions.Aggregates is
      (Self            : in out Code_Snippet'Class;
       Aggregate       : Libadalang.Analysis.Aggregate;
       Alternatives    : Libadalang.Analysis.Alternatives_List'Class;
-      Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
-      Component_Name  : Wide_Wide_String) is
+      Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class) is
    begin
       for Item of Alternatives loop
          --  Search for a range Left .. Right and write Left
@@ -180,18 +179,8 @@ package body LSP.Ada_Completions.Aggregates is
       end loop;
 
       --  Fallback to unknown value
-      Self.Append_Value (Aggregate, Expression_Type, 0, Component_Name);
+      Self.Append_Value (Aggregate, Expression_Type, 0);
    end Append_Discriminant_Value;
-
-   ---------------------
-   -- Append_New_Line --
-   ---------------------
-
-   procedure Append_New_Line (Self : in out Code_Snippet'Class) is
-   begin
-      Self.Plain_Text.Append (VSS.Strings.Empty_Virtual_String);
-      Self.Coded_Text.Append (VSS.Strings.Empty_Virtual_String);
-   end Append_New_Line;
 
    ------------------------------
    -- Append_Placeholder_Token --
@@ -203,19 +192,24 @@ package body LSP.Ada_Completions.Aggregates is
    is
       use VSS.Strings;
 
-      Prefix : constant VSS.Strings.Virtual_String :=
+      Plain_Prefix : constant VSS.Strings.Virtual_String :=
         (if Self.Plain_Text.Length = 1
           or else not Self.Plain_Text.Last_Element.Is_Empty
          then Self.Plain_Text.Last_Element
          else Self.Indent * ' ');
 
+      Coded_Prefix : constant VSS.Strings.Virtual_String :=
+        (if Self.Coded_Text.Length = 1
+          or else not Self.Coded_Text.Last_Element.Is_Empty
+         then Self.Coded_Text.Last_Element
+         else Self.Indent * ' ');
    begin
       Self.Placeholders := @ + 1;
-      Self.Plain_Text.Replace (Self.Plain_Text.Last_Index, Prefix & Text);
+      Self.Plain_Text.Replace (Self.Plain_Text.Last_Index, Plain_Prefix & Text);
       Self.Coded_Text.Replace
         (Self.Coded_Text.Last_Index,
          Placeholder_Template.Format
-           (VSS.Strings.Formatters.Strings.Image (Prefix),
+           (VSS.Strings.Formatters.Strings.Image (Coded_Prefix),
             VSS.Strings.Formatters.Integers.Image (Self.Placeholders),
             VSS.Strings.Formatters.Strings.Image (Text)));
    end Append_Placeholder_Token;
@@ -267,16 +261,14 @@ package body LSP.Ada_Completions.Aggregates is
                     (Aggregate,
                      Libadalang.Analysis.Values (K),
                      Expression_Type =>
-                       Component.P_Formal_Type (Origin => Aggregate),
-                     Component_Name  => Name.Text);
+                       Component.P_Formal_Type (Origin => Aggregate));
                end loop;
             else
                Self.Append_Value
                  (Aggregate,
                   Expression_Type =>
                     Component.P_Formal_Type (Origin => Aggregate),
-                  Level           => 0,
-                  Component_Name  => Name.Text);
+                  Level           => 0);
             end if;
 
             Count := Count + 1;
@@ -300,14 +292,20 @@ package body LSP.Ada_Completions.Aggregates is
    is
       use type VSS.Strings.Virtual_String;
 
-      Line : constant VSS.Strings.Virtual_String :=
+      Plain_Line : constant VSS.Strings.Virtual_String :=
         (if Self.Plain_Text.Length = 1
           or else not Self.Plain_Text.Last_Element.Is_Empty
          then Self.Plain_Text.Last_Element
          else Self.Indent * ' ') & Text;
+
+      Coded_Line : constant VSS.Strings.Virtual_String :=
+        (if Self.Coded_Text.Length = 1
+          or else not Self.Coded_Text.Last_Element.Is_Empty
+         then Self.Coded_Text.Last_Element
+         else Self.Indent * ' ') & Text;
    begin
-      Self.Plain_Text.Replace (Self.Plain_Text.Last_Index, Line);
-      Self.Coded_Text.Replace (Self.Coded_Text.Last_Index, Line);
+      Self.Plain_Text.Replace (Self.Plain_Text.Last_Index, Plain_Line);
+      Self.Coded_Text.Replace (Self.Coded_Text.Last_Index, Coded_Line);
    end Append_Token;
 
    ------------------
@@ -329,11 +327,10 @@ package body LSP.Ada_Completions.Aggregates is
      (Self            : in out Code_Snippet'Class;
       Aggregate       : Libadalang.Analysis.Aggregate;
       Expression_Type : Libadalang.Analysis.Base_Type_Decl'Class;
-      Level           : Natural;
-      Component_Name  : Wide_Wide_String := "") is
+      Level           : Natural) is
    begin
       if Expression_Type.P_Is_Array_Type (Origin => Aggregate) then
-         Self.Append_Token ("[others => ");
+         Self.Append_Token ("(others => ");
 
          if Expression_Type.P_Index_Type
               (Dim => Level + 1, Origin => Aggregate)
@@ -351,7 +348,7 @@ package body LSP.Ada_Completions.Aggregates is
                Level => Level + 1);
          end if;
 
-         Self.Append_Token ("]");
+         Self.Append_Token (")");
       elsif Expression_Type.P_Is_Record_Type (Origin => Aggregate) then
          Self.Append_Record_Aggregate
            (Aggregate,
@@ -418,11 +415,17 @@ package body LSP.Ada_Completions.Aggregates is
 
    procedure Create_Completion
      (Self      : Aggregate_Completion_Provider;
-      Label     : LSP.Structures.CompletionItemLabelDetails;
+      Index     : Positive;
       Snippet   : Code_Snippet'Class;
       Aggregate : Libadalang.Analysis.Aggregate;
+      Aggr_Type : Libadalang.Analysis.Base_Type_Decl;
       Result    : out LSP.Structures.CompletionItem)
    is
+
+      function Fetch_Documentation
+        (Text : VSS.Strings.Virtual_String)
+          return VSS.Strings.Virtual_String;
+
       function Shift_End_Bound
         (Value : LSP.Structures.Location) return LSP.Structures.Location is
           (uri     => Value.uri,
@@ -433,14 +436,81 @@ package body LSP.Ada_Completions.Aggregates is
               an_end => (line => Value.a_range.an_end.line,
                          character => Value.a_range.an_end.character + 1)));
 
+      function Skip
+        (Text  : VSS.Strings.Virtual_String;
+         Count : VSS.Strings.Character_Count)
+           return VSS.Strings.Character_Iterators.Character_Iterator'Class;
+
+      -------------------------
+      -- Fetch_Documentation --
+      -------------------------
+
+      function Fetch_Documentation
+        (Text : VSS.Strings.Virtual_String)
+          return VSS.Strings.Virtual_String
+      is
+         Declaration   : VSS.Strings.Virtual_String;
+         Qualifier     : VSS.Strings.Virtual_String;
+         Location      : VSS.Strings.Virtual_String;
+         Documentation : VSS.Strings.Virtual_String;
+         Aspects       : VSS.Strings.Virtual_String;
+      begin
+         LSP.Ada_Documentation.Get_Tooltip_Text
+           (Name => Aggr_Type.P_Defining_Name,
+            Origin => Aggregate,
+            Style => GNATdoc.Comments.Options.GNAT,
+            Declaration_Text => Declaration,
+            Qualifier_Text => Qualifier,
+            Location_Text => Location,
+            Documentation_Text => Documentation,
+            Aspects_Text => Aspects);
+
+         return Detail_Template.Format
+               (VSS.Strings.Formatters.Strings.Image (Text),
+                VSS.Strings.Formatters.Strings.Image (Declaration),
+                VSS.Strings.Formatters.Strings.Image (Location),
+                VSS.Strings.Formatters.Strings.Image (Documentation));
+      end Fetch_Documentation;
+
+      ----------
+      -- Skip --
+      ----------
+
+      function Skip
+        (Text  : VSS.Strings.Virtual_String;
+         Count : VSS.Strings.Character_Count)
+           return VSS.Strings.Character_Iterators.Character_Iterator'Class is
+      begin
+         return Result
+           : VSS.Strings.Character_Iterators.Character_Iterator'Class :=
+             Text.At_First_Character
+         do
+            for J in 1 .. Count loop
+               exit when not Result.Forward;
+            end loop;
+
+            if not Result.Has_Element then
+               Result.Set_At_Last (Text);
+            end if;
+         end return;
+      end Skip;
+
       Location : LSP.Structures.Location :=
         Shift_End_Bound (Self.Handler.To_LSP_Location (Aggregate));
 
       Edit     : LSP.Structures.TextEdit :=
         (a_range => Location.a_range,
          newText => <>);
+
+      Documentation : VSS.Strings.Virtual_String;
+      Text          : constant VSS.Strings.Virtual_String :=
+        Snippet.To_Text (Use_Snippets => False);
+      Split         :
+        constant VSS.Strings.Character_Iterators.Character_Iterator'Class :=
+          Skip (Text, Count => 30);
    begin
       Edit.newText := Snippet.To_Text (Self.Use_Snippets);
+      Documentation := Fetch_Documentation (Text);
 
       Location.a_range.an_end :=
         (line      => Location.a_range.start.line + 1,
@@ -448,17 +518,18 @@ package body LSP.Ada_Completions.Aggregates is
       --  Fix command's Location end bound to next line.
 
       Result :=
-        (label            => "(Aggregate) ",
-         labelDetails     => (True, Label),
+        (label            => Text.Head_To (Split),
+         labelDetails     =>
+           (True,
+            (detail => Text.Tail_After (Split),
+             others => <>)),
          kind             => (True, LSP.Enumerations.Struct),
          insertText       => Edit.newText,
          insertTextFormat => Self.Format,
          textEdit         => (True, (True, Edit)),
-         detail           => "<detail TBD>",
-         documentation    =>
-           (True,
-             (True,  --  Is_Virtual_String,
-             "A human-readable string that represents a doc-comment")),
+         documentation    => (True, (True, Documentation)),
+         sortText         => Sort_Text_Template.Format
+           (VSS.Strings.Formatters.Integers.Image (Index)),
          command          =>
            (Is_Set => True,
             Value =>
@@ -466,25 +537,6 @@ package body LSP.Ada_Completions.Aggregates is
                 (Document => (uri => Location.uri),
                  Span => Location.a_range)),
          others           => <>);
-          --  +label : LSP.Structures.Virtual_String;
-          --  +labelDetails        => CompletionItemLabelDetails_Optional,
-          --  +kind                => CompletionItemKind_Optional,
-          --   tags                => LSP.Structures.CompletionItemTag_Set,
-          --  +detail              => Virtual_String_Optional,
-          --  +documentation       => Virtual_String_Or_MarkupContent_Optional,
-          --   deprecated          => Boolean_Optional,
-          --   preselect           => Boolean_Optional,
-          --   sortText            => Virtual_String_Optional,
-          --   filterText          => Virtual_String_Optional,
-          --  +insertText          => Virtual_String_Optional,
-          --  +insertTextFormat    => InsertTextFormat_Optional,
-          --   insertTextMode      => InsertTextMode_Optional,
-          --  +textEdit            => TextEdit_Or_InsertReplaceEdit_Optional,
-          --   textEditText        => Virtual_String_Optional,
-          --   additionalTextEdits => LSP.Structures.TextEdit_Vector,
-          --   commitCharacters    => LSP.Structures.Virtual_String_Vector,
-          --  +command             => Command_Optional,
-          --   data                => LSPAny_Optional);
    end Create_Completion;
 
    ------------------------
@@ -517,44 +569,6 @@ package body LSP.Ada_Completions.Aggregates is
          then Aggregate.P_Subaggregate_Array_Type
          else Aggregate.P_Expression_Type);
 
-      function To_Label return LSP.Structures.CompletionItemLabelDetails is
-         (VSS.Strings.To_Virtual_String (Aggregate_Type.F_Name.Text),
-          LSP.Utils.Node_Location_Image (Aggregate_Type));
-
-      function Label_For_Shape
-        (Shape : Libadalang.Analysis.Shape)
-          return LSP.Structures.CompletionItemLabelDetails;
-
-      -------------------------
-      -- Get_Label_For_Shape --
-      -------------------------
-
-      function Label_For_Shape
-        (Shape : Libadalang.Analysis.Shape)
-          return LSP.Structures.CompletionItemLabelDetails
-      is
-         Result : VSS.Strings.Virtual_String;
-      begin
-         for Item of Libadalang.Analysis.Discriminants_Values (Shape) loop
-            if not Result.Is_Empty then
-               Result.Append (", ");
-            end if;
-
-            Result.Append
-              (VSS.Strings.To_Virtual_String
-                 (Libadalang.Analysis.Discriminant (Item).Text));
-            Result.Append (" => ");
-
-            Result.Append
-              (VSS.Strings.To_Virtual_String
-                 (Libadalang.Analysis.Values (Item).Text));
-         end loop;
-
-         return
-           (Result,
-            LSP.Utils.Node_Location_Image (Aggregate_Type));
-      end Label_For_Shape;
-
       Item : LSP.Structures.CompletionItem;
    begin
       Result := (Ada_Completions.Completion_List, others => <>);
@@ -584,7 +598,8 @@ package body LSP.Ada_Completions.Aggregates is
                Code : Code_Snippet;
             begin
                Create_Code_Snippet (Aggregate, Aggregate_Type, Level, Code);
-               Self.Create_Completion (To_Label, Code, Aggregate, Item);
+               Self.Create_Completion
+                 (1, Code, Aggregate, Aggregate_Type, Item);
                Result.Completion_List.Append (Item);
             end;
          else
@@ -599,7 +614,11 @@ package body LSP.Ada_Completions.Aggregates is
                       Code);
 
                   Self.Create_Completion
-                    (Label_For_Shape (Shape), Code, Aggregate, Item);
+                    (Result.Completion_List.Last_Index + 1,
+                     Code,
+                     Aggregate,
+                     Aggregate_Type,
+                     Item);
 
                   Result.Completion_List.Append (Item);
                end;

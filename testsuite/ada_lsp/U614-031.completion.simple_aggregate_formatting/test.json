@@ -151,6 +151,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "Aggregate for My_Record",
                         "kind": 15,
@@ -301,6 +302,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "Aggregate for My_Record",
                         "kind": 15,

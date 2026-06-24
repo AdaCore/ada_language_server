@@ -191,6 +191,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "Aggregate for Aggr_Type_1",
                         "kind": 15,

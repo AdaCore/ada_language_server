@@ -164,6 +164,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "insertText": "Value => ${1:Integer}, Succ => ${2:Link}, Pred => ${3:Link})$0",
                         "kind": 15,

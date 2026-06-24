@@ -187,6 +187,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "Aggregate when X => -6",
                         "kind": 15,
