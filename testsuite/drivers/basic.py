@@ -66,3 +66,18 @@ class JsonTestDriver(ALSTestDriver):
 
                 if self.env.main_options.verbose:
                     print(p.out)
+
+procedure Show_Identifiers is
+           identifier
+
+   type New_Integer is new
+   -- identifier
+     Integer;
+   --   identifier
+
+   Something_Important : New_Integer;
+   --  identifier
+   --  identifier
+begin
+  null;
+end Show_Identifiers;
