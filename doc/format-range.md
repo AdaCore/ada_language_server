@@ -2,7 +2,8 @@
 
 ## Short introduction
 
-This extension reexports "format selection" request as a command, to completion is able to trigger it.
+This extension reexports "format selection" request as a command,
+so that completion is able to trigger it.
 The execution of this command applies "format selection" edits to the document.
 
 ## Capabilities

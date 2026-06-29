@@ -52,10 +52,7 @@ with LSP.Formatters.Texts;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
 
-with Pp.Scanner;
-
 package body LSP.Ada_Completions is
-   pragma Warnings (Off);
 
    package Encoding_Maps is new Ada.Containers.Indefinite_Hashed_Maps
      (Key_Type        => VSS.Strings.Virtual_String,
@@ -95,9 +92,6 @@ package body LSP.Ada_Completions is
    function Compute_Completion_Item
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
       Context                   : LSP.Ada_Contexts.Context;
-      Sloc                      : Langkit_Support.Slocs.Source_Location;
-      From                      : Langkit_Support.Slocs.Source_Location;
-      Node                      : Libadalang.Analysis.Ada_Node;
       Name                      : Libadalang.Analysis.Defining_Name;
       Label                     : VSS.Strings.Virtual_String;
       Command                   : LSP.Structures.Command_Optional;
@@ -108,8 +102,7 @@ package body LSP.Ada_Completions is
       Is_Dot_Call               : Boolean;
       Is_Visible                : Boolean;
       Pos                       : Integer;
-      Weight                    : Ada_Completions.Completion_Item_Weight_Type;
-      Completions_Count         : Natural)
+      Weight                    : Ada_Completions.Completion_Item_Weight_Type)
        return LSP.Structures.CompletionItem;
    --  Compute a completion item.
    --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
@@ -131,9 +124,6 @@ package body LSP.Ada_Completions is
    function Compute_Completion_Item
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
       Context                   : LSP.Ada_Contexts.Context;
-      Sloc                      : Langkit_Support.Slocs.Source_Location;
-      From                      : Langkit_Support.Slocs.Source_Location;
-      Node                      : Libadalang.Analysis.Ada_Node;
       Name                      : Libadalang.Analysis.Defining_Name;
       Label                     : VSS.Strings.Virtual_String;
       Command                   : LSP.Structures.Command_Optional;
@@ -144,17 +134,13 @@ package body LSP.Ada_Completions is
       Is_Dot_Call               : Boolean;
       Is_Visible                : Boolean;
       Pos                       : Integer;
-      Weight                    : Ada_Completions.Completion_Item_Weight_Type;
-      Completions_Count         : Natural) return LSP.Structures.CompletionItem
+      Weight                    : Ada_Completions.Completion_Item_Weight_Type)
+        return LSP.Structures.CompletionItem
    is
-      use Libadalang.Common;
-
       package Weight_Formatters renames VSS.Strings.Formatters.Integers;
 
       Item           : LSP.Structures.CompletionItem;
       Subp_Spec_Node : Libadalang.Analysis.Base_Subp_Spec;
-      Min_Width      : constant Natural := Completions_Count'Image'Length - 1;
-      --  The -1 remove the whitespace added by 'Image
 
       Last_Weight : constant Ada_Completions.Completion_Item_Weight_Type :=
         Ada_Completions.Completion_Item_Weight_Type'Last;
@@ -176,9 +162,7 @@ package body LSP.Ada_Completions is
 
       function Get_Sort_Text
         (Base_Label : VSS.Strings.Virtual_String)
-         return VSS.Strings.Virtual_String
-      is
-         use VSS.Strings;
+         return VSS.Strings.Virtual_String is
       begin
          return Sort_Text : VSS.Strings.Virtual_String do
 
@@ -393,9 +377,6 @@ package body LSP.Ada_Completions is
                 .P_Fully_Qualified_Name);
          --  The fully qualified name of the completion item symbol's unit.
 
-         Prefix : constant VSS.Strings.Virtual_String :=
-           VSS.Strings.To_Virtual_String (Node.Text);
-
          Dotted_Node : constant Ada_Node :=
            (if Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range
             then Node
@@ -408,7 +389,7 @@ package body LSP.Ada_Completions is
          --  Check if we are completing a dotted name. We want to prepend the
          --  right qualifier only if it's not the case.
 
-         Dotted_Node_Prefix : VSS.Strings.Virtual_String :=
+         Dotted_Node_Prefix : constant VSS.Strings.Virtual_String :=
            (if Is_Dotted_Name
             then
               VSS.Strings.To_Virtual_String
@@ -535,10 +516,7 @@ package body LSP.Ada_Completions is
       Context                 : LSP.Ada_Contexts.Context;
       Name                    : Libadalang.Analysis.Defining_Name;
       Item                    : in out LSP.Structures.CompletionItem;
-      Compute_Doc_And_Details : Boolean)
-   is
-      use type VSS.Strings.Virtual_String;
-
+      Compute_Doc_And_Details : Boolean) is
    begin
       --  Compute the 'documentation' and 'detail' fields immediately if
       --  requested (i.e: when the client does not support lazy computation
@@ -619,7 +597,6 @@ package body LSP.Ada_Completions is
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
       Context                   : LSP.Ada_Contexts.Context;
       Document                  : LSP.Ada_Documents.Document;
-      Sloc                      : Langkit_Support.Slocs.Source_Location;
       Token                     : Libadalang.Common.Token_Reference;
       Node                      : Libadalang.Analysis.Ada_Node;
       Names                     : Completion_Maps.Map;
@@ -665,12 +642,8 @@ package body LSP.Ada_Completions is
            VSS.Strings."=",
            VSS.Strings."=");
 
-      Seen   : String_Sets.Set;
+      Seen : String_Sets.Set;
       --  Set of found visible names in canonical form
-      Length : constant Natural := Natural (Names.Length);
-      From   : constant Langkit_Support.Slocs.Source_Location :=
-         Start_Sloc (Token);
-
    begin
 
       --  Write Result in two pases. Firstly append all visible names and
@@ -706,9 +679,6 @@ package body LSP.Ada_Completions is
                     (Compute_Completion_Item
                        (Handler                   => Handler,
                         Context                   => Context,
-                        Sloc                      => Sloc,
-                        From                      => From,
-                        Node                      => Node,
                         Name                      => Name,
                         Label                     => Label,
                         Command                   =>
@@ -720,8 +690,7 @@ package body LSP.Ada_Completions is
                         Is_Dot_Call               => Info.Is_Dot_Call,
                         Is_Visible                => Info.Is_Visible,
                         Pos                       => Info.Pos,
-                        Weight                    => Info.Weight,
-                        Completions_Count         => Length));
+                        Weight                    => Info.Weight));
                end if;
             end;
          end loop;
@@ -976,7 +945,6 @@ package body LSP.Ada_Completions is
       then
          declare
             Output      : Unbounded_String;
-            PP_Messages : Pp.Scanner.Source_Message_Vector;
             S           : Virtual_String;
             Tmp_Unit    : Libadalang.Analysis.Analysis_Unit;
             Tmp_Context : constant Libadalang.Analysis.Analysis_Context :=

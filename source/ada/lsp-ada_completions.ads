@@ -117,7 +117,6 @@ package LSP.Ada_Completions is
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
       Context                   : LSP.Ada_Contexts.Context;
       Document                  : LSP.Ada_Documents.Document;
-      Sloc                      : Langkit_Support.Slocs.Source_Location;
       Token                     : Libadalang.Common.Token_Reference;
       Node                      : Libadalang.Analysis.Ada_Node;
       Names                     : Completion_Maps.Map;

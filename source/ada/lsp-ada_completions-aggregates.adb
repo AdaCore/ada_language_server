@@ -33,8 +33,6 @@ package body LSP.Ada_Completions.Aggregates is
       Coded_Text   : VSS.String_Vectors.Virtual_String_Vector := [""];
       --  The same, but with placeholders encoded (like `${3:Foo}`)
       Placeholders : Natural := 0;
-      --  Number of used placeholders `${3:Foo}`
-      Line_Count   : Positive := 1;
       --  Total number of lines in Text
       Indent       : VSS.Strings.Character_Count := 0;
       --  Current indent in characters
@@ -118,7 +116,7 @@ package body LSP.Ada_Completions.Aggregates is
       Origin    : Libadalang.Analysis.Ada_Node'Class)
       return Libadalang.Analysis.Shape_Array
    is (if Expr_Type.Kind in Libadalang.Common.Ada_Type_Decl
-         and then Expr_Type.P_Is_Record_Type
+         and then Expr_Type.P_Is_Record_Type (Origin)
        then
          Expr_Type.P_Shapes
            (Include_Discriminants => True,
