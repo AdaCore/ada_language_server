@@ -209,6 +209,57 @@ A status bar item displaying the project-loading status and various useful comma
 
   ![Ada & SPARK Status Bar](media/status_bar.gif)
 
+## Project View
+
+The Ada & SPARK extension contributes a **Project View** panel in the VS Code Explorer sidebar. It shows the structure of the loaded GPR project as a tree, grouping source files by their project and source directory.
+
+![Project View](media/project-view.png)
+
+### Tree Structure
+
+The tree reflects the GPR project hierarchy:
+
+* **Root project** — the top-level `.gpr` project file.
+* **Sub-projects** — projects imported, aggregated, or extended by the root project, shown as children.
+* **Source directories** — each project's source directories are shown as folder nodes. Directories declared in the project file are always shown, even when empty.
+* **Source files** — source files are listed under their containing directory. Clicking a file opens it in the editor.
+* **Object directory** — optionally displayed under each project (see [View Options](#view-options) below).
+* **Runtime project** — optionally shown at the bottom of the tree, listing the GNAT runtime source files (see [View Options](#view-options) below).
+
+### Navigation
+
+* **Reveal Active File** (`Ada: Reveal in Project View`) — locates and selects the currently open editor file in the Project View tree. This command is also available as an editor context menu.
+* **Reveal in Explorer** — available via right-click on a source file or a project file node; opens the VS Code Explorer and selects the item there.
+
+### File Management
+
+Source files can be **moved between source directories** by dragging them from one directory node and dropping them onto another. A confirmation dialog is shown before any move is performed, and name collisions are detected and reported.
+
+### Filtering
+
+The Project View toolbar provides a filter button (funnel icon). When active, only projects, directories, and files whose names contain the filter string are shown. Clear the filter by clicking the filled funnel icon that replaces it.
+
+### View Options
+
+Click the **View Options** button (`···`) in the Project View toolbar to toggle the following display settings:
+
+| Option | Setting | Description |
+|--------|---------|-------------|
+| Flat Mode | `ada.projectView.flatMode` | Show all projects as a flat list rather than a hierarchy |
+| Show Object directories | `ada.projectView.showObjectDirectories` | Show each project's object directory |
+| Show Runtime files | `ada.projectView.showRuntimeFiles` | Show GNAT runtime source files |
+
+These options can also be set permanently via the corresponding [VS Code settings](./settings.md).
+
+### Context Menu Commands
+
+Right-clicking a node in the Project View exposes additional commands:
+
+* **Show File Dependencies Graph** — opens an interactive graph of Ada file dependencies for the selected file. Only available for source files.
+* **Show GPR Dependencies Graph** — opens an interactive graph of GPR project dependencies. Only available for GPR project files.
+
+Project file items also have a context menu with commands to build, analyze, and clean the project, among others.
+
 ## Alire Support
 
 When the workspace is an Alire crate (i.e. it contains an `alire.toml` file), the extension uses Alire to determine the GPR project that should be loaded and to obtain an environment where the crate's dependencies have been provisioned.
