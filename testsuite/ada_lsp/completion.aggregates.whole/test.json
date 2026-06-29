@@ -136,80 +136,6 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 3,
-            "method": "textDocument/completion",
-            "params": {
-               "position": {
-                  "line": 44,
-                  "character": 21
-               },
-               "textDocument": {
-                  "uri": "$URI{test.adb}"
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": 3,
-               "result": {
-                  "isIncomplete": false,
-                  "items": [
-                     "<HAS>",
-                     {
-                        "documentation": "(Arr => (others => (others => 0.0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)\n\ntype Comp is record\n   Arr : Matrix_3x3;\n   Pt  : Point;\n   Next : access Comp;\n   Char : Character;\n   Enum : Boolean;\n   Int  : Integer;\n   Real : Float;\nend record;\n\nat test.adb (35:4)\n\n",
-                        "insertText": "(Arr => (others => (others => ${1:0.0})), Pt => (X => ${2:0}, Y => ${3:0}), Next => ${4:null}, Char => ${5:' '}, Enum => ${6:Boolean'First}, Int => ${7:0}, Real => ${8:0.0})",
-                        "insertTextFormat": 2,
-                        "kind": 22,
-                        "label": "(Arr => (others => (others => 0",
-                        "labelDetails": {
-                           "detail": ".0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)"
-                        },
-                        "sortText": "*1",
-                        "textEdit": {
-                           "newText": "(Arr => (others => (others => ${1:0.0})), Pt => (X => ${2:0}, Y => ${3:0}), Next => ${4:null}, Char => ${5:' '}, Enum => ${6:Boolean'First}, Int => ${7:0}, Real => ${8:0.0})",
-                           "range": {
-                              "end": {
-                                 "character": 22,
-                                 "line": 44
-                              },
-                              "start": {
-                                 "character": 20,
-                                 "line": 44
-                              }
-                           }
-                        },
-                        "command": {
-                           "arguments": [
-                              {
-                                 "range": {
-                                    "end": {
-                                       "character": 0,
-                                       "line": 45
-                                    },
-                                    "start": {
-                                       "character": 20,
-                                       "line": 44
-                                    }
-                                 },
-                                 "textDocument": {
-                                    "uri": "$URI{test.adb}"
-                                 }
-                              }
-                           ],
-                           "command": "als-format-range",
-                           "title": "Format range"
-                        }
-                     }
-                  ]
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "id": 31,
             "method": "textDocument/completion",
             "params": {
@@ -490,6 +416,297 @@
                      }
                   ]
                }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 3
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": "--  "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 23,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 23,
+                           "character": 3
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": "--  "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 31,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 31,
+                           "character": 3
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": "--  "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}",
+                  "version": 5
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 32,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 32,
+                           "character": 3
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": "--  "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "position": {
+                  "line": 44,
+                  "character": 21
+               },
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "documentation": "(Arr => (others => (others => 0.0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)\n\ntype Comp is record\n   Arr : Matrix_3x3;\n   Pt  : Point;\n   Next : access Comp;\n   Char : Character;\n   Enum : Boolean;\n   Int  : Integer;\n   Real : Float;\nend record;\n\nat test.adb (35:4)\n\n",
+                        "insertText": "(Arr => (others => (others => ${1:0.0})), Pt => (X => ${2:0}, Y => ${3:0}), Next => ${4:null}, Char => ${5:' '}, Enum => ${6:Boolean'First}, Int => ${7:0}, Real => ${8:0.0})",
+                        "insertTextFormat": 2,
+                        "kind": 22,
+                        "label": "(Arr => (others => (others => 0",
+                        "labelDetails": {
+                           "detail": ".0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)"
+                        },
+                        "sortText": "*1",
+                        "textEdit": {
+                           "newText": "(Arr => (others => (others => ${1:0.0})), Pt => (X => ${2:0}, Y => ${3:0}), Next => ${4:null}, Char => ${5:' '}, Enum => ${6:Boolean'First}, Int => ${7:0}, Real => ${8:0.0})",
+                           "range": {
+                              "end": {
+                                 "character": 22,
+                                 "line": 44
+                              },
+                              "start": {
+                                 "character": 20,
+                                 "line": 44
+                              }
+                           }
+                        },
+                        "command": {
+                           "arguments": [
+                              {
+                                 "range": {
+                                    "end": {
+                                       "character": 0,
+                                       "line": 45
+                                    },
+                                    "start": {
+                                       "character": 20,
+                                       "line": 44
+                                    }
+                                 },
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 }
+                              }
+                           ],
+                           "command": "als-format-range",
+                           "title": "Format range"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}",
+                  "version": 6
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 44,
+                           "character": 20
+                        },
+                        "end": {
+                           "line": 44,
+                           "character": 22
+                        }
+                     },
+                     "rangeLength": 2,
+                     "text": "(Arr => (others => (others => 0.0)), Pt => (X => 0, Y => 0), Next => null, Char => ' ', Enum => Boolean'First, Int => 0, Real => 0.0)"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 45,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-format-range",
+               "arguments": [
+                  {
+                     "textDocument": {
+                        "uri": "$URI{test.adb}"
+                     },
+                     "range": {
+                        "start": {
+                           "line": 44,
+                           "character": 20
+                        },
+                        "end": {
+                           "line": 45,
+                           "character": 0
+                        }
+                     }
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "label": "Range format",
+                  "edit": {
+                     "changes": {
+                        "$URI{test.adb}": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 44,
+                                    "character": 0
+                                 },
+                                 "end": {
+                                    "line": 45,
+                                    "character": 0
+                                 }
+                              },
+                              "newText": "   V_Comp : Comp :=\n     (Arr  => (others => (others => 0.0)),\n      Pt   => (X => 0, Y => 0),\n      Next => null,\n      Char => ' ',\n      Enum => Boolean'First,\n      Int  => 0,\n      Real => 0.0);\n"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            {
+               "id": 45,
+               "result": null
             }
          ]
       }
