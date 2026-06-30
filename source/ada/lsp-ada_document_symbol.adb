@@ -224,6 +224,10 @@ package body LSP.Ada_Document_Symbol is
         renames LSP.Server_Requests.DocumentSymbol.Request (Self.Message.all);
 
       Element : Libadalang.Analysis.Ada_Node;
+
+      Symbols : constant LSP.Structures.SymbolKind_Set :=
+        Self.Parent.Context.Client.Get_SymbolKind_Set;
+
    begin
       if Self.Cursor.Next (Element) then
          declare
@@ -237,6 +241,7 @@ package body LSP.Ada_Document_Symbol is
             if Kind /= LSP.Enumerations.A_Null
               and then Self.Pattern.Match
                 (VSS.Strings.To_Virtual_String (Element.Text))
+                and then Symbols (Kind)
             then
                Item :=
                  (name              =>
@@ -303,6 +308,9 @@ package body LSP.Ada_Document_Symbol is
            VSS.Strings.Empty_Virtual_String);
       --  Create a DocumentSymbol and add it as a children of the last node
       --  in the stack.
+
+      Symbols : constant LSP.Structures.SymbolKind_Set :=
+        Self.Parent.Context.Client.Get_SymbolKind_Set;
 
       ---------------
       -- Pop_Stack --
@@ -444,15 +452,16 @@ package body LSP.Ada_Document_Symbol is
       begin
          case Node.Kind is
             when Libadalang.Common.Ada_With_Clause_Range =>
-               return True;
+               return Symbols (LSP.Enumerations.Namespace);
             when Libadalang.Common.Ada_Pragma_Node =>
-               return True;
+               return Symbols (LSP.Enumerations.Property);
             when Libadalang.Common.Ada_Ada_Node_List_Range =>
                --  The only Ada_Node_List at the starts of the Analysis_Unit
                --  (= with a stack of 1) is the list of "with clauses".
                --  Create a fake parent name "With clauses" and add them in it
                return Self.Stack.Length < 2
-                 and then Node.As_Ada_Node_List.Ada_Node_List_Has_Element (1);
+                 and then Node.As_Ada_Node_List.Ada_Node_List_Has_Element (1)
+                 and then Symbols (LSP.Enumerations.Namespace);
 
             when Libadalang.Common.Ada_Basic_Decl =>
                if Node.Kind in
@@ -479,7 +488,8 @@ package body LSP.Ada_Document_Symbol is
                   --  carefully.
                begin
                   return
-                    Kind /= LSP.Enumerations.A_Null;
+                    Kind /= LSP.Enumerations.A_Null
+                    and then Symbols (Kind);
                end;
 
             when others =>

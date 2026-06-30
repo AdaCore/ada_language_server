@@ -134,6 +134,22 @@ package body LSP.Ada_Client_Capabilities is
       return (if Result.Is_Set then Result.Value else False);
    end fileOperations_didDelete;
 
+   ------------------------
+   -- Get_SymbolKind_Set --
+   ------------------------
+
+   function Get_SymbolKind_Set
+     (Self : Client_Capability'Class) return LSP.Structures.SymbolKind_Set
+   is
+      use LSP.Structures.Unwrap;
+
+   begin
+      return valueSet
+        (symbolKind
+           (symbol
+                (Self.Value.capabilities.workspace)));
+   end Get_SymbolKind_Set;
+
    ------------------------------
    -- fileOperations_didRename --
    ------------------------------

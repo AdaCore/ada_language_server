@@ -128,4 +128,19 @@ package LSP.Structures.Unwrap is
        return Boolean_Optional is
          (if X.Is_Set then X.Value.didRename else (Is_Set => False));
 
+   function symbol (X : WorkspaceClientCapabilities_Optional)
+     return WorkspaceSymbolClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.symbol else (Is_Set => False));
+
+   function symbolKind (X : WorkspaceSymbolClientCapabilities_Optional)
+     return symbolKind_OfWorkspaceSymbolClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.symbolKind else (Is_Set => False));
+
+   function valueSet
+     (X : symbolKind_OfWorkspaceSymbolClientCapabilities_Optional)
+      return LSP.Structures.SymbolKind_Set is
+     (if X.Is_Set
+      then X.Value.valueSet
+      else (File .. An_Array => True, others => True));
+
 end LSP.Structures.Unwrap;
