@@ -790,7 +790,7 @@ package body LSP.GPR_Completions is
 
       V : constant VSS.String_Vectors.Virtual_String_Vector :=
             LSP.Structures.LSPAny_Vectors.From_Any
-              (LSP.Structures.JSON_Event_Vectors.Cursor (C));
+              (C);
    begin
       Pack := +Optional_Name_Type (VSS.Strings.Conversions.To_UTF_8_String
                                    (V.First_Element));
