@@ -187,6 +187,10 @@ root folder, then ALS will use it.
     'projectFile': 'gnat/lsp_server.gpr'
 ```
 
+**Note for VS Code users:** Path resolution behavior differs between single-root and multi-root workspaces.
+See [Working with Multiple Projects in the Same VS Code Workspace](vscode-ug.md#working-with-multiple-projects-in-the-same-vs-code-workspace)
+in the VS Code User's Guide for details and workarounds.
+
 ### projectView.flatMode
 
 Controls whether the Project View in VS Code displays projects in a flat list

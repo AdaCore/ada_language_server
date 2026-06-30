@@ -495,6 +495,16 @@ In the use case of GNATtest, this allows us to load the main application project
 
 Note that a separate Ada Language Server instance is used for each VS Code window, so you might observe high memory consumption in this situation.
 
+### Important: Path Resolution in Multi-Root Workspaces
+
+When using a single multi-root workspace definition with multiple folders (without separate `.code-workspace` files for each folder), be aware that:
+
+- Relative paths in `ada.projectFile` are resolved from the **first workspace folder** listed in the workspace definition
+- To reference projects in other folders, use one of these approaches:
+  1. Use **absolute paths** in `ada.projectFile`
+  2. Use **per-folder `.als.json` files** in each project directory (recommended for version control)
+  3. Use the pattern described above with **separate `.code-workspace` files** for each project
+
 ## Commands and Shortcuts
 
 The extension contributes commands and a few default key bindings.
