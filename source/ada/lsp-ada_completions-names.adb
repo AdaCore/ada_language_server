@@ -201,10 +201,12 @@ package body LSP.Ada_Completions.Names is
                      null;
 
                   --  Filter the raw completion results by the node's prefix.
-                  elsif Pattern.Match (Name) then
+                  elsif Pattern.Match (Name) and then
+                    not Result.Name_Map.Contains (DN.P_Canonical_Part)
+                  then
                      Completion_Count := Completion_Count + 1;
 
-                     Result.Name_Map.Include
+                     Result.Name_Map.Insert
                        (DN.P_Canonical_Part,
                         --  XXX Should most visible part be used here ???
                         (Error_Dotted_Recovery or else Is_Dot_Call (Item),

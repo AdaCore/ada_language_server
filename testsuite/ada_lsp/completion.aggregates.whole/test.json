@@ -112,7 +112,18 @@
             "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
          },
-         "wait": []
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
       }
    },
    {
