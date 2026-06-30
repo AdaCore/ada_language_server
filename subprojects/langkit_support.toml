@@ -16,3 +16,24 @@ gnatcoll = "^24"
 gnatcoll_iconv = "^24"
 gnatcoll_gmp = "^24"
 adasat = "^24"
+
+project        ::= context_clause project_declaration
+
+ context_clause ::= {with_clause}
+ with_clause    ::= [ 'limited' ] 'with' path_name { , path_name } ;
+ path_name      ::= string_literal
+
+ project_declaration ::= simple_project_declaration | project_extension
+
+ simple_project_declaration ::=
+   [ qualifier ] 'project' <project_>name 'is'
+     {declarative_item}
+   'end' <project_>name ;
+
+ project_extension ::=
+  [ qualifier ] 'project' <project_>name 'extends' [ 'all' ] <base_project_>name 'is'
+    {declarative_item}
+  'end' <project_>name ;
+
+qualifier ::=
+  'abstract' | identifier [ identifier ]
