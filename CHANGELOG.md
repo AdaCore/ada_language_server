@@ -12,6 +12,7 @@ section below it for the last release. -->
 * VS Code now displays a custom file icon for Ada files
 * Add support for loading Cobertura XML coverage reports in addition to GNATcoverage XML reports, via the unified command `ada: GNATcoverage - Load an existing coverage report`
 * New [Project View](./doc/vscode-ug.md#project-view) panel in the Explorer sidebar showing the GPR project structure as a tree, grouping source files by project and source directory
+* Add experimental nested aggregate completion for record array types and subaggregates, triggered on `()` and followed by an automatic range formatting (requires valid syntax).
 
 ## 2026.2.202604091
 

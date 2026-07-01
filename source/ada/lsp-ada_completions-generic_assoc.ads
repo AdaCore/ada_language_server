@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022, AdaCore                          --
+--                     Copyright (C) 2022-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,7 +17,6 @@
 
 with Langkit_Support.Slocs;
 with Libadalang.Analysis;
-with LSP.Ada_Completions.Filters;
 with LSP.Ada_Completions.Generic_Assoc_Utils;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Context_Sets;
@@ -73,8 +72,6 @@ package LSP.Ada_Completions.Generic_Assoc is
       Token        : Libadalang.Common.Token_Reference;
       Node         : Libadalang.Analysis.Ada_Node;
       Limit        : Natural;
-      Filter       : in out LSP.Ada_Completions.Filters.Filter;
-      Names        : in out Ada_Completions.Completion_Maps.Map;
       Unsorted_Res : in out LSP.Structures.CompletionItem_Vector);
 
    procedure Propose_Signatures

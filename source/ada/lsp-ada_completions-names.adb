@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2025, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,7 +19,6 @@ with Langkit_Support.Errors;
 
 with VSS.Strings;
 
-with LSP.Ada_Completions.Filters;
 with LSP.Enumerations;
 with LSP.Search;
 with LSP.Utils;
@@ -36,8 +35,7 @@ package body LSP.Ada_Completions.Names is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
       use all type Libadalang.Analysis.Base_Id;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
@@ -71,6 +69,7 @@ package body LSP.Ada_Completions.Names is
            Libadalang.Common.Kind (Libadalang.Common.Data (Previous_Token))
            = Libadalang.Common.Ada_Dot);
    begin
+      Result := (Ada_Completions.Name_Map, others => <>);
 
       --  Get the outermost dotted name of which node is a prefix, so that when
       --  completing in a situation such as the following:
@@ -148,7 +147,7 @@ package body LSP.Ada_Completions.Names is
          --  If we are dealing with an end label, just return the corresponding
          --  declaration's name: it's the only valid result in this case.
          if Parent.Kind in Ada_End_Name and then not Parent.Is_Null then
-            Names.Include
+            Result.Name_Map.Include
               (Parent.As_End_Name.P_Basic_Decl.P_Defining_Name,
                (Is_Dot_Call  => False,
                 Is_Visible   => True,
@@ -184,7 +183,7 @@ package body LSP.Ada_Completions.Names is
 
          Item                : Completion_Item;
          BD                  : Basic_Decl;
-         Completion_Count    : Natural := Natural (Result.items.Length);
+         Completion_Count    : Natural := 0;
          Name                : VSS.Strings.Virtual_String;
          Underscore          : constant VSS.Strings.Virtual_String := "_";
       begin
@@ -202,17 +201,19 @@ package body LSP.Ada_Completions.Names is
                      null;
 
                   --  Filter the raw completion results by the node's prefix.
-                  elsif Pattern.Match (Name) then
+                  elsif Pattern.Match (Name) and then
+                    not Result.Name_Map.Contains (DN.P_Canonical_Part)
+                  then
                      Completion_Count := Completion_Count + 1;
 
-                     Names.Include
+                     Result.Name_Map.Insert
                        (DN.P_Canonical_Part,
                         --  XXX Should most visible part be used here ???
                         (Error_Dotted_Recovery or else Is_Dot_Call (Item),
-                         Is_Visible (Item),
-                         Use_Snippets,
-                         Completion_Count,
-                         Weight (Item)));
+                         Is_Visible   => Is_Visible (Item),
+                         Use_Snippets => Use_Snippets,
+                         Pos          => Completion_Count,
+                         Weight       => Weight (Item)));
                   end if;
                end loop;
             end if;

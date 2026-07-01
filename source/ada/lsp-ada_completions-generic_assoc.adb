@@ -19,7 +19,6 @@ with GNATCOLL.Utils;
 with GNATCOLL.Traces;
 with Laltools.Common;
 with LSP.Ada_Documentation;
-with LSP.Ada_Documents;
 with LSP.Enumerations;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
@@ -146,11 +145,8 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Token        : Libadalang.Common.Token_Reference;
       Node         : Libadalang.Analysis.Ada_Node;
       Limit        : Natural;
-      Filter       : in out LSP.Ada_Completions.Filters.Filter;
-      Names        : in out Ada_Completions.Completion_Maps.Map;
       Unsorted_Res : in out LSP.Structures.CompletionItem_Vector)
    is
-      pragma Unreferenced (Filter, Names);
       use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Ada_Completions.Generic_Assoc_Utils;
@@ -378,7 +374,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                   Item.insertText.Append (Params_Snippet);
                   Item.kind := (True, LSP.Enumerations.Snippet);
 
-                  LSP.Ada_Documents.Set_Completion_Item_Documentation
+                  LSP.Ada_Completions.Set_Completion_Item_Documentation
                     (Handler                 => Self.Handler.all,
                      Context                 => Self.Context.all,
                      Name                    => Name,

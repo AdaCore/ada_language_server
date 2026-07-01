@@ -144,6 +144,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "Aggregate when X => True, Y => True",
                         "kind": 15,

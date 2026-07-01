@@ -108,7 +108,18 @@
                }
             }
          },
-         "wait": []
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
       }
    },
    {
@@ -194,7 +205,7 @@
                         "documentation": "at __standard (8:4)",
                         "kind": 7,
                         "label": "Integer",
-                        "sortText": "00&00002Integer"
+                        "sortText": "00&00001Integer"
                      }
                   ]
                }

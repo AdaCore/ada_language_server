@@ -224,7 +224,7 @@
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
-                        "sortText": "~100&00000Invisible_Function",
+                        "sortText": "~100&00001Invisible_Function",
                         "filterText": "Invisible_Function",
                         "insertText": "Invisible_Function",
                         "detail": "Invisible.Invisible_Function\n\nfunction Invisible_Function (X : Integer) return Integer",
@@ -236,7 +236,7 @@
                      {
                         "label": "Invisible_Variable (invisible)",
                         "kind": 6,
-                        "sortText": "~100&00001Invisible_Variable",
+                        "sortText": "~100&00002Invisible_Variable",
                         "filterText": "Invisible_Variable",
                         "insertText": "Invisible_Variable",
                         "detail": "Invisible.Invisible_Variable\n\nInvisible_Variable : Integer;",

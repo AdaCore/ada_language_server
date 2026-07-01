@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,7 +21,6 @@ with Libadalang.Common;
 with VSS.Strings;
 with VSS.Transformers.Caseless;
 
-with LSP.Ada_Completions.Filters;
 with LSP.Enumerations;
 
 package body LSP.Ada_Completions.Keywords is
@@ -36,14 +35,14 @@ package body LSP.Ada_Completions.Keywords is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
-      pragma Unreferenced (Names);
       Prev : constant Libadalang.Common.Token_Reference :=
         Libadalang.Common.Previous (Token);
 
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       if Filter.Is_End_Label or else
         Filter.Is_Numeric_Literal or else
         Filter.Is_Comment or else
@@ -81,7 +80,7 @@ package body LSP.Ada_Completions.Keywords is
                   Item.insertTextFormat := (True, LSP.Enumerations.PlainText);
                   Item.insertText := Label;
                   Item.kind := (True, LSP.Enumerations.Keyword);
-                  Result.items.Append (Item);
+                  Result.Completion_List.Append (Item);
                end if;
             end;
          end loop;

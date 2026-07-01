@@ -789,8 +789,7 @@ package body LSP.GPR_Completions is
             Response.data.First;
 
       V : constant VSS.String_Vectors.Virtual_String_Vector :=
-            LSP.Structures.LSPAny_Vectors.From_Any
-              (C);
+            LSP.Structures.LSPAny_Vectors.From_Any (C);
    begin
       Pack := +Optional_Name_Type (VSS.Strings.Conversions.To_UTF_8_String
                                    (V.First_Element));

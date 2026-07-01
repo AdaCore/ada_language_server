@@ -14,20 +14,46 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  Implementation of the command to format part of document.
 
-with LSP.Ada_Completions.Filters;
+with LSP.Ada_Commands;
+with LSP.Errors;
+with LSP.Server_Jobs;
 
-package LSP.Ada_Completions.Record_Representation is
+package LSP.Ada_Handlers.Format_Range_Commands is
 
-   type Record_Repr_Completion_Provider is
-     new Completion_Provider with null record;
+   type Command is new LSP.Ada_Commands.Command with private;
 
-   overriding procedure Propose_Completion
-     (Self   : Record_Repr_Completion_Provider;
-      Sloc   : Langkit_Support.Slocs.Source_Location;
-      Token  : Libadalang.Common.Token_Reference;
-      Node   : Libadalang.Analysis.Ada_Node;
-      Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Result : out Ada_Completions.Completion_Result);
+   function To_LSP_Command
+     (Document : LSP.Structures.TextDocumentIdentifier;
+      Span     : LSP.Structures.A_Range) return LSP.Structures.Command;
 
-end LSP.Ada_Completions.Record_Representation;
+private
+
+   type Command is new LSP.Ada_Commands.Command with record
+      textDocument : LSP.Structures.TextDocumentIdentifier;
+      --  The document to format.
+
+      a_range : LSP.Structures.A_Range;
+      --  The range to format
+
+   end record;
+
+   overriding function Create
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+       return Command;
+
+   overriding procedure Execute
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
+
+   overriding function Priority (Self : Command)
+     return LSP.Server_Jobs.Job_Priority
+       is (LSP.Server_Jobs.Fence);
+
+   for Command'External_Tag use "als-format-range";
+
+end LSP.Ada_Handlers.Format_Range_Commands;

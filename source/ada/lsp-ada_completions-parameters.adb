@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2022, AdaCore                     --
+--                     Copyright (C) 2021-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,7 +20,6 @@ with GNATCOLL.Utils;
 with Libadalang.Analysis;        use Libadalang.Analysis;
 with Libadalang.Common;          use Libadalang.Common;
 
-with LSP.Ada_Completions.Filters;
 with LSP.Ada_Completions.Generic_Assoc;
 with LSP.Ada_Completions.Generic_Assoc_Utils;
 use LSP.Ada_Completions.Generic_Assoc_Utils;
@@ -763,20 +762,20 @@ package body LSP.Ada_Completions.Parameters is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList)
+      Result : out Ada_Completions.Completion_Result)
    is
+      pragma Unreferenced (Filter);
       Count        : Natural := 0;
       Unsorted_Res : LSP.Structures.CompletionItem_Vector;
    begin
+      Result := (Ada_Completions.Completion_List, others => <>);
+
       Call_Expr_Completion.Propose_Completion
         (Self         => Self,
          Sloc         => Sloc,
          Token        => Token,
          Node         => Node,
          Limit        => Self.Named_Notation_Threshold,
-         Filter       => Filter,
-         Names        => Names,
          Unsorted_Res => Unsorted_Res);
 
       Aggregate_Completion.Propose_Completion
@@ -785,8 +784,6 @@ package body LSP.Ada_Completions.Parameters is
          Token        => Token,
          Node         => Node,
          Limit        => Self.Named_Notation_Threshold,
-         Filter       => Filter,
-         Names        => Names,
          Unsorted_Res => Unsorted_Res);
 
       Generic_Package_Completion.Propose_Completion
@@ -795,8 +792,6 @@ package body LSP.Ada_Completions.Parameters is
          Token        => Token,
          Node         => Node,
          Limit        => Self.Named_Notation_Threshold,
-         Filter       => Filter,
-         Names        => Names,
          Unsorted_Res => Unsorted_Res);
 
       declare
@@ -810,7 +805,7 @@ package body LSP.Ada_Completions.Parameters is
             Unsort_Item.sortText.Append
               (VSS.Strings.Conversions.To_Virtual_String
                  (GNATCOLL.Utils.Image (Count, Min_Width => Min_Width)));
-            Result.items.Append (Unsort_Item);
+            Result.Completion_List.Append (Unsort_Item);
             Count := Count + 1;
          end loop;
       end;

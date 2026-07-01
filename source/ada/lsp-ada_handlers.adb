@@ -25,6 +25,7 @@ with GNAT.OS_Lib;
 
 with LAL_Refactor.Generate_Package;
 with LAL_Refactor.Sort_Case;
+with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Indexing;
 with LSP.Ada_Semantic_Diagnostics;
 with LSP.Env;
@@ -2110,6 +2111,15 @@ package body LSP.Ada_Handlers is
                   .Record_Representation
                   .Record_Repr_Completion_Provider;
 
+      PB :
+        aliased LSP
+                  .Ada_Completions
+                  .Aggregates
+                  .Aggregate_Completion_Provider
+                    (Handler      => Self'Unchecked_Access,
+                     Use_Snippets => Self.Configuration.Use_Completion_Snippets
+                       and then Self.Client.Completion_SnippetSupport);
+
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
         [P1'Unchecked_Access,
          P2'Unchecked_Access,
@@ -2120,7 +2130,8 @@ package body LSP.Ada_Handlers is
          P7'Unchecked_Access,
          P8'Unchecked_Access,
          P9'Unchecked_Access,
-         PA'Unchecked_Access];
+         PA'Unchecked_Access,
+         PB'Unchecked_Access];
 
       Sloc  : Langkit_Support.Slocs.Source_Location;
       Token : Libadalang.Common.Token_Reference;
@@ -2151,7 +2162,6 @@ package body LSP.Ada_Handlers is
         (Handler                   => Self,
          Context                   => Context.all,
          Document                  => Document.all,
-         Sloc                      => Sloc,
          Token                     => Token,
          Node                      => Node,
          Names                     => Names,
