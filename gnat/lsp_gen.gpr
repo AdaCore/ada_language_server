@@ -17,6 +17,7 @@
 
 with "vss_text";
 with "vss_json";
+with "vss_os";
 
 project LSP_Gen is
 

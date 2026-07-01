@@ -129,6 +129,7 @@ package body LSP.Inputs.Part_23 is
         (["uri",
          "range",
          "alsKind",
+         "hidden",
          "originSelectionRange",
          "targetUri",
          "targetRange",
@@ -179,22 +180,27 @@ package body LSP.Inputs.Part_23 is
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
-                     when 4 =>  --  originSelectionRange
+                     when 4 =>  --  hidden
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 5 =>  --  originSelectionRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 5 =>  --  targetUri
+                     when 6 =>  --  targetUri
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 6 =>  --  targetRange
+                     when 7 =>  --  targetRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 7 =>  --  targetSelectionRange
+                     when 8 =>  --  targetSelectionRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
@@ -849,7 +855,8 @@ package body LSP.Inputs.Part_23 is
       package Definition_Result_Map is new Minimal_Perfect_Hash
         (["uri",
          "range",
-         "alsKind"]);
+         "alsKind",
+         "hidden"]);
 
    end Definition_Result_Scope;
 
@@ -896,6 +903,11 @@ package body LSP.Inputs.Part_23 is
                            others => <>);
                         exit;
                      when 3 =>  --  alsKind
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 4 =>  --  hidden
                         Value :=
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);
