@@ -2196,6 +2196,7 @@ package body LSP.Inputs.Part_7 is
          package Location_Or_Something_Map is new Minimal_Perfect_Hash
            (["range",
             "alsKind",
+            "hidden",
             "uri"]);
 
       end Location_Or_Something_Scope;
@@ -2249,6 +2250,11 @@ package body LSP.Inputs.Part_7 is
                              (Is_Location => True,
                               others      => <>);
                            exit;
+                        when 3 =>  --  hidden
+                           Value :=
+                             (Is_Location => True,
+                              others      => <>);
+                           exit;
                         when others =>
                            Handler.Skip_Current_Value;
                      end case;
@@ -2275,7 +2281,7 @@ package body LSP.Inputs.Part_7 is
                      begin
                         Handler.Read_Next;
                         case Location_Or_Something_Map.Get_Index (Key) is
-                           when 3 =>  --  uri
+                           when 4 =>  --  uri
                               Value.uri :=
                                 (Handler.String_Value with null record);
                               Handler.Read_Next;

@@ -577,7 +577,8 @@ package body LSP.Inputs.Part_9 is
       package Location_Map is new Minimal_Perfect_Hash
         (["uri",
          "range",
-         "alsKind"]);
+         "alsKind",
+         "hidden"]);
 
    end Location_Scope;
 
@@ -604,7 +605,7 @@ package body LSP.Inputs.Part_9 is
                when 3 =>  --  alsKind
                   Read_AlsReferenceKind_Set (Handler, Value.alsKind);
                when 4 =>  --  hidden
-                  Value.hidden :=
+                  Value.hidden       :=
                     (Is_Set => True,
                      Value  => <>);
                   Value.hidden.Value := Handler.Boolean_Value;

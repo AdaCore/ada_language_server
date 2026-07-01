@@ -3009,6 +3009,8 @@ package LSP.Structures is
       alsKind : LSP.Structures.AlsReferenceKind_Set;
 
       hidden : Boolean_Optional;
+      --  Set to True if the location is from the hidden source file (extended
+      --  project)
 
    end record;
    --  Represents a location inside a resource, such as a line inside a text

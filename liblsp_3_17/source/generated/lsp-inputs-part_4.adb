@@ -20,7 +20,8 @@ package body LSP.Inputs.Part_4 is
       package Declaration_Result_Map is new Minimal_Perfect_Hash
         (["uri",
          "range",
-         "alsKind"]);
+         "alsKind",
+         "hidden"]);
 
    end Declaration_Result_Scope;
 
@@ -67,6 +68,11 @@ package body LSP.Inputs.Part_4 is
                            others => <>);
                         exit;
                      when 3 =>  --  alsKind
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 4 =>  --  hidden
                         Value :=
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);

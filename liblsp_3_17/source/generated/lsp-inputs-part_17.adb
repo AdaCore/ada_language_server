@@ -49,7 +49,8 @@ package body LSP.Inputs.Part_17 is
       "documentation",
       "defaultLibrary",
       "globalVariable",
-      "localVariable"]);
+      "localVariable",
+      "dispatchingCall"]);
 
    procedure Read_SemanticTokenModifiers
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
