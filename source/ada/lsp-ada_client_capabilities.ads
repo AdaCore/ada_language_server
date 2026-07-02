@@ -110,6 +110,10 @@ package LSP.Ada_Client_Capabilities is
      (Self : Client_Capability'Class) return Boolean;
    --  Returns capabilities.workspace.fileOperations.didDelete
 
+   function Get_SymbolKind_Set
+     (Self : Client_Capability'Class) return LSP.Structures.SymbolKind_Set;
+   --  Returns capabilities.symbol.symbolKind.valueSet
+
    --  Resource 0perations --
 
    function Resource_Create_Supported
