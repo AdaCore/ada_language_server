@@ -68,6 +68,8 @@ related resources.
  * [Source dirs](source_dirs.md)
  * [Workspace symbol params](workspace_symbol_params.md)
  * [Global/local variables](global_local_variables.md)
+ * [Format range](format-range.md)
+ * [GPR dependencies](gpr_dependencies.md)
 
 ```{toctree}
 :maxdepth: 1
@@ -88,5 +90,8 @@ object_dir
 project_file
 source_dirs
 workspace_symbol_params
+global_local_variables
+format-range
+gpr_dependencies
 TEMPLATE
 ```

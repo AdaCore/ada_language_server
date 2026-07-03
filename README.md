@@ -112,7 +112,7 @@ for the list of supported requests.
 
 The Ada Language Server supports some features that are not in the official
 [Language Server Protocol](https://microsoft.github.io/language-server-protocol)
-specification. See [corresponding document](doc/README.md).
+specification. See [corresponding document](doc/extensions.md).
 
 ## VS Code Extension
 
