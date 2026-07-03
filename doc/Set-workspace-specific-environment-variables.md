@@ -3,7 +3,7 @@
 
 This small tutorial will help you to create a workspace-specific environment, allowing you to set and/or modify environment variables for your project (e.g: put the needed toolchain in front of your `PATH`).
 
-This is particularly useful when working on [remote machines](Working-on-a-remote-machine) in order
+This is particularly useful when working on [remote machines](Working-on-a-remote-machine.md) in order
 to avoid modifying the environment globally just to work on a given project.
 
 ## Prerequisites
@@ -17,7 +17,7 @@ To successfully complete this tutorial, you must do the following:
 You can install the Ada extension by searching for 'adacore' in the
 Extensions view (`Ctrl+Shift+X`).
 
-* Have a an installed GNAT toolchain for your platform (see [here](Getting-Started#ensure-gnat-is-installed) for more information on how to install it).
+* Have an installed GNAT toolchain for your platform (see [here](Getting-Started.md#ensure-gnat-is-installed) for more information on how to install it).
 
 ## How to set environment variables
 
