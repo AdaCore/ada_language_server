@@ -434,8 +434,35 @@ package body LSP.Ada_Configurations is
                if Check_Variable
                  (Name, JSON (Index + 2).Kind, "indentOnly", Boolean_Value)
                then
-                  Self.Indent_Only := JSON (Index + 2).Boolean_Value;
+                  Self.On_Type_Formatting_Indent_Only :=
+                    JSON (Index + 2).Boolean_Value;
 
+               end if;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "rangeFormatting", Start_Object)
+            then
+               Name := JSON (Index + 1).Key_Name;
+
+               if Check_Variable
+                 (Name, JSON (Index + 2).Kind, "formatChoice", String_Value)
+               then
+                  declare
+                     Value : constant VSS.Strings.Virtual_String :=
+                       JSON (Index + 2).String_Value.Transform
+                       (VSS.Transformers.Casing.To_Lowercase);
+                  begin
+                     if Value = "narrow" then
+                        Self.On_Range_Formatting_Format_Choice :=
+                          LSP.Ada_Configurations.Narrow_Format;
+                     elsif Value = "indentonly" then
+                        Self.On_Range_Formatting_Format_Choice :=
+                          LSP.Ada_Configurations.Indent_Only;
+                     else
+                        Self.On_Range_Formatting_Format_Choice :=
+                          LSP.Ada_Configurations.Full_Format;
+                     end if;
+                  end;
                end if;
 
             elsif Check_Variable

@@ -74,6 +74,7 @@ package body LSP.Ada_Handlers.Format_Range_Commands is
       Response : in out LSP.Structures.LSPAny_Or_Null;
       Error    : in out LSP.Errors.ResponseError_Optional)
    is
+      use type LSP.Ada_Configurations.Range_Format_Choice;
       Context  : constant LSP.Ada_Context_Sets.Context_Access :=
         Handler.Get_Best_Context (Self.textDocument.uri);
 
@@ -95,6 +96,9 @@ package body LSP.Ada_Handlers.Format_Range_Commands is
          Options  =>
            LSP.Ada_Handlers.Formatting.Get_Formatting_Options
              (Context.all, Default),
+         Narrow   =>
+           (Handler.Get_Configuration.On_Range_Formatting_Format_Choice
+            = LSP.Ada_Configurations.Narrow_Format),
          Success  => Success,
          Response => Edits,
          Error    => Error.Value);

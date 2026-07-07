@@ -17,12 +17,12 @@ python3 get-implementation-settings.py <"$1/source/ada/lsp-ada_configurations.ad
 
 # Remove the following settings from the implementation list because they are
 # either hidden, or nested
-exclude="onTypeFormatting indentOnly trace"
+exclude="onTypeFormatting rangeFormatting formatChoice indentOnly trace"
 for exc in $exclude; do
     echo "$(grep -v "$exc" <impl.txt)" >impl.txt
 done
 # Add the following properties because they are nested
-add="onTypeFormatting.indentOnly trace.server"
+add="onTypeFormatting.indentOnly rangeFormatting.formatChoice rangeFormattingFallback trace.server"
 for a in $add; do
     echo "$a" >>impl.txt
 done

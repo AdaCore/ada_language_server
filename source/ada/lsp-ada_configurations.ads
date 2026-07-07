@@ -36,6 +36,14 @@ package LSP.Ada_Configurations is
    --  settings that can be set through the 'initialize' and
    --  'didChangeConfiguration' notifications.
 
+   type Range_Format_Choice is (Indent_Only, Narrow_Format, Full_Format);
+   --  List of formatting choices for rangeFormat request:
+   --  Indent_Only: Call the fallback indenter to indent
+   --  Narrow_Format: Call GNATFormat and modified the edits to only
+   --                 affect the selected lines.
+   --  Full_Format: Call GNATFormat and apply all the edits even the ones
+   --               affecting lines outside of the selected lines.
+
    function Needs_Reload
      (Self : Configuration; Other : Configuration'Class) return Boolean;
    --  Compare the given configurations and return whether or not a project
@@ -157,7 +165,13 @@ package LSP.Ada_Configurations is
    --  True if completion is allowed to insert automatically with-clauses for
    --  invisible symbols.
 
-   function Indent_Only (Self : Configuration'Class) return Boolean;
+   function On_Range_Formatting_Format_Choice
+     (Self : Configuration'Class) return Range_Format_Choice;
+   --  Whether to only indent the code on rangeFormatting
+   --  requests, without formatting the selected lines.
+
+   function On_Type_Formatting_Indent_Only
+     (Self : Configuration'Class) return Boolean;
    --  Whether to only indent the code on onTypeFormatting
    --  requests, without formatting the previous line.
 
@@ -204,27 +218,28 @@ private
    use type VSS.Strings.Virtual_String;
 
    type Configuration is tagged record
-      Project_File                    : VSS.Strings.Virtual_String;
-      GPR_Configuration_File          : VSS.Strings.Virtual_String;
-      Charset                         : VSS.Strings.Virtual_String;
-      Relocate_Build_Tree             : VSS.Strings.Virtual_String;
-      Relocate_Root                   : VSS.Strings.Virtual_String;
-      Named_Notation_Threshold        : Natural := 3;
-      Log_Threshold                   : Natural := 10;
-      Ada_File_Diagnostics_Enabled    : Boolean := True;
-      GPR_File_Diagnostics_Enabled    : Boolean := True;
-      Project_Diagnostics_Enabled     : Boolean := True;
-      Source_Info_Diagnostics_Enabled : Boolean := True;
-      Semantic_Diagnostics_Enabled    : Boolean := True;
-      Alire_Diagnostics_Enabled       : Boolean := True;
-      Indexing_Enabled                : Boolean := True;
-      Rename_In_Comments              : Boolean := False;
-      Folding_Comments                : Boolean := True;
-      Use_Completion_Snippets         : Boolean := True;
-      Indent_Only                     : Boolean := True;
-      Range_Formatting_Fallback       : Boolean := False;
-      Follow_Symlinks                 : Boolean := True;
-      Insert_With_Clauses             : Boolean := True;
+      Project_File                      : VSS.Strings.Virtual_String;
+      GPR_Configuration_File            : VSS.Strings.Virtual_String;
+      Charset                           : VSS.Strings.Virtual_String;
+      Relocate_Build_Tree               : VSS.Strings.Virtual_String;
+      Relocate_Root                     : VSS.Strings.Virtual_String;
+      Named_Notation_Threshold          : Natural := 3;
+      Log_Threshold                     : Natural := 10;
+      Ada_File_Diagnostics_Enabled      : Boolean := True;
+      GPR_File_Diagnostics_Enabled      : Boolean := True;
+      Project_Diagnostics_Enabled       : Boolean := True;
+      Source_Info_Diagnostics_Enabled   : Boolean := True;
+      Semantic_Diagnostics_Enabled      : Boolean := True;
+      Alire_Diagnostics_Enabled         : Boolean := True;
+      Indexing_Enabled                  : Boolean := True;
+      Rename_In_Comments                : Boolean := False;
+      Folding_Comments                  : Boolean := True;
+      Use_Completion_Snippets           : Boolean := True;
+      On_Type_Formatting_Indent_Only    : Boolean := True;
+      On_Range_Formatting_Format_Choice : Range_Format_Choice := Full_Format;
+      Range_Formatting_Fallback         : Boolean := False;
+      Follow_Symlinks                   : Boolean := True;
+      Insert_With_Clauses               : Boolean := True;
 
       Documentation_Style : GNATdoc.Comments.Options.Documentation_Style :=
         GNATdoc.Comments.Options.GNAT;
@@ -319,8 +334,15 @@ private
    function Folding_Comments (Self : Configuration'Class) return Boolean is
      (Self.Folding_Comments);
 
-   function Indent_Only (Self : Configuration'Class) return Boolean is
-     (Self.Indent_Only);
+   function On_Type_Formatting_Indent_Only
+     (Self : Configuration'Class) return Boolean
+   is
+     (Self.On_Type_Formatting_Indent_Only);
+
+   function On_Range_Formatting_Format_Choice
+     (Self : Configuration'Class) return Range_Format_Choice
+   is
+     (Self.On_Range_Formatting_Format_Choice);
 
    function Range_Formatting_Fallback
      (Self : Configuration'Class) return Boolean is

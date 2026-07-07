@@ -45,11 +45,13 @@ package LSP.Ada_Handlers.Formatting is
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
+      Narrow   : Boolean;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Error    : out LSP.Errors.ResponseError)
         with Pre => not LSP.Utils.Is_Empty_Range (Span);
    --  Format the text of the given document in the given range (span).
+   --  When Narrow, restrict the edits to only affect the lines in Span.
 
    procedure Narrow_Range_Format
      (Unit    : Libadalang.Analysis.Analysis_Unit;

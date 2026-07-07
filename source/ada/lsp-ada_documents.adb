@@ -784,6 +784,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
       Options : Gnatformat.Configuration.Format_Options_Type;
+      Narrow  : Boolean;
       Result  : out LSP.Structures.TextEdit_Vector)
    is
       use type LSP.Structures.A_Range;
@@ -854,13 +855,6 @@ package body LSP.Ada_Documents is
         To_GNATformat_Range (Unit, Range_Format.Span);
       --  Origin span rounded to lines bounds (end position is included)
 
-      Excluded : constant Langkit_Support.Slocs.Source_Location_Range :=
-        (Start_Line   => Format_Range.Start_Line,
-         Start_Column => 1,
-         End_Line     => Format_Range.End_Line + 1,
-         End_Column   => 1);
-      --  Selection range (end position is excluded)
-
       Text : VSS.Strings.Virtual_String;
 
       Unparsing_Diagnostics :
@@ -891,15 +885,26 @@ package body LSP.Ada_Documents is
          end loop;
       end if;
 
-      LSP.Ada_Handlers.Formatting.Narrow_Range_Format
-        (Unit, Excluded, Range_Formatted_Document, Text, Ok);
+      if Narrow then
+         declare
+            Excluded : constant Langkit_Support.Slocs.Source_Location_Range :=
+              (Start_Line   => Format_Range.Start_Line,
+               Start_Column => 1,
+               End_Line     => Format_Range.End_Line + 1,
+               End_Column   => 1);
+            --  Selection range (end position is excluded)
+         begin
+            LSP.Ada_Handlers.Formatting.Narrow_Range_Format
+              (Unit, Excluded, Range_Formatted_Document, Text, Ok);
 
-      if Ok then
-         Self.Diff_C
-           (New_Text => Text,
-            Span     => Self.To_A_Range (Format_Range),
-            Edit     => Result);
-         return;
+            if Ok then
+               Self.Diff_C
+                 (New_Text => Text,
+                  Span     => Self.To_A_Range (Format_Range),
+                  Edit     => Result);
+               return;
+            end if;
+         end;
       end if;
 
       Self.Diff_C
