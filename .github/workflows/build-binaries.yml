@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron:  '0 4 * * 1-5'
+    - cron:  '0 4 * * 1'
     #         | | | | + day of week (0 - 6 or SUN-SAT)
     #         | | | +-- month (1 - 12 or JAN-DEC)
     #         | | +---- day of the month (1 - 31)
@@ -20,11 +20,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, macos-15-intel, ubuntu-22.04, ubuntu-22.04-arm, windows-latest]
+        os: [macos-15, macos-15-intel, ubuntu-22.04, ubuntu-22.04-arm, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Initialize TAG and git autocrlf
@@ -44,20 +44,17 @@ jobs:
           echo '[msys2]' >> ~/.config/alire/config.toml
           echo 'install_dir = "C:\\msys64"' >> ~/.config/alire/config.toml
       - name: Get als
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Get GNAT toolchain with alire
         shell: bash
         run: |
           # alire-project/setup-alire works for ARM64 Mac OS X now. Shall we use it?
-          if [[ ${{ matrix.os }} == ubuntu-22.04-arm ]] ; then
-            # Alire 2.1.0 was built for ubuntu 24.04, doesn't work on 22.04
-            ZIP=nightly/alr-nightly-bin-aarch64-linux.zip
-          elif [[ "$RUNNER_ARCH" == ARM64 ]] ; then
-            ZIP=v2.1.0/alr-2.1.0-bin-aarch64-${RUNNER_OS}.zip
+          if [[ "$RUNNER_ARCH" == ARM64 ]] ; then
+            ZIP=v2.1.1/alr-2.1.1-bin-aarch64-${RUNNER_OS}.zip
           else
-            ZIP=v2.1.0/alr-2.1.0-bin-x86_64-${RUNNER_OS}.zip
+            ZIP=v2.1.1/alr-2.1.1-bin-x86_64-${RUNNER_OS}.zip
           fi
           curl -L -O https://github.com/alire-project/alire/releases/download/$ZIP
           unzip $(basename $ZIP)
@@ -83,14 +80,14 @@ jobs:
         run: |
           scripts/build_als.sh test_als "$TAG"
       - name: Archive Test Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: als-test-report-${{ matrix.os }}
           path: |
             out/new
             xunit.xml
       - name: Archive ALS binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: als-${{ matrix.os }}
           # We know that only one of the following entries will match on a given
@@ -109,7 +106,7 @@ jobs:
         run: |
           .github/workflows/pack-binaries.sh "$TAG"
       - name: Archive VSIX binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vsix-${{ matrix.os }}
           path: "*.vsix"
