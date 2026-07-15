@@ -4865,6 +4865,24 @@ package LSP.Structures is
      (Self : DocumentFormattingOptions) return Boolean_Optional is
      (Self.workDoneProgress);
 
+   type KeywordCasingKind_Optional (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when False =>
+            null;
+         when True =>
+            Value : KeywordCasingKind;
+      end case;
+   end record;
+
+   type IdentifierCasingKind_Optional (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when False =>
+            null;
+         when True =>
+            Value : IdentifierCasingKind;
+      end case;
+   end record;
+
    type FormattingOptions is record
       tabSize : Natural;
       --  Size of a tab in spaces.
@@ -4894,6 +4912,12 @@ package LSP.Structures is
       gnatFormatContinuationLineIndent : Natural_Optional;
       --  Continuation Line Indentation size (defaults to indentation-1) for
       --  gnatformat
+
+      gnatKeywordCasing : KeywordCasingKind_Optional;
+      --  Casing used for keyword
+
+      gnatIdentifierCasing : IdentifierCasingKind_Optional;
+      --  Casing used for identifier
 
    end record;
    --  Value-object describing what options formatting should use.

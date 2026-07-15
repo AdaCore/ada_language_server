@@ -238,6 +238,11 @@ package body LSP.Inputs is
       Value   : out LSP.Structures.SemanticTokensParams) renames
      Part_12.Read_SemanticTokensParams;
 
+   procedure Read_IdentifierCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.IdentifierCasingKind) renames
+     Part_32.Read_IdentifierCasingKind;
+
    procedure Read_ColorInformation_Vector
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.ColorInformation_Vector) renames
@@ -853,6 +858,11 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.WatchKind) renames
      Part_21.Read_WatchKind;
+
+   procedure Read_KeywordCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.KeywordCasingKind) renames
+     Part_6.Read_KeywordCasingKind;
 
    procedure Read_DiagnosticSeverity
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;

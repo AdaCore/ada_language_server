@@ -150,6 +150,56 @@
                "value": "dispatchingCall"
             }
          ]
+      },
+      {
+         "name": "KeywordCasingKind",
+         "type": {
+            "kind": "base",
+            "name": "string"
+         },
+         "values": [
+            {
+               "name": "Keep",
+               "value": "Keep"
+            },
+            {
+               "name": "Lower",
+               "value": "Lower"
+            },
+            {
+               "name": "Upper",
+               "value": "Upper"
+            }
+         ]
+      },
+      {
+         "name": "IdentifierCasingKind",
+         "type": {
+            "kind": "base",
+            "name": "string"
+         },
+         "values": [
+            {
+               "name": "Keep",
+               "value": "Keep"
+            },
+            {
+               "name": "Definition",
+               "value": "Definition"
+            },
+            {
+               "name": "Lower",
+               "value": "Lower"
+            },
+            {
+               "name": "Upper",
+               "value": "Upper"
+            },
+            {
+               "name": "Mixed",
+               "value": "Mixed"
+            }
+         ]
       }
    ],
    "structures": [
@@ -219,6 +269,24 @@
             },
             "optional": true,
             "documentation": "Continuation Line Indentation size (defaults to indentation-1) for gnatformat"
+         },
+         {
+            "name": "gnatKeywordCasing",
+            "type": {
+               "kind": "reference",
+               "name": "KeywordCasingKind"
+            },
+            "optional": true,
+            "documentation": "Casing used for keyword"
+         },
+         {
+            "name": "gnatIdentifierCasing",
+            "type": {
+               "kind": "reference",
+               "name": "IdentifierCasingKind"
+            },
+            "optional": true,
+            "documentation": "Casing used for identifier"
          }
          ],
          "documentation": "Value-object describing what options formatting should use."

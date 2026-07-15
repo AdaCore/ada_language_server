@@ -34,6 +34,7 @@ from lsprotocol.types import (
     DidChangeConfigurationParams,
     DidOpenTextDocumentParams,
     ExecuteCommandParams,
+    FormattingOptions,
     InitializeParams,
     MessageType,
     Position,
@@ -512,6 +513,48 @@ class ALSLanguageClient(LanguageClient):
         return result
 
 
+@attrs.define
+class GnatFormattingOptions(FormattingOptions):
+    gnatIdentifierCasing: str | None = None
+    gnatKeywordCasing: str | None = None
+    gnatFormatMaxSize: int | None = None
+    gnatFormatContinuationLineIndent: int | None = None
+
+
+def gnat_converter():
+    converter = default_converter()
+
+    def gnat_formatting_options(options: FormattingOptions) -> dict:
+        # Mandatory LSP field
+        result: dict[str, object] = {
+            "tabSize": options.tab_size,
+            "insertSpaces": options.insert_spaces,
+        }
+        # Optional LSP fields
+        if options.trim_trailing_whitespace is not None:
+            result["trimTrailingWhitespace"] = options.trim_trailing_whitespace
+        if options.insert_final_newline is not None:
+            result["insertFinalNewline"] = options.insert_final_newline
+        if options.trim_final_newlines is not None:
+            result["trimFinalNewlines"] = options.trim_final_newlines
+        # Custom LSP fields.
+        if isinstance(options, GnatFormattingOptions):
+            if options.gnatIdentifierCasing is not None:
+                result["gnatIdentifierCasing"] = options.gnatIdentifierCasing
+            if options.gnatKeywordCasing is not None:
+                result["gnatKeywordCasing"] = options.gnatKeywordCasing
+            if options.gnatFormatMaxSize is not None:
+                result["gnatFormatMaxSize"] = options.gnatFormatMaxSize
+            if options.gnatFormatContinuationLineIndent is not None:
+                result["gnatFormatContinuationLineIndent"] = (
+                    options.gnatFormatContinuationLineIndent
+                )
+        return result
+
+    converter.register_unstructure_hook(FormattingOptions, gnat_formatting_options)
+    return converter
+
+
 def als_client_factory() -> ALSLanguageClient:
     """This function is an ugly copy-paste of pytest_lsp.make_test_lsp_client. It is
     necessary in order to override some aspects of the pytest_lsp.LanguageClient class,
@@ -528,7 +571,7 @@ def als_client_factory() -> ALSLanguageClient:
 
     # Instantiate the object from our own ALSLanguageClient class
     client = ALSLanguageClient(
-        converter_factory=default_converter,
+        converter_factory=gnat_converter,
     )
 
     # The rest of the function is identical to the original, but we have to replace the

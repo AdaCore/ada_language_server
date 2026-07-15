@@ -15,6 +15,116 @@ package body LSP.Message_IO is
    use type Interfaces.Integer_64;
    use type VSS.Strings.Virtual_String;
 
+   procedure Read_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out KeywordCasingKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Text : constant Standard.String :=
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+   begin
+      JS.R.Read_Next;
+      if Text = "Keep" then
+         V := Keep;
+      elsif Text = "Lower" then
+         V := Lower;
+      elsif Text = "Upper" then
+         V := Upper;
+      else
+         V := KeywordCasingKind'First;
+      end if;
+   end Read_KeywordCasingKind;
+
+   procedure Write_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : KeywordCasingKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_Virtual_String
+        (Value : KeywordCasingKind)
+         return VSS.Strings.Virtual_String;
+
+      function To_Virtual_String
+        (Value : KeywordCasingKind)
+         return VSS.Strings.Virtual_String is
+      begin
+         case Value is
+            when Keep =>
+               return "Keep";
+            when Lower =>
+               return "Lower";
+            when Upper =>
+               return "Upper";
+         end case;
+      end To_Virtual_String;
+
+   begin
+      JS.Write_String (To_Virtual_String (V));
+   end Write_KeywordCasingKind;
+
+   procedure Read_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out IdentifierCasingKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Text : constant Standard.String :=
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+   begin
+      JS.R.Read_Next;
+      if Text = "Keep" then
+         V := Keep;
+      elsif Text = "Definition" then
+         V := Definition;
+      elsif Text = "Lower" then
+         V := Lower;
+      elsif Text = "Upper" then
+         V := Upper;
+      elsif Text = "Mixed" then
+         V := Mixed;
+      else
+         V := IdentifierCasingKind'First;
+      end if;
+   end Read_IdentifierCasingKind;
+
+   procedure Write_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : IdentifierCasingKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_Virtual_String
+        (Value : IdentifierCasingKind)
+         return VSS.Strings.Virtual_String;
+
+      function To_Virtual_String
+        (Value : IdentifierCasingKind)
+         return VSS.Strings.Virtual_String is
+      begin
+         case Value is
+            when Keep =>
+               return "Keep";
+            when Definition =>
+               return "Definition";
+            when Lower =>
+               return "Lower";
+            when Upper =>
+               return "Upper";
+            when Mixed =>
+               return "Mixed";
+         end case;
+      end To_Virtual_String;
+
+   begin
+      JS.Write_String (To_Virtual_String (V));
+   end Write_IdentifierCasingKind;
+
    procedure Read_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out RequestMessage)
@@ -3529,8 +3639,6 @@ package body LSP.Message_IO is
          V := async;
       elsif Text = "modification" then
          V := modification;
-      elsif Text = "dispatchingCall" then
-            V := dispatchingCall;
       elsif Text = "documentation" then
          V := documentation;
       elsif Text = "defaultLibrary" then
@@ -3539,6 +3647,8 @@ package body LSP.Message_IO is
          V := globalVariable;
       elsif Text = "localVariable" then
          V := localVariable;
+      elsif Text = "dispatchingCall" then
+         V := dispatchingCall;
       else
          V := SemanticTokenModifiers'First;
       end if;
@@ -3576,8 +3686,6 @@ package body LSP.Message_IO is
                return "async";
             when modification =>
                return "modification";
-            when dispatchingCall =>
-                  return "dispatchingCall";
             when documentation =>
                return "documentation";
             when defaultLibrary =>
@@ -3586,6 +3694,8 @@ package body LSP.Message_IO is
                return "globalVariable";
             when localVariable =>
                return "localVariable";
+            when dispatchingCall =>
+               return "dispatchingCall";
          end case;
       end To_Virtual_String;
 
@@ -7873,6 +7983,10 @@ package body LSP.Message_IO is
                Optional_Boolean'Read (S, V.trimFinalNewlines);
             elsif Key = "gnatFormatMaxSize" then
                Optional_uinteger'Read (S, V.gnatFormatMaxSize);
+            elsif Key = "gnatKeywordCasing" then
+               Optional_KeywordCasingKind'Read (S, V.gnatKeywordCasing);
+            elsif Key = "gnatIdentifierCasing" then
+               Optional_IdentifierCasingKind'Read (S, V.gnatIdentifierCasing);
             elsif Key = "gnatFormatContinuationLineIndent" then
                Optional_uinteger'Read (S, V.gnatFormatContinuationLineIndent);
             else
@@ -7902,6 +8016,10 @@ package body LSP.Message_IO is
       Optional_Boolean'Write (S, V.trimFinalNewlines);
       JS.Key ("gnatFormatMaxSize");
       Optional_uinteger'Write (S, V.gnatFormatMaxSize);
+      JS.Key ("gnatKeywordCasing");
+      Optional_KeywordCasingKind'Write (S, V.gnatKeywordCasing);
+      JS.Key ("gnatIdentifierCasing");
+      Optional_IdentifierCasingKind'Write (S, V.gnatIdentifierCasing);
       JS.Key ("gnatFormatContinuationLineIndent");
       Optional_uinteger'Write (S, V.gnatFormatContinuationLineIndent);
       JS.End_Object;

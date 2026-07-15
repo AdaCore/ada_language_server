@@ -106,6 +106,16 @@ package body LSP.Messages is
       V : out LSP.Messages.AlsReferenceKind)
       renames LSP.Message_IO.Read_AlsReferenceKind;
 
+   procedure Read_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.KeywordCasingKind)
+      renames LSP.Message_IO.Read_KeywordCasingKind;
+
+   procedure Read_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.IdentifierCasingKind)
+   renames LSP.Message_IO.Read_IdentifierCasingKind;
+
    procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy)
@@ -1255,6 +1265,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.AlsReferenceKind)
       renames LSP.Message_IO.Write_AlsReferenceKind;
+
+   procedure Write_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.KeywordCasingKind)
+      renames LSP.Message_IO.Write_KeywordCasingKind;
+
+   procedure Write_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.IdentifierCasingKind)
+      renames LSP.Message_IO.Write_IdentifierCasingKind;
 
    procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
      (S : access Ada.Streams.Root_Stream_Type'Class;
