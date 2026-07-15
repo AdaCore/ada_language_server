@@ -1,7 +1,7 @@
 [
     {
         "comment": [
-            "test automatically generated"
+            "Testcase UB30-006 with Narrow range choice for rangeFormatting"
         ]
     },
     {
@@ -12,46 +12,24 @@
         }
     },
     {
-        "send": {
-            "request": {
-                "jsonrpc": "2.0",
-                "id": 0,
-                "method": "initialize",
-                "params": {
-                    "processId": 84339,
-                    "locale": "en-gb",
-                    "rootPath": "$URI{.}",
-                    "rootUri": "$URI{.}",
-                    "capabilities": {
-                        "workspace": {
-                            "applyEdit": true,
-                            "workspaceEdit": {
-                                "documentChanges": true,
-                                "resourceOperations": [
-                                    "create",
-                                    "rename",
-                                    "delete"
-                                ]
-                            },
-                            "executeCommand": {
-                                "dynamicRegistration": true
-                            }
-                        },
-                        "textDocument": {
-                            "rangeFormatting": {
-                                "dynamicRegistration": true
-                            }
-                        }
-                    }
-                }
-            },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 0
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "textDocument": {
+                     "rangeFormatting": {
+                        "dynamicRegistration": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
     },
     {
         "send": {
@@ -73,7 +51,10 @@
                         "ada": {
                             "trace": {
                                 "server": "verbose"
-                            },
+                            },                     
+                            "rangeFormatting": {
+               					  "formatChoice": "narrow"
+              					 },
                             "projectFile": "default.gpr",
                             "scenarioVariables": {},
                             "defaultCharset": "iso-8859-1",
@@ -168,6 +149,19 @@
                                 }
                             },
                             "newText": "   end;\n"
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 9,
+                                    "character": 0
+                                },
+                                "end": {
+                                    "line": 10,
+                                    "character": 0
+                                }
+                            },
+                            "newText": "end Main;\n"
                         }
                     ]
                 }
