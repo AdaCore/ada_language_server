@@ -20,6 +20,7 @@ with Ada.Tags;
 with GNATCOLL.VFS;
 with Gnatformat.Edits;
 with Gnatformat.Formatting;
+with Gnatformat.Identifier_Casing;
 
 with Langkit_Support.Diagnostics;
 with Langkit_Support.Symbols;
@@ -88,26 +89,54 @@ package body LSP.Ada_Documents is
       Options : Gnatformat.Configuration.Format_Options_Type;
       Result  : out LSP.Structures.TextEdit_Vector)
    is
+      function Format
+        (Unparsing_Diagnostics :
+           out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
+         return VSS.Strings.Virtual_String;
+      --  Helper to  format Self with formatting options based on Context
+
+      ------------
+      -- Format --
+      ------------
+
+      function Format
+        (Unparsing_Diagnostics :
+           out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
+         return VSS.Strings.Virtual_String
+      is
+         Unit            : constant Libadalang.Analysis.Analysis_Unit :=
+           Self.Unit (Context);
+         Source_Filename : constant String :=
+           Context.URI_To_File (Self.URI).Display_Base_Name;
+
+      begin
+         return
+           VSS.Strings.Conversions.To_Virtual_String
+             (Gnatformat.Formatting.Format
+                ((case Options.Get_Identifier_Casing (Source_Filename) is
+                    when Gnatformat.Configuration.Keep       => Unit,
+                    when Gnatformat.Configuration.Definition =>
+                      Gnatformat.Identifier_Casing.Normalized_Unit (Unit)),
+                 Format_Options => Options,
+                 Configuration  =>
+                   Context.Get_Unparsing_Configuration
+                     (Format_Options  => Options,
+                      Source_Filename => Source_Filename,
+                      Diagnostics     => Unparsing_Diagnostics)));
+      end Format;
+
       Unparsing_Diagnostics :
         Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
-
-      Formatted_Document : constant VSS.Strings.Virtual_String :=
-        VSS.Strings.Conversions.To_Virtual_String
-          (Gnatformat.Formatting.Format
-             (Unit           => Self.Unit (Context),
-              Format_Options => Options,
-              Configuration  =>
-                Context.Get_Unparsing_Configuration
-                  (Format_Options  => Options,
-                   Source_Filename =>
-                     Context.URI_To_File (Self.URI).Display_Base_Name,
-                   Diagnostics     => Unparsing_Diagnostics)));
+      Formatted_Document    : constant VSS.Strings.Virtual_String :=
+        Format (Unparsing_Diagnostics);
 
    begin
       if not Unparsing_Diagnostics.Is_Empty then
          Self.Tracer.Trace
-           ("Diagnostics found while loading the unparsing configuration for "
-            & Context.URI_To_File (Self.URI).Display_Base_Name & ":");
+           ("Diagnostics found while loading the unparsing "
+            & "configuration for "
+            & Context.URI_To_File (Self.URI).Display_Base_Name
+            & ":");
          for Diagnostic of Unparsing_Diagnostics loop
             Self.Tracer.Trace
               (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
@@ -801,8 +830,15 @@ package body LSP.Ada_Documents is
          return Result;
       end To_GNATformat_Range;
 
+      Source_Filename : constant String :=
+        Context.URI_To_File (Self.URI).Display_Base_Name;
+
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        Self.Unit (Context);
+        (case Options.Get_Identifier_Casing (Source_Filename) is
+           when Gnatformat.Configuration.Keep       => Self.Unit (Context),
+           when Gnatformat.Configuration.Definition =>
+             Gnatformat.Identifier_Casing.Normalized_Unit
+               (Self.Unit (Context)));
 
       Format_Range : constant Langkit_Support.Slocs.Source_Location_Range :=
         To_GNATformat_Range (Unit, Range_Format.Span);
@@ -829,8 +865,7 @@ package body LSP.Ada_Documents is
              Configuration   =>
                Context.Get_Unparsing_Configuration
                  (Format_Options  => Options,
-                  Source_Filename =>
-                    Context.URI_To_File (Self.URI).Display_Base_Name,
+                  Source_Filename => Source_Filename,
                   Diagnostics     => Unparsing_Diagnostics));
 
       Ok : Boolean;
@@ -838,7 +873,8 @@ package body LSP.Ada_Documents is
       if not Unparsing_Diagnostics.Is_Empty then
          Self.Tracer.Trace
            ("Diagnostics found while loading the unparsing configuration for "
-            & Context.URI_To_File (Self.URI).Display_Base_Name & ":");
+            & Source_Filename
+            & ":");
          for Diagnostic of Unparsing_Diagnostics loop
             Self.Tracer.Trace
               (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
@@ -854,14 +890,6 @@ package body LSP.Ada_Documents is
             Span     => Self.To_A_Range (Format_Range),
             Edit     => Result);
          return;
-         --  declare
-         --     Edit : constant LSP.Structures.TextEdit :=
-         --       (a_range => Self.To_A_Range (Excluded),
-         --        newText => Text);
-         --  begin
-         --     Result.Append (Edit);
-         --     return;
-         --  end;
       end if;
 
       Self.Diff_C

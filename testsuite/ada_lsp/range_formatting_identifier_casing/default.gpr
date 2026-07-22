@@ -1,0 +1,5 @@
+project Default is
+   package Format is
+      for Identifier_Casing ("Ada") use "definition";
+   end Format;
+end Default;
