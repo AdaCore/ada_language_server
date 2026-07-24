@@ -723,7 +723,6 @@ package body LSP.Ada_Handlers.Formatting is
       LSP_Options : LSP.Structures.FormattingOptions)
       return Gnatformat.Configuration.Format_Options_Type
    is
-      use Gnatformat;
       use Gnatformat.Configuration;
 
       function Get_LSP_Options return Format_Options_Type;
@@ -739,21 +738,19 @@ package body LSP.Ada_Handlers.Formatting is
          if LSP_Options.tabSize /= 0 then
             --  FormattingOptions is not optional, however in case a client
             --  forgot to set it try to be resilient.
-            Format_Options_Builder.With_Indentation
-              (LSP_Options.tabSize, Ada_Language);
+            Format_Options_Builder.With_Indentation (LSP_Options.tabSize);
          end if;
          Format_Options_Builder.With_Indentation_Kind
-           ((if LSP_Options.insertSpaces then Spaces else Tabs), Ada_Language);
+           ((if LSP_Options.insertSpaces then Spaces else Tabs));
 
          if LSP_Options.gnatFormatMaxSize.Is_Set then
             Format_Options_Builder.With_Width
-              (LSP_Options.gnatFormatMaxSize.Value, Ada_Language);
+              (LSP_Options.gnatFormatMaxSize.Value);
          end if;
 
          if LSP_Options.gnatFormatContinuationLineIndent.Is_Set then
             Format_Options_Builder.With_Indentation_Continuation
-              (LSP_Options.gnatFormatContinuationLineIndent.Value,
-               Ada_Language);
+              (LSP_Options.gnatFormatContinuationLineIndent.Value);
          end if;
 
          return Format_Options_Builder.Build;
