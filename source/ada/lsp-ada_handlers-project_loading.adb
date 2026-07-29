@@ -72,7 +72,9 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    overriding
    procedure Internal_Report
-     (Self : in out GPR2_Reporter; Msg : GPR2.Message.Object);
+     (Self   : in out GPR2_Reporter;
+      Msg    : GPR2.Message.Object;
+      Binary : Boolean := False);
 
    overriding
    function Verbosity
@@ -450,8 +452,13 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    overriding
    procedure Internal_Report
-     (Self : in out GPR2_Reporter; Msg : GPR2.Message.Object) is
+     (Self   : in out GPR2_Reporter;
+      Msg    : GPR2.Message.Object;
+      Binary : Boolean := False) is
    begin
+      pragma Unreferenced (Binary);
+      --  Binary mode only affects file descriptor reporting, which
+      --  is not the case here.
       Self.Log.Append (Msg);
    end Internal_Report;
 
