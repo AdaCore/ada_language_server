@@ -108,15 +108,20 @@ package body LSP.Ada_Documents is
            Self.Unit (Context);
          Source_Filename : constant String :=
            Context.URI_To_File (Self.URI).Display_Base_Name;
+         Identifier_Casing : constant
+           Gnatformat.Configuration.Identifier_Casing_Kind :=
+             Options.Get_Identifier_Casing (Source_Filename);
 
       begin
          return
            VSS.Strings.Conversions.To_Virtual_String
              (Gnatformat.Formatting.Format
-                ((case Options.Get_Identifier_Casing (Source_Filename) is
-                    when Gnatformat.Configuration.Keep       => Unit,
-                    when Gnatformat.Configuration.Definition =>
-                      Gnatformat.Identifier_Casing.Normalized_Unit (Unit)),
+                ((case Identifier_Casing is
+                    when Gnatformat.Configuration.Keep => Unit,
+                    when Gnatformat.Configuration
+                           .Normalizing_Identifier_Casing_Kind =>
+                      Gnatformat.Identifier_Casing.Normalized_Unit
+                        (Unit, Identifier_Casing)),
                  Format_Options => Options,
                  Configuration  =>
                    Context.Get_Unparsing_Configuration
@@ -833,12 +838,17 @@ package body LSP.Ada_Documents is
       Source_Filename : constant String :=
         Context.URI_To_File (Self.URI).Display_Base_Name;
 
+      Identifier_Casing : constant
+        Gnatformat.Configuration.Identifier_Casing_Kind :=
+          Options.Get_Identifier_Casing (Source_Filename);
+
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        (case Options.Get_Identifier_Casing (Source_Filename) is
-           when Gnatformat.Configuration.Keep       => Self.Unit (Context),
-           when Gnatformat.Configuration.Definition =>
+        (case Identifier_Casing is
+           when Gnatformat.Configuration.Keep => Self.Unit (Context),
+           when Gnatformat.Configuration
+                  .Normalizing_Identifier_Casing_Kind =>
              Gnatformat.Identifier_Casing.Normalized_Unit
-               (Self.Unit (Context)));
+               (Self.Unit (Context), Identifier_Casing));
 
       Format_Range : constant Langkit_Support.Slocs.Source_Location_Range :=
         To_GNATformat_Range (Unit, Range_Format.Span);
