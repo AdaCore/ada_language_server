@@ -24,7 +24,6 @@ with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
-with LSP.Ada_Contexts;
 with LSP.Constants;
 with LSP.Locations;
 
@@ -35,15 +34,26 @@ package LSP.Ada_Handlers.Locations is
       Node : Libadalang.Analysis.Ada_Node'Class;
       Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
-   --  Convert LAL's Node to a LSP location
+   --  Convert LAL's Node to a LSP location.
+   --  Do not fill LSP.Structures.Location.hidden attribute
 
    function To_LSP_Location
      (Self    : in out Message_Handler'Class;
-      Context : LSP.Ada_Contexts.Context;
+      Context : in out LSP.Ada_Contexts.Context;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kind    : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location;
+   --  Convert LAL's Node to a LSP location.
+   --  Fill LSP.Structures.Location.hidden attribute
+
+   function To_LSP_Location
+     (Self    : in out Message_Handler'Class;
+      Context : in out LSP.Ada_Contexts.Context;
       File    : String;
       Sloc    : Langkit_Support.Slocs.Source_Location_Range;
       Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
+   --  Fill location's and hidden attribute
 
    function To_LSP_Range
      (Self  : in out Message_Handler'Class;
@@ -52,8 +62,15 @@ package LSP.Ada_Handlers.Locations is
       return LSP.Structures.A_Range;
 
    function To_LSP_Range
-     (Self  : in out Message_Handler'Class;
+     (Self : in out Message_Handler'Class;
       Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.A_Range;
+
+   function To_LSP_Range
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      File    : String;
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Structures.A_Range;
 
    function From_LSP_Range
@@ -63,9 +80,9 @@ package LSP.Ada_Handlers.Locations is
       return Langkit_Support.Slocs.Source_Location_Range;
 
    function Get_Node_At
-     (Self     : in out Message_Handler'Class;
-      Context  : LSP.Ada_Contexts.Context;
-      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Value   : LSP.Structures.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node;
 
    function Start_Position
@@ -80,11 +97,12 @@ package LSP.Ada_Handlers.Locations is
    --  Append the location corresponding to the given token to the Result.
 
    procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
+     (Self    : in out Message_Handler;
+      Context : LSP.Ada_Context_Sets.Context_Access;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
 

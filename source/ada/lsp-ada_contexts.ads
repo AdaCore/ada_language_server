@@ -19,6 +19,7 @@
 
 with Ada.Strings.Unbounded;
 
+with GNATCOLL.Tribooleans;
 with GNATCOLL.VFS;
 
 with GNATdoc.Comments.Options;
@@ -350,6 +351,18 @@ package LSP.Ada_Contexts is
       Default      : String := "") return String;
    --  Same as above, but computing the value directly from the context's
    --  root project view.
+
+   function Is_From_Extended_Project
+     (Self : Context;
+      File : String)
+      return GNATCOLL.Tribooleans.Triboolean;
+   --  Return True if file is from the extended project.
+   --  Return Indeterminate if unknown.
+
+   procedure Set_From_Extended_Project
+     (Self  : in out Context;
+      File  : String;
+      Value : Boolean);
 
 private
 

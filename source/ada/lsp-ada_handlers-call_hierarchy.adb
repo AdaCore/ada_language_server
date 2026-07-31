@@ -98,25 +98,25 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
             declare
                Decl     : constant Libadalang.Analysis.Basic_Decl :=
                  Node.P_Basic_Decl;
-               Location : constant LSP.Structures.Location :=
-                 Locations.To_LSP_Location (Self, Node);
+               A_Range  : constant LSP.Structures.A_Range :=
+                 Locations.To_LSP_Range (Self, Node);
             begin
                Call.from := LSP.Structures.CallHierarchyItem'
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
                   detail         => <>,
-                  uri            => Location.uri,
-                  a_range        => Location.a_range,
-                  selectionRange => Location.a_range,
+                  uri            => LSP.Utils.To_URI (Node),
+                  a_range        => A_Range,
+                  selectionRange => A_Range,
                   data           => <>);
 
                for Ref of Refs loop
                   declare
-                     Ref_Location : constant LSP.Structures.Location :=
-                       Locations.To_LSP_Location (Self, Ref);
+                     A_Range : constant LSP.Structures.A_Range :=
+                       Locations.To_LSP_Range (Self, Ref);
                   begin
-                     Call.fromRanges.Append (Ref_Location.a_range);
+                     Call.fromRanges.Append (A_Range);
 
                      if Ref.P_Is_Dispatching_Call then
                         Call.dispatching_calls.Append (True);
@@ -242,25 +242,25 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
             declare
                Decl     : constant Libadalang.Analysis.Basic_Decl :=
                  Node.P_Basic_Decl;
-               Location : constant LSP.Structures.Location :=
-                 Locations.To_LSP_Location (Self, Node);
+               A_Range : constant LSP.Structures.A_Range :=
+                 Locations.To_LSP_Range (Self, Node);
             begin
                Call.to := LSP.Structures.CallHierarchyItem'
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
                   detail         => <>,
-                  uri            => Location.uri,
-                  a_range        => Location.a_range,
-                  selectionRange => Location.a_range,
+                  uri            => LSP.Utils.To_URI (Node),
+                  a_range        => A_Range,
+                  selectionRange => A_Range,
                   data           => <>);
 
                for Ref of Refs loop
                   declare
-                     Ref_Location : constant LSP.Structures.Location :=
-                       Locations.To_LSP_Location (Self, Ref);
+                     A_Range : constant LSP.Structures.A_Range :=
+                       Locations.To_LSP_Range (Self, Ref);
                   begin
-                     Call.fromRanges.Append (Ref_Location.a_range);
+                     Call.fromRanges.Append (A_Range);
 
                      if Ref.P_Is_Dispatching_Call then
                         Call.dispatching_calls.Append (True);

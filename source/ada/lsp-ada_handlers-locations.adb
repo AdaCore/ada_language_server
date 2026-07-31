@@ -74,16 +74,17 @@ package body LSP.Ada_Handlers.Locations is
    ---------------------
 
    procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
+     (Self    : in out Message_Handler;
+      Context : LSP.Ada_Context_Sets.Context_Access;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
    begin
       if not LSP.Utils.Is_Synthetic (Node) then
          declare
             Value : constant LSP.Structures.Location :=
-              To_LSP_Location (Self, Node, Kinds);
+              To_LSP_Location (Self, Context.all, Node, Kinds);
          begin
             if not Filter.Contains (Value) then
                Result.Append (Value);
@@ -216,9 +217,9 @@ package body LSP.Ada_Handlers.Locations is
    -----------------
 
    function Get_Node_At
-     (Self     : in out Message_Handler'Class;
-      Context  : LSP.Ada_Contexts.Context;
-      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Value   : LSP.Structures.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node
    is
       use type LSP.Ada_Documents.Document_Access;
@@ -406,7 +407,7 @@ package body LSP.Ada_Handlers.Locations is
 
    function To_LSP_Location
      (Self    : in out Message_Handler'Class;
-      Context : LSP.Ada_Contexts.Context;
+      Context : in out LSP.Ada_Contexts.Context;
       File    : String;
       Sloc    : Langkit_Support.Slocs.Source_Location_Range;
       Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
@@ -414,33 +415,90 @@ package body LSP.Ada_Handlers.Locations is
    is
       use type LSP.Ada_Documents.Document_Access;
 
-      URI : constant LSP.Structures.DocumentUri :=
-        (VSS.Strings.Conversions.To_Virtual_String
-           (URIs.Conversions.From_File (File))
-         with null record);
+      URI : constant LSP.Structures.DocumentUri := LSP.Utils.To_URI (File);
 
       Doc : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
 
+      Hidden : LSP.Structures.Boolean_Optional;
    begin
       if Doc /= null then
          return Doc.To_LSP_Location
            (Segment => Sloc,
             Kinds   => Kinds,
             Hidden  => LSP.Utils.Is_From_Extended_Project
-              (Self.Project_Tree, File));
+              (Context, Self.Project_Tree, File));
 
       else
+         if LSP.Utils.Is_From_Extended_Project
+           (Context, Self.Project_Tree, File)
+         then
+            Hidden := (Is_Set => True, Value => True);
+         end if;
+
          return
            (uri     => URI,
             a_range => To_LSP_Range
               (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc),
             alsKind => Kinds,
-            hidden  =>
-              (if LSP.Utils.Is_From_Extended_Project (Self.Project_Tree, File)
-               then (Is_Set => True, Value => True)
-               else (Is_Set => False)));
+            hidden  => Hidden);
       end if;
+   end To_LSP_Location;
+
+   ---------------------
+   -- To_LSP_Location --
+   ---------------------
+
+   function To_LSP_Location
+     (Self : in out Message_Handler'Class;
+      Node : Libadalang.Analysis.Ada_Node'Class;
+      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI  : constant LSP.Structures.DocumentUri := LSP.Utils.To_URI (Node);
+      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
+        Node.Sloc_Range;
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+   begin
+      if Doc /= null then
+         return Doc.To_LSP_Location
+           (Segment => Sloc,
+            Kinds   => Kind,
+            Hidden  => False);
+
+      else
+         return
+           (uri     => URI,
+            a_range => To_LSP_Range (Node.Unit, Sloc),
+            alsKind => Kind,
+            hidden  => (Is_Set => False));
+      end if;
+   end To_LSP_Location;
+
+   ---------------------
+   -- To_LSP_Location --
+   ---------------------
+
+   function To_LSP_Location
+     (Self    : in out Message_Handler'Class;
+      Context : in out LSP.Ada_Contexts.Context;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kind    : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location
+   is
+      Result : LSP.Structures.Location;
+   begin
+      Result := To_LSP_Location (Self, Node, Kind);
+      if LSP.Utils.Is_From_Extended_Project
+        (Context, Self.Project_Tree, Node.Unit.Get_Filename)
+      then
+         Result.hidden := (Is_Set => True, Value => True);
+      end if;
+      return Result;
    end To_LSP_Location;
 
    ------------------
@@ -492,49 +550,32 @@ package body LSP.Ada_Handlers.Locations is
       end if;
    end To_LSP_Range;
 
-   ---------------------
-   -- To_LSP_Location --
-   ---------------------
+   ------------------
+   -- To_LSP_Range --
+   ------------------
 
-   function To_LSP_Location
-     (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class;
-      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
-        return LSP.Structures.Location
+   function To_LSP_Range
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      File    : String;
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range
    is
       use type LSP.Ada_Documents.Document_Access;
 
-      URI : constant LSP.Structures.DocumentUri :=
-        (VSS.Strings.Conversions.To_Virtual_String
-           (URIs.Conversions.From_File (Node.Unit.Get_Filename))
-         with null record);
-
-      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
-        Node.Sloc_Range;
+      URI : constant LSP.Structures.DocumentUri := LSP.Utils.To_URI (File);
 
       Doc : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
-
    begin
       if Doc /= null then
-         return Doc.To_LSP_Location
-           (Segment => Sloc,
-            Kinds   => Kind,
-            Hidden  => LSP.Utils.Is_From_Extended_Project
-              (Self.Project_Tree, Node.Unit.Get_Filename));
+         return Doc.To_A_Range (Sloc);
 
       else
-         return
-           (uri     => URI,
-            a_range => To_LSP_Range (Node.Unit, Sloc),
-            alsKind => Kind,
-            hidden  =>
-              (if LSP.Utils.Is_From_Extended_Project
-                   (Self.Project_Tree, Node.Unit.Get_Filename)
-               then (Is_Set => True, Value => True)
-               else (Is_Set => False)));
+         return To_LSP_Range
+           (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc);
       end if;
-   end To_LSP_Location;
+   end To_LSP_Range;
 
    ------------------
    -- To_LSP_Range --

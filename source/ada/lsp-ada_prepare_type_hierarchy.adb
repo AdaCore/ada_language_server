@@ -80,15 +80,12 @@ package body LSP.Ada_Prepare_Type_Hierarchy is
          then Skip_Subtypes (Name.P_Basic_Decl.As_Base_Type_Decl)
              else Libadalang.Analysis.No_Base_Type_Decl);
 
-      Loc  : LSP.Structures.Location;
       Decl : Libadalang.Analysis.Basic_Decl;
       Item : LSP.Structures.TypeHierarchyItem;
    begin
       if not Type_Decl.Is_Null then
          --  We have got a type, return its the very first declaration "part"
          Decl := Type_Decl.P_Canonical_Part;
-
-         Loc := Self.Parent.Context.To_LSP_Location (Decl);
 
          Item :=
            (name           => VSS.Strings.To_Virtual_String
@@ -97,10 +94,10 @@ package body LSP.Ada_Prepare_Type_Hierarchy is
             tags           => <>,
             detail         => LSP.Utils.Node_Location_Image
               (Decl.P_Defining_Name),
-            uri            => Loc.uri,
-            a_range        => Loc.a_range,
-            selectionRange => Self.Parent.Context.To_LSP_Location
-              (Decl.P_Defining_Name).a_range,
+            uri            => LSP.Utils.To_URI (Decl),
+            a_range        => Self.Parent.Context.To_LSP_Range (Decl),
+            selectionRange => Self.Parent.Context.To_LSP_Range
+              (Decl.P_Defining_Name),
             data           => <>);
 
          Response.Append (Item);

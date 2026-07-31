@@ -152,7 +152,7 @@ package body LSP.Ada_Handlers.Invisibles is
 
                for Doc of Self.Handler.Open_Documents loop
                   Doc.Get_Any_Symbol
-                    (Context     => Self.Context.all,
+                    (Context     => Self.Context,
                      Pattern     => Pattern,
                      Limit       => Limit,
                      Only_Public => True,

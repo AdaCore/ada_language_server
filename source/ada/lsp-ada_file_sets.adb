@@ -40,6 +40,7 @@ package body LSP.Ada_File_Sets is
    procedure Clear (Self : in out Indexed_File_Set'Class) is
    begin
       Self.Files.Clear;
+      Self.From_Extended_Project.Clear;
    end Clear;
 
    --------------
@@ -306,5 +307,37 @@ package body LSP.Ada_File_Sets is
    begin
       return Natural (Self.Files.Length);
    end Length;
+
+   ------------------------------
+   -- Is_From_Extended_Project --
+   ------------------------------
+
+   function Is_From_Extended_Project
+     (Self : Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File)
+      return GNATCOLL.Tribooleans.Triboolean
+   is
+      C : constant Boolean_File_Maps.Cursor :=
+        Self.From_Extended_Project.Find (File);
+   begin
+      if Boolean_File_Maps.Has_Element (C) then
+         return GNATCOLL.Tribooleans.To_TriBoolean
+           (Boolean_File_Maps.Element (C));
+      else
+         return GNATCOLL.Tribooleans.Indeterminate;
+      end if;
+   end Is_From_Extended_Project;
+
+   -------------------------------
+   -- Set_From_Extended_Project --
+   -------------------------------
+
+   procedure Set_From_Extended_Project
+     (Self  : in out Indexed_File_Set'Class;
+      File  : GNATCOLL.VFS.Virtual_File;
+      Value : Boolean) is
+   begin
+      Self.From_Extended_Project.Include (File, Value);
+   end Set_From_Extended_Project;
 
 end LSP.Ada_File_Sets;

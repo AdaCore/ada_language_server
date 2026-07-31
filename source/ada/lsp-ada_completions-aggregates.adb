@@ -426,14 +426,10 @@ package body LSP.Ada_Completions.Aggregates is
           return VSS.Strings.Virtual_String;
 
       function Shift_End_Bound
-        (Value : LSP.Structures.Location) return LSP.Structures.Location is
-          (uri     => Value.uri,
-           alsKind => Value.alsKind,
-           hidden  => Value.hidden,
-           a_range =>
-             (start => Value.a_range.start,
-              an_end => (line => Value.a_range.an_end.line,
-                         character => Value.a_range.an_end.character + 1)));
+        (Value : LSP.Structures.A_Range) return LSP.Structures.A_Range is
+             (start => Value.start,
+              an_end => (line => Value.an_end.line,
+                         character => Value.an_end.character + 1));
 
       function Skip
         (Text  : VSS.Strings.Virtual_String;
@@ -494,11 +490,11 @@ package body LSP.Ada_Completions.Aggregates is
          end return;
       end Skip;
 
-      Location : LSP.Structures.Location :=
-        Shift_End_Bound (Self.Handler.To_LSP_Location (Aggregate));
+      A_Range : LSP.Structures.A_Range :=
+        Shift_End_Bound (Self.Handler.To_LSP_Range (Aggregate));
 
       Edit     : LSP.Structures.TextEdit :=
-        (a_range => Location.a_range,
+        (a_range => A_Range,
          newText => <>);
 
       Documentation : VSS.Strings.Virtual_String;
@@ -511,8 +507,8 @@ package body LSP.Ada_Completions.Aggregates is
       Edit.newText := Snippet.To_Text (Self.Use_Snippets);
       Documentation := Fetch_Documentation (Text);
 
-      Location.a_range.an_end :=
-        (line      => Location.a_range.start.line + 1,
+      A_Range.an_end :=
+        (line      => A_Range.start.line + 1,
          character => 0);
       --  Fix command's Location end bound to next line.
 
@@ -537,8 +533,8 @@ package body LSP.Ada_Completions.Aggregates is
            (Is_Set => True,
             Value =>
               LSP.Ada_Handlers.Format_Range_Commands.To_LSP_Command
-                (Document => (uri => Location.uri),
-                 Span => Location.a_range)),
+                (Document => (uri => LSP.Utils.To_URI (Aggregate)),
+                 Span => A_Range)),
          others           => <>);
    end Create_Completion;
 

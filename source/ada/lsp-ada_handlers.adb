@@ -150,7 +150,7 @@ package body LSP.Ada_Handlers is
    function Resolve_Name
      (Self      : in out Message_Handler;
       Id        : LSP.Structures.Integer_Or_Virtual_String;
-      Context   : LSP.Ada_Contexts.Context;
+      Context   : in out LSP.Ada_Contexts.Context;
       Name_Node : Libadalang.Analysis.Name;
       Imprecise : out Boolean) return Libadalang.Analysis.Defining_Name;
    --  Toplayer Resolve_Name based on Laltools.Common.Resolve_Name.
@@ -159,9 +159,12 @@ package body LSP.Ada_Handlers is
 
    overriding
    function To_LSP_Location
-     (Self : in out Message_Handler; Node : Libadalang.Analysis.Ada_Node'Class)
+     (Self    : in out Message_Handler;
+      Context : in out LSP.Ada_Contexts.Context;
+      Node    : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location
-   is (LSP.Ada_Handlers.Locations.To_LSP_Location (Self, Node));
+   is (LSP.Ada_Handlers.Locations.To_LSP_Location
+       (Self, Context, Node));
 
    overriding
    function To_LSP_Range
@@ -194,11 +197,12 @@ package body LSP.Ada_Handlers is
 
    overriding
    procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
+     (Self    : in out Message_Handler;
+      Context : LSP.Ada_Context_Sets.Context_Access;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : AlsReferenceKind_Array := LSP.Constants.Empty)
    renames LSP.Ada_Handlers.Locations.Append_Location;
 
    overriding procedure Append_Location
@@ -1185,7 +1189,8 @@ package body LSP.Ada_Handlers is
                Generate_Package_Command.Append_Code_Action
                  (Context         => Context,
                   Commands_Vector => Result,
-                  Spec_Loc        => Self.To_LSP_Location (Spec),
+                  Spec_Loc        => Self.To_LSP_Location
+                    (Context.all, Spec),
                   Body_Path       =>
                     VSS.Strings.Conversions.To_Virtual_String
                       (Get_Body_Path (Spec)),
@@ -1223,7 +1228,8 @@ package body LSP.Ada_Handlers is
                Generate_Subprogram_Command.Append_Code_Action
                  (Context         => Context,
                   Commands_Vector => Result,
-                  Subp_Start      => Self.To_LSP_Location (Decl),
+                  Subp_Start      => Self.To_LSP_Location
+                    (Context.all, Decl),
                   Subp_Type       => Decl.F_Subp_Spec.F_Subp_Kind);
                Found := True;
             else
@@ -2885,7 +2891,7 @@ package body LSP.Ada_Handlers is
             Kinds  : AlsReferenceKind_Array) is
          begin
             for E of Bodies loop
-               Self.Append_Location (Vector, Filter, E, Kinds);
+               Self.Append_Location (C, Vector, Filter, E, Kinds);
             end loop;
          end Update_Response;
 
@@ -3257,17 +3263,24 @@ package body LSP.Ada_Handlers is
 
             declare
                Span : constant LSP.Structures.A_Range :=
-                 Self.To_LSP_Location (Decl).a_range;
+                 Self.To_LSP_Range (Decl);
 
                Node : constant Libadalang.Analysis.Defining_Name :=
                  Decl.P_Defining_Name;
 
                --  In case the Defining_Name is a Dotted_Name then we need
                --  to point to the func which is the last.
-               Location : constant LSP.Structures.Location :=
-                 Self.To_LSP_Location
+               URI : constant LSP.Structures.DocumentUri :=
+                 LSP.Utils.To_URI
                    (if Node.First_Child.Kind
-                       in Libadalang.Common.Ada_Dotted_Name_Range
+                    in Libadalang.Common.Ada_Dotted_Name_Range
+                    then Node.First_Child.As_Dotted_Name.F_Suffix
+                    else Node);
+
+               A_Range : constant LSP.Structures.A_Range :=
+                 Self.To_LSP_Range
+                   (if Node.First_Child.Kind
+                    in Libadalang.Common.Ada_Dotted_Name_Range
                     then Node.First_Child.As_Dotted_Name.F_Suffix
                     else Node);
 
@@ -3276,9 +3289,9 @@ package body LSP.Ada_Handlers is
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
                   detail         => Utils.Node_Location_Image (Node),
-                  uri            => Location.uri,
+                  uri            => URI,
                   a_range        => Span,
-                  selectionRange => Location.a_range,
+                  selectionRange => A_Range,
                   data           => <>);
             begin
 
@@ -3334,7 +3347,7 @@ package body LSP.Ada_Handlers is
            (Is_Null => False,
             Value   =>
               (Kind      => LSP.Structures.Variant_1,
-               Variant_1 => Self.To_LSP_Location (Name_Node).a_range));
+               Variant_1 => Self.To_LSP_Range (Name_Node)));
       end if;
 
       Self.Sender.On_PrepareRename_Response (Id, Response);
@@ -3389,13 +3402,13 @@ package body LSP.Ada_Handlers is
                       (LSP.Formatters.Texts.Image (Name_Node.Text));
 
                   Diagnostic : LSP.Structures.Diagnostic;
-                  Loc        : constant LSP.Structures.Location :=
-                    Self.To_LSP_Location (Name_Node);
+                  A_Range    : constant LSP.Structures.A_Range :=
+                    Self.To_LSP_Range (Name_Node);
                   Document   : constant LSP.Ada_Documents.Document_Access :=
-                    Get_Open_Document (Self, Loc.uri);
+                    Get_Open_Document (Self, LSP.Utils.To_URI (Name_Node));
                begin
                   if Document /= null then
-                     Diagnostic.a_range := Loc.a_range;
+                     Diagnostic.a_range := A_Range;
                      Diagnostic.severity := LSP.Constants.Error;
                      Diagnostic.source := "Ada";
 
@@ -3407,11 +3420,11 @@ package body LSP.Ada_Handlers is
                            Diagnostic.relatedInformation.Append
                              (LSP.Structures.DiagnosticRelatedInformation'
                                 (location =>
-                                   LSP.Ada_Handlers.Locations.To_LSP_Location
-                                     (Self,
-                                      C.all,
-                                      Problem.Filename,
-                                      Problem.Location),
+                                  LSP.Ada_Handlers.Locations.To_LSP_Location
+                                    (Self,
+                                     C.all,
+                                     Problem.Filename,
+                                     Problem.Location),
 
                                  message  =>
                                    VSS.Strings.Conversions.To_Virtual_String
@@ -3842,19 +3855,19 @@ package body LSP.Ada_Handlers is
               Self.Contexts.Get_Best_Context (Doc.URI);
          begin
             Doc.Get_Any_Symbol
-              (Context.all,
+              (Context,
                Pattern,
                Ada.Containers.Count_Type'Last,
                False,
                Self.Is_Canceled,
                Names);
+
+            exit when Self.Is_Canceled.all;
+
+            if Value.partialResultToken.Is_Set and then Names.Length > 100 then
+               Send_Partial_Response;
+            end if;
          end;
-
-         exit when Self.Is_Canceled.all;
-
-         if Value.partialResultToken.Is_Set and then Names.Length > 100 then
-            Send_Partial_Response;
-         end if;
       end loop;
 
       if Partial_Response_Sended then
@@ -3935,7 +3948,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          if not Definition.Is_Null then
-            Self.Append_Location (Vector, Filter, Definition);
+            Self.Append_Location (C, Vector, Filter, Definition);
          end if;
       end Resolve_In_Context;
 
@@ -4095,7 +4108,7 @@ package body LSP.Ada_Handlers is
    function Resolve_Name
      (Self      : in out Message_Handler;
       Id        : LSP.Structures.Integer_Or_Virtual_String;
-      Context   : LSP.Ada_Contexts.Context;
+      Context   : in out LSP.Ada_Contexts.Context;
       Name_Node : Libadalang.Analysis.Name;
       Imprecise : out Boolean) return Libadalang.Analysis.Defining_Name
    is
@@ -4126,10 +4139,12 @@ package body LSP.Ada_Handlers is
             Err_Msg    : constant String :=
               "Failed to resolve " & Name_Node.Image;
             Diagnostic : LSP.Structures.Diagnostic;
-            Loc        : constant LSP.Structures.Location :=
-              Self.To_LSP_Location (Name_Node);
+            URI        : constant LSP.Structures.DocumentUri :=
+              LSP.Utils.To_URI (Name_Node);
+            A_Range    : constant LSP.Structures.A_Range :=
+              Self.To_LSP_Range (Name_Node);
             Document   : constant LSP.Ada_Documents.Document_Access :=
-              Get_Open_Document (Self, Loc.uri);
+              Get_Open_Document (Self, URI);
          begin
             if Document /= null then
                --  Internal tracing of failed resolution with context info
@@ -4141,7 +4156,7 @@ package body LSP.Ada_Handlers is
                   & Id_Image);
 
                --  Send a diagnostic for the user
-               Diagnostic.a_range := Loc.a_range;
+               Diagnostic.a_range := A_Range;
                Diagnostic.severity := LSP.Constants.Error;
                Diagnostic.source := "Ada";
                --  Diagnostics are shown to the user so show a simple
@@ -4161,7 +4176,7 @@ package body LSP.Ada_Handlers is
                            .Path_Name
                            .Filesystem_String)
                     & " --all --only-show-failures "
-                    & VSS.Strings.Conversions.To_UTF_8_String (Loc.uri));
+                    & VSS.Strings.Conversions.To_UTF_8_String (URI));
 
                Self.Publish_Diagnostics
                  (Document          => Document,

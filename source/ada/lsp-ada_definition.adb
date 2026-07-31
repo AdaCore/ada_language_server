@@ -287,7 +287,8 @@ package body LSP.Ada_Definition is
 
          if not Definition.Is_Null then
             Self.Parent.Context.Append_Location
-              (Self.Response,
+              (Context,
+               Self.Response,
                Self.Filter,
                Definition);
 
@@ -325,7 +326,8 @@ package body LSP.Ada_Definition is
                then
                   for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
                      Self.Parent.Context.Append_Location
-                       (Self.Response,
+                       (Context,
+                        Self.Response,
                         Self.Filter,
                         Accept_Node.F_Body_Decl.F_Name);
                   end loop;
@@ -380,13 +382,15 @@ package body LSP.Ada_Definition is
                --  We have found a result using the imprecise heuristics.
                --  We'll warn the user and send the result.
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context,
+                  Self.Response,
                   Self.Filter,
                   Manual_Fallback);
             end if;
          else
             Self.Parent.Context.Append_Location
-              (Self.Response,
+              (Context,
+               Self.Response,
                Self.Filter,
                Other_Part);
 
@@ -407,7 +411,8 @@ package body LSP.Ada_Definition is
          begin
             for Subp of Bases loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Parent);
@@ -415,7 +420,8 @@ package body LSP.Ada_Definition is
 
             for Subp of Overridings loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Child);

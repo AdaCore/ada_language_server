@@ -216,13 +216,15 @@ package body LSP.Ada_Declaration is
       if not Prev_Part.Is_Null then
          --  We have found previous part, return it.
          Self.Parent.Context.Append_Location
-           (Self.Response,
+           (Context,
+            Self.Response,
             Self.Filter,
             Prev_Part);
       elsif not Definition.Is_Null then
          --  No previous part, return definition itself.
          Self.Parent.Context.Append_Location
-           (Self.Response,
+           (Context,
+            Self.Response,
             Self.Filter,
             Definition);
       end if;
@@ -241,7 +243,8 @@ package body LSP.Ada_Declaration is
          begin
             for Subp of Bases loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Parent);
@@ -249,7 +252,8 @@ package body LSP.Ada_Declaration is
 
             for Subp of Overridings loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Child);

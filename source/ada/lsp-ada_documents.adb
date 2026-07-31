@@ -36,6 +36,7 @@ with VSS.Strings.Conversions;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Contexts;
+with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Documents.Semantic_Diagnostics;
 with LSP.Ada_Documents.Source_Info_Diagnostics;
@@ -159,7 +160,8 @@ package body LSP.Ada_Documents is
    --------------------
 
    procedure Get_Any_Symbol
-     (Self        : in out Document; Context : LSP.Ada_Contexts.Context;
+     (Self        : in out Document;
+      Context     : LSP.Ada_Context_Sets.Context_Access;
       Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
@@ -190,7 +192,7 @@ package body LSP.Ada_Documents is
          return Libadalang.Analysis.Defining_Name
       is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
-             Self.Unit (Context);
+             Self.Unit (Context.all);
 
          Name : constant Libadalang.Analysis.Name :=
            Laltools.Common.Get_Node_As_Name (Unit.Root.Lookup (Loc));
@@ -239,7 +241,7 @@ package body LSP.Ada_Documents is
          --  Find all definings names excluding private parts and bodies
          It : Libadalang.Iterators.Traverse_Iterator'Class :=
            Libadalang.Iterators.Find
-             (Self.Unit (Context).Root,
+             (Self.Unit (Context.all).Root,
               Libadalang.Iterators.Kind_Is (Ada_Defining_Name)
                 and not Restricted_Kind);
 

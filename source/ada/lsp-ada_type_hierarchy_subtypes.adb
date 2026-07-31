@@ -30,6 +30,7 @@ with LSP.Locations;
 with LSP.Server_Requests.Subtypes;
 with LSP.Structures;
 with LSP.Utils;
+with LSP.Constants;
 
 package body LSP.Ada_Type_Hierarchy_Subtypes is
 
@@ -131,11 +132,13 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
       Message : LSP.Server_Requests.Subtypes.Request
         renames LSP.Server_Requests.Subtypes.Request (Self.Message.all);
 
-      Ignore : Boolean;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Loc    : LSP.Structures.Location;
-      Item   : LSP.Structures.TypeHierarchyItem;
-      Name   : Libadalang.Analysis.Defining_Name;
+      Ignore  : Boolean;
+      Unit    : Libadalang.Analysis.Analysis_Unit;
+      URI     : LSP.Structures.DocumentUri;
+      A_Range : LSP.Structures.A_Range;
+      Span    : LSP.Structures.Location;
+      Item    : LSP.Structures.TypeHierarchyItem;
+      Name    : Libadalang.Analysis.Defining_Name;
    begin
       if LSP.Ada_File_Sets.File_Sets.Has_Element (Self.Cursor) then
          Unit := Self.Context.Get_AU
@@ -150,9 +153,16 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
             loop
                Name := Tipe.P_Defining_Name.P_Canonical_Part;
 
-               Loc := Self.Parent.Context.To_LSP_Location (Name.P_Basic_Decl);
+               URI     := LSP.Utils.To_URI (Name.P_Basic_Decl);
+               A_Range := Self.Parent.Context.To_LSP_Range (Name.P_Basic_Decl);
 
-               if not Self.Filter.Contains (Loc)
+               Span :=
+                 (uri     => URI,
+                  a_range => A_Range,
+                  alsKind => LSP.Constants.Empty,
+                  hidden  => (Is_Set => False));
+
+               if not Self.Filter.Contains (Span)
                  and Is_Derived_From (Tipe, Self.Decl.P_Canonical_Part)
                then
                   Item :=
@@ -163,13 +173,12 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
                      tags           => <>,
                      detail         => LSP.Utils.Node_Location_Image
                        (Name),
-                     uri            => Loc.uri,
-                     a_range        => Loc.a_range,
-                     selectionRange => Self.Parent.Context.To_LSP_Location
-                       (Name).a_range,
+                     uri            => URI,
+                     a_range        => A_Range,
+                     selectionRange => Self.Parent.Context.To_LSP_Range (Name),
                      data           => <>);
 
-                  Self.Filter.Insert (Loc);
+                  Self.Filter.Insert (Span);
                   Self.Response.Append (Item);
                end if;
             end loop;

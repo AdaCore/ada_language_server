@@ -17,6 +17,7 @@
 
 with Ada.Containers;
 with Ada.Strings.Unbounded;
+with GNATCOLL.Tribooleans;
 with System;
 
 with GPR2.Build.Source.Sets;
@@ -41,6 +42,7 @@ with Laltools.Common;
 with LSP.Text_Documents;
 with LSP.Constants;
 with LSP.Formatters.File_Names;
+with LSP.Ada_Contexts;
 with URIs;
 
 package body LSP.Utils is
@@ -439,9 +441,14 @@ package body LSP.Utils is
    ------------------------------
 
    function Is_From_Extended_Project
-     (Tree : GPR2.Project.Tree.Object;
-      File : String)
-      return Boolean is
+     (Context : in out LSP.Ada_Contexts.Context;
+      Tree    : GPR2.Project.Tree.Object;
+      File    : String)
+      return Boolean
+   is
+      use GNATCOLL.Tribooleans;
+
+      Res : GNATCOLL.Tribooleans.Triboolean;
    begin
       if not Tree.Is_Defined
         or else not Tree.Root_Project.Is_Defined
@@ -449,6 +456,11 @@ package body LSP.Utils is
       then
          --  No project or not extending another project
          return False;
+      end if;
+
+      Res := Context.Is_From_Extended_Project (File);
+      if Res /= Indeterminate then
+         return To_Boolean (Res);
       end if;
 
       declare
@@ -462,12 +474,14 @@ package body LSP.Utils is
               and then F.Path_Name.String_Value = File
             then
                --  Found in the project's own files
+               Context.Set_From_Extended_Project (File, False);
                return False;
             end if;
          end loop;
       end;
 
       --  Did not find in the project's own files
+      Context.Set_From_Extended_Project (File, True);
       return True;
    end Is_From_Extended_Project;
 
@@ -688,6 +702,28 @@ package body LSP.Utils is
    is
      (VSS.Strings.Conversions.To_Virtual_String
         (URIs.Conversions.From_File (String (Path.Value))) with null record);
+
+   ------------
+   -- To_URI --
+   ------------
+
+   function To_URI
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.DocumentUri
+   is
+     (VSS.Strings.Conversions.To_Virtual_String
+        (URIs.Conversions.From_File (Node.Unit.Get_Filename))
+      with null record);
+
+   ------------
+   -- To_URI --
+   ------------
+
+   function To_URI (File : String) return LSP.Structures.DocumentUri
+   is
+     (VSS.Strings.Conversions.To_Virtual_String
+        (URIs.Conversions.From_File (File))
+      with null record);
 
    ------------------------------------
    -- To_Optional_DiagnosticSeverity --

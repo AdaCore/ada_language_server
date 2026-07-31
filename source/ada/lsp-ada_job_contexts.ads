@@ -191,7 +191,9 @@ package LSP.Ada_Job_Contexts is
    --  the given location. If an error happened then return No_Defining_Name.
 
    function To_LSP_Location
-     (Self : in out Ada_Job_Context; Node : Libadalang.Analysis.Ada_Node'Class)
+     (Self    : in out Ada_Job_Context;
+      Context : in out LSP.Ada_Contexts.Context;
+      Node    : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location
    is abstract;
 
@@ -214,11 +216,12 @@ package LSP.Ada_Job_Contexts is
    is abstract;
 
    procedure Append_Location
-     (Self   : in out Ada_Job_Context;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+     (Self    : in out Ada_Job_Context;
+      Context : LSP.Ada_Context_Sets.Context_Access;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
    is abstract;
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).

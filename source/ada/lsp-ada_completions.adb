@@ -91,7 +91,7 @@ package body LSP.Ada_Completions is
 
    function Compute_Completion_Item
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
-      Context                   : LSP.Ada_Contexts.Context;
+      Context                   : in out LSP.Ada_Contexts.Context;
       Name                      : Libadalang.Analysis.Defining_Name;
       Label                     : VSS.Strings.Virtual_String;
       Command                   : LSP.Structures.Command_Optional;
@@ -123,7 +123,7 @@ package body LSP.Ada_Completions is
 
    function Compute_Completion_Item
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
-      Context                   : LSP.Ada_Contexts.Context;
+      Context                   : in out LSP.Ada_Contexts.Context;
       Name                      : Libadalang.Analysis.Defining_Name;
       Label                     : VSS.Strings.Virtual_String;
       Command                   : LSP.Structures.Command_Optional;
@@ -190,13 +190,9 @@ package body LSP.Ada_Completions is
       --  When the client supports it, show the fully qualified name
       --  via completion item label details.
       if Has_Label_Details_Support then
-         declare
-
-         begin
-            Item.labelDetails :=
-              (Is_Set => True,
-               Value  => (description => Unit_Full_Qual_Name, others => <>));
-         end;
+         Item.labelDetails :=
+           (Is_Set => True,
+            Value  => (description => Unit_Full_Qual_Name, others => <>));
       end if;
 
       if not Is_Visible then
@@ -513,7 +509,7 @@ package body LSP.Ada_Completions is
 
    procedure Set_Completion_Item_Documentation
      (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
-      Context                 : LSP.Ada_Contexts.Context;
+      Context                 : in out LSP.Ada_Contexts.Context;
       Name                    : Libadalang.Analysis.Defining_Name;
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean) is
@@ -565,7 +561,8 @@ package body LSP.Ada_Completions is
          --  Set node's location to the 'data' field of the completion item, so
          --  that we can retrieve it in the completionItem/resolve handler.
          LSP.Structures.LSPAny_Vectors.To_Any
-           (LSP.Ada_Handlers.Locations.To_LSP_Location (Handler, Name),
+           (LSP.Ada_Handlers.Locations.To_LSP_Location
+              (Handler, Context, Name),
             Item.data);
       end if;
    end Set_Completion_Item_Documentation;
@@ -596,7 +593,7 @@ package body LSP.Ada_Completions is
 
    procedure Write_Completions
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
-      Context                   : LSP.Ada_Contexts.Context;
+      Context                   : in out LSP.Ada_Contexts.Context;
       Document                  : LSP.Ada_Documents.Document;
       Token                     : Libadalang.Common.Token_Reference;
       Node                      : Libadalang.Analysis.Ada_Node;

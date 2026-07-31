@@ -22,6 +22,7 @@ with Ada.Containers.Ordered_Sets;
 with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Vectors;
 
+with GNATCOLL.Tribooleans;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
@@ -98,6 +99,18 @@ package LSP.Ada_File_Sets is
    --  last indexing operation. If Only_Public is True it will skip any
    --  "private" symbols (like symbols in private part or body).
 
+   function Is_From_Extended_Project
+     (Self : Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File)
+      return GNATCOLL.Tribooleans.Triboolean;
+   --  Return True if file is from the extended project.
+   --  Return Indeterminate if unknown.
+
+   procedure Set_From_Extended_Project
+     (Self  : in out Indexed_File_Set'Class;
+      File  : GNATCOLL.VFS.Virtual_File;
+      Value : Boolean);
+
 private
    type Name_Information is record
       File      : GNATCOLL.VFS.Virtual_File;
@@ -121,12 +134,21 @@ private
       GNATCOLL.VFS."=",
       GNATCOLL.VFS."=");
 
+   package Boolean_File_Maps is new Ada.Containers.Ordered_Maps
+     (GNATCOLL.VFS.Virtual_File,
+      Boolean,
+      GNATCOLL.VFS."<");
+
    type Indexed_File_Set is tagged limited record
       Files       : File_Sets.Set;
       All_Symbols : Symbol_Maps.Map;
       --  Index of all symbols defined in Files
       Indexed     : Hashed_File_Sets.Set;
       --  Set of document URIs presented in All_Symbols
+
+      From_Extended_Project : Boolean_File_Maps.Map;
+      --  Contains files that already tested whether they are from
+      --  root or extended project.
    end record;
 
 end LSP.Ada_File_Sets;

@@ -135,7 +135,8 @@ package body LSP.Ada_References is
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
 
             Self.Parent.Context.Append_Location
-              (Self.Response,
+              (Self.Context,
+               Self.Response,
                Self.Filter,
                Node,
                Self.Get_Reference_Kind (Node));
@@ -191,7 +192,8 @@ package body LSP.Ada_References is
               (Self.Definition.P_Basic_Decl, Ignore)
             loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Self.Context,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Self.Get_Reference_Kind
@@ -201,7 +203,8 @@ package body LSP.Ada_References is
 
             if Message.Params.context.includeDeclaration then
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Self.Context,
+                  Self.Response,
                   Self.Filter,
                   Self.Definition,
                   Self.Get_Reference_Kind (Self.Definition));

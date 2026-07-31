@@ -170,10 +170,8 @@ package body LSP.Ada_Folding_Range is
               Ada_Aspect_Spec =>
 
             declare
-               Location : constant LSP.Structures.Location :=
-                 Self.Parent.Context.To_LSP_Location (Node);
-
-               Span : LSP.Structures.A_Range renames Location.a_range;
+               Span : constant LSP.Structures.A_Range :=
+                 Self.Parent.Context.To_LSP_Range (Node);
 
                Kind : constant LSP.Structures.FoldingRangeKind_Optional :=
                  (if Node.Kind = Ada_Ada_Node_List then LSP.Constants.Imports

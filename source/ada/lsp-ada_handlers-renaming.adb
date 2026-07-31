@@ -29,6 +29,7 @@ with LAL_Refactor.Safe_Rename;
 with LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Locations;
 with LSP.Locations;
+with LSP.Utils;
 
 package body LSP.Ada_Handlers.Renaming is
 
@@ -397,27 +398,27 @@ package body LSP.Ada_Handlers.Renaming is
                   Text : constant VSS.Strings.Virtual_String :=
                     VSS.Strings.Conversions.To_Virtual_String (Item.Text);
 
-                  Loc : constant LSP.Structures.Location :=
-                    Locations.To_LSP_Location
+                  A_Range : constant LSP.Structures.A_Range :=
+                    Locations.To_LSP_Range
                       (Self, C.all, File, Item.Location);
                begin
                   if Result.textDocument.uri.Is_Empty then
-                     Result.textDocument :=
-                       Self.Get_Open_Document_Version (Loc.uri);
+                     Result.textDocument := Self.Get_Open_Document_Version
+                       (LSP.Utils.To_URI (File));
                   end if;
 
                   if Versioned_Documents then
                      Edit :=
                        (Is_TextEdit       => False,
                         AnnotatedTextEdit =>
-                          (a_range      => Loc.a_range,
+                          (a_range      => A_Range,
                            newText      => Text,
                            annotationId => <>));  --  could it be empty???
                   else
                      Edit :=
                        (Is_TextEdit => True,
                         TextEdit    =>
-                          (a_range => Loc.a_range,
+                          (a_range => A_Range,
                            newText => Text));
                   end if;
 

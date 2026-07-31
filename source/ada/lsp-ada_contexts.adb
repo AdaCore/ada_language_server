@@ -1029,4 +1029,30 @@ package body LSP.Ada_Contexts is
            Default   => Default);
    end Project_Attribute_Value;
 
+   ------------------------------
+   -- Is_From_Extended_Project --
+   ------------------------------
+
+   function Is_From_Extended_Project
+     (Self : Context;
+      File : String)
+      return GNATCOLL.Tribooleans.Triboolean is
+   begin
+      return Self.Source_Files.Is_From_Extended_Project
+        (GNATCOLL.VFS.Create_From_UTF8 (File));
+   end Is_From_Extended_Project;
+
+   -------------------------------
+   -- Set_From_Extended_Project --
+   -------------------------------
+
+   procedure Set_From_Extended_Project
+     (Self  : in out Context;
+      File  : String;
+      Value : Boolean) is
+   begin
+      Self.Source_Files.Set_From_Extended_Project
+        (GNATCOLL.VFS.Create_From_UTF8 (File), Value);
+   end Set_From_Extended_Project;
+
 end LSP.Ada_Contexts;

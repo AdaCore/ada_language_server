@@ -560,8 +560,9 @@ private
       return Libadalang.Analysis.Defining_Name;
 
    overriding function To_LSP_Location
-     (Self : in out Message_Handler;
-      Node : Libadalang.Analysis.Ada_Node'Class)
+     (Self    : in out Message_Handler;
+      Context : in out LSP.Ada_Contexts.Context;
+      Node    : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location;
 
    overriding function To_LSP_Range
@@ -582,11 +583,12 @@ private
       return Langkit_Support.Slocs.Source_Location_Range;
 
    overriding procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
+     (Self    : in out Message_Handler;
+      Context : LSP.Ada_Context_Sets.Context_Access;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
 
    overriding procedure Append_Location
      (Self   : in out Message_Handler;
