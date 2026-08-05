@@ -181,10 +181,12 @@ package LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
       Options : Gnatformat.Configuration.Format_Options_Type;
+      Narrow  : Boolean;
       Result  : out LSP.Structures.TextEdit_Vector)
      with Pre => not LSP.Utils.Is_Empty_Range (Span);
    --  Format part of Self defined by Span with formatting options based on
    --  Context.
+   --  When Narrow, restrict the edits to only affect the lines in Span.
 
    procedure Find_All_References
      (Self       : Document;

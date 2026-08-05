@@ -722,7 +722,7 @@ package body LSP.GPR_Handlers is
                  S        => Indentation * ' ')));
 
       --  If not in indent-only mode, re-indent the previous line too
-      if not Self.Configuration.Indent_Only
+      if not Self.Configuration.On_Type_Formatting_Indent_Only
         and then Value.position.line > 0
         and then Indent_Array (Prev_Line) /= -1
       then

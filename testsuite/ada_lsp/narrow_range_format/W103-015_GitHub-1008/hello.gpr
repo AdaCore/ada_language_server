@@ -1,0 +1,22 @@
+project Hello is
+   for Object_Dir use "obj";
+   for Main use ("hello.adb");
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-g");
+   end Compiler;
+
+   package Pretty_Printer is
+      
+      for Default_Switches ("ada") use
+        (
+         "--source-line-breaks"
+        );
+
+   end Pretty_Printer;
+
+   -- https://docs.adacore.com/gnat_ugn-docs/html/gnat_ugn/gnat_ugn/gnat_utility_programs.html#the-gnat-pretty-printer-gnatpp
+   --      "--preserve-line-breaks"
+   --      "--source-line-breaks"
+
+end Hello;

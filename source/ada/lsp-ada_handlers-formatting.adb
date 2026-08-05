@@ -131,6 +131,7 @@ package body LSP.Ada_Handlers.Formatting is
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
+      Narrow   : Boolean;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Error    : out LSP.Errors.ResponseError) is
@@ -145,7 +146,7 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      Document.Range_Format (Context, Span, Options, Response);
+      Document.Range_Format (Context, Span, Options, Narrow, Response);
       Success := True;
 
    exception

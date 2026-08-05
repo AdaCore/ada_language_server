@@ -114,6 +114,7 @@ package body LSP.Ada_Formatter is
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status)
    is
+      use type LSP.Ada_Configurations.Range_Format_Choice;
       Message : LSP.Server_Requests.RangeFormatting.Request renames
         LSP.Server_Requests.RangeFormatting.Request (Self.Message.all);
 
@@ -136,9 +137,16 @@ package body LSP.Ada_Formatter is
          Error :=
            (code    => LSP.Enumerations.InvalidParams,
             message => "Empty range");
-      elsif Document.Has_Diagnostics (Context.all)
-        and then
-          Self.Parent.Context.Get_Configuration.Range_Formatting_Fallback
+      elsif (Document.Has_Diagnostics (Context.all)
+             and then
+               Self.Parent.Context.Get_Configuration.Range_Formatting_Fallback)
+        or else
+          Self
+            .Parent
+            .Context
+            .Get_Configuration
+            .On_Range_Formatting_Format_Choice
+            = LSP.Ada_Configurations.Indent_Only
       then
          LSP.Ada_Handlers.Formatting.Indent_Lines
            (Tracer   => Context.Tracer,
@@ -159,6 +167,13 @@ package body LSP.Ada_Formatter is
             Options  =>
               LSP.Ada_Handlers.Formatting.Get_Formatting_Options
                 (Context.all, Value.options),
+            Narrow   =>
+              (Self
+                 .Parent
+                 .Context
+                 .Get_Configuration
+                 .On_Range_Formatting_Format_Choice
+               = LSP.Ada_Configurations.Narrow_Format),
             Success  => Success,
             Response => Response,
             Error    => Error);
@@ -310,7 +325,7 @@ package body LSP.Ada_Formatter is
                     S        => Indentation * ' ')));
 
          --  If not in indent-only mode, re-indent the previous line too
-         if not Self.Parent.Context.Get_Configuration.Indent_Only
+         if not Self.Parent.Context.Get_Configuration.On_Type_Formatting_Indent_Only
            and then Value.position.line > 0
            and then Indent_Array (Prev_Line) /= -1
          then
@@ -374,7 +389,12 @@ package body LSP.Ada_Formatter is
          --  position.
 
       begin
-         if Self.Parent.Context.Get_Configuration.Indent_Only then
+         if Self
+              .Parent
+              .Context
+              .Get_Configuration
+              .On_Type_Formatting_Indent_Only
+         then
             Self.Parent.Context.Get_Trace_Handle.Trace
               ("'onTypeFormatting' request configured to indent only");
 
@@ -420,6 +440,7 @@ package body LSP.Ada_Formatter is
            ("Formatting previous node and adding indentation");
 
          declare
+            use type LSP.Ada_Configurations.Range_Format_Choice;
             Success : Boolean;
             Error   : LSP.Errors.ResponseError;
 
@@ -429,6 +450,13 @@ package body LSP.Ada_Formatter is
                Document => Document,
                Span     => Previous_NWNC_Token_Span,
                Options  => Full_Options,
+               Narrow   =>
+                 (Self
+                    .Parent
+                    .Context
+                    .Get_Configuration
+                    .On_Range_Formatting_Format_Choice
+                  = LSP.Ada_Configurations.Narrow_Format),
                Success  => Success,
                Response => Response,
                Error    => Error);

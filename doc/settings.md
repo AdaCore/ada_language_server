@@ -126,6 +126,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [documentationStyle](#documentationstyle)
 * [onTypeFormatting.indentOnly](#ontypeformattingindentonly)
 * [rangeFormattingFallback](#rangeformattingfallback)
+* [rangeFormatting.formatChoice](#rangeformattingformatchoice)
 
 ----
 
@@ -478,6 +479,34 @@ Conversely, in VS Code this settings can be set without nesting:
 This option controls if the `textDocument/rangeFormatting` request should fallback to another
 indenter in case the code is not syntactically correct. If disabled, `textDocument/rangeFormatting`
 will return an error if the code is not syntactically correct.
+
+### rangeFormatting.formatChoice
+
+This option controls how the textDocument/rangeFormatting request is applied:
+
+`indentOnly`: Only indents the selected lines, without any formatting.
+`narrow"`: Formats only the selected lines.
+`full`: Formats the selected lines as well as any surrounding code required to produce a correct result (e.g, the whole list of parameters when indenting only one particular parameter).
+
+By default, this option is set to `full`.
+
+In ALS config files, this setting must be specified in a nested form:
+
+```json
+{
+   "rangeFormatting": {
+      "formatChoice": "indentOnly"
+   }
+}
+```
+
+Conversely, in VS Code this settings can be set without nesting:
+
+```json
+{
+   "ada.rangeFormatting.formatChoice": "indentOnly",
+}
+```
 
 ### logThreshold
 
