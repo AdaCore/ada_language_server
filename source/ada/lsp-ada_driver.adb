@@ -476,6 +476,8 @@ begin
         & "ALS.IN=no"
         & Ada.Characters.Latin_1.LF
         & "ALS.OUT=no"
+        & Ada.Characters.Latin_1.LF
+        & "DEBUG.ABSOLUTE_TIME=yes"
         & Ada.Characters.Latin_1.LF;
    begin
       --  Look for a traces file, in this order:
