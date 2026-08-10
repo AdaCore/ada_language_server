@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2024, AdaCore                       --
+--                     Copyright (C) 2024-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,7 @@ with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Server_Requests.Tokens_Full;
 with LSP.Structures;
+with LSP.Text_Documents;
 
 package body LSP.Ada_Tokens_Full is
 
@@ -43,13 +44,13 @@ package body LSP.Ada_Tokens_Full is
    new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Lowest)
    with record
-      Unit             : Libadalang.Analysis.Analysis_Unit;
-      Cursor           : Traverse_Iterator_Access;
-      Holder           : LSP.Ada_Highlighters.Highlights_Holder;
-      Document_Version : LSP.Structures.Integer_Or_Null;
-      --  LSP version of the document when this job was created.  If the
-      --  document is edited between two Execute calls the version will
-      --  differ and the job is cancelled to avoid working on stale data.
+      Unit               : Libadalang.Analysis.Analysis_Unit;
+      Cursor             : Traverse_Iterator_Access;
+      Holder             : LSP.Ada_Highlighters.Highlights_Holder;
+      Document_Signature : LSP.Text_Documents.Document_Signature;
+      --  Snapshot of the document identity when this job was created. If it
+      --  changes between two Execute calls, then this job is stale and should
+      --  be cancelled.
    end record;
 
    overriding procedure Execute_Ada_Request
@@ -75,35 +76,38 @@ package body LSP.Ada_Tokens_Full is
         renames LSP.Server_Requests.Tokens_Full.Request
           (Message.all).Params;
 
-      File : constant GNATCOLL.VFS.Virtual_File :=
+      File     : constant GNATCOLL.VFS.Virtual_File :=
         Self.Context.To_File (Value.textDocument.uri);
-
-      Context : constant LSP.Ada_Context_Sets.Context_Access :=
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Context.Get_Best_Context (Value.textDocument.uri);
-
-      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+      Unit     : constant Libadalang.Analysis.Analysis_Unit :=
         Context.Get_AU (File);
-
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Open_Document (Value.textDocument.uri);
 
-      Job : constant Tokens_Full_Job_Access :=
-        (new Tokens_Full_Job'
-           (Parent           => Self'Unchecked_Access,
-            Request          => LSP.Ada_Request_Jobs.Request_Access (Message),
-            Unit             => Unit,
-            Cursor           => new Libadalang.Iterators.Traverse_Iterator'Class'
-              (Libadalang.Iterators.Find
-                 (Unit.Root, LSP.Ada_Highlighters.Need_Highlighting)),
-            Holder           => <>,
-            Document_Version =>
-              (if Document /= null
-               then Document.Identifier.version
-               else (Is_Null => True))));
-
    begin
-      LSP.Ada_Highlighters.Initialize (Job.Holder, Unit);
-      return LSP.Server_Jobs.Server_Job_Access (Job);
+      if Document = null then
+         return null;
+      end if;
+
+      declare
+         Job : constant Tokens_Full_Job_Access :=
+           new Tokens_Full_Job'
+             (Parent             => Self'Unchecked_Access,
+              Request            => LSP.Ada_Request_Jobs.Request_Access (Message),
+              Unit               => Unit,
+              Cursor             =>
+                new Libadalang.Iterators.Traverse_Iterator'Class'
+                  (Libadalang.Iterators.Find
+                     (Unit.Root, LSP.Ada_Highlighters.Need_Highlighting)),
+              Holder             => <>,
+              Document_Signature => Document.Signature);
+
+      begin
+         LSP.Ada_Highlighters.Initialize (Job.Holder, Unit);
+
+         return LSP.Server_Jobs.Server_Job_Access (Job);
+      end;
    end Create_Job;
 
    -------------------------
@@ -117,7 +121,6 @@ package body LSP.Ada_Tokens_Full is
       Status : out LSP.Server_Jobs.Execution_Status)
    is
       use LSP.Ada_Documents;
-      use LSP.Structures;
 
       Message : LSP.Server_Requests.Tokens_Full.Request
         renames LSP.Server_Requests.Tokens_Full.Request (Self.Message.all);
@@ -132,7 +135,7 @@ package body LSP.Ada_Tokens_Full is
       --  tokens-full job will be enqueued.  Discard this one to avoid
       --  highlighting a stale unit and sending an outdated response.
       if Document = null
-        or else Document.Identifier.version /= Self.Document_Version
+        or else not Document.Is_Same (Self.Document_Signature)
       then
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;

@@ -22,6 +22,7 @@ with LSP.Ada_Documents;
 with LSP.Ada_Handlers;
 with LSP.Server_Jobs;
 with LSP.Structures;
+with LSP.Text_Documents;
 limited with LSP.Servers;
 private with Ada.Unchecked_Deallocation;
 private with GNATCOLL.VFS;
@@ -64,11 +65,11 @@ private
       Document_URI : LSP.Structures.DocumentUri;
       --  Saved URI used to re-fetch Document safely on each Execute call.
 
+      Document_Signature : LSP.Text_Documents.Document_Signature;
+      --  Snapshot of document URI/version/open timestamp at job creation.
+
       File_Name : GNATCOLL.VFS.Virtual_File;
       --  Saved copy of the Document's virtual file, used for traces.
-
-      Document_Version : LSP.Structures.Integer_Or_Null;
-      --  The document version at the time the job was enqueued.
 
       Ranges : LSP.Structures.Range_Vector;
       --  The vector of changed ranges to process.
