@@ -20,7 +20,7 @@ import {
     buildAddAnnotationArgs,
     parseShowAnnotationsJson,
 } from './extAnnotationsParser';
-import { setTerminalEnvironment, which } from './helpers';
+import { getToolEnvironment, which } from './helpers';
 
 export * from './extAnnotationsParser';
 
@@ -328,17 +328,9 @@ function run(cmd: string, args: string[]): Promise<ProcessOutput> {
         const stdout: Buffer[] = [];
         const stderr: Buffer[] = [];
 
-        /*
-         * Apply the user's `terminal.integrated.env.*` settings, the same way
-         * the rest of the extension resolves tools, so that gnatcov is found
-         * and loads the project in the expected environment.
-         */
-        const env: NodeJS.ProcessEnv = { ...process.env };
-        setTerminalEnvironment(env);
-
         const p: ChildProcess = spawn(cmd, args, {
             cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-            env: env,
+            env: getToolEnvironment(),
         });
 
         p.stdout?.on('data', (chunk: Buffer) => stdout.push(chunk));
