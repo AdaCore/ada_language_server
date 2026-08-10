@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,7 +28,6 @@ package body LSP.GPR_Did_Change_Document is
    type Did_Change_Job
      (Parent : not null access constant GPR_Did_Change_Handler)
    is limited new LSP.Server_Jobs.Server_Job with record
-      Document : LSP.GPR_Documents.Document_Access;
       Message  : LSP.Server_Messages.Server_Message_Access;
    end record;
 
@@ -67,6 +66,7 @@ package body LSP.GPR_Did_Change_Document is
    is
       use type LSP.Server_Messages.Server_Message_Access;
       use type GNATCOLL.VFS.Virtual_File;
+      use type LSP.GPR_Documents.Document_Access;
 
       Message : LSP.Server_Notifications.DidChange.Notification renames
         LSP.Server_Notifications.DidChange.Notification (Self.Message.all);
@@ -74,8 +74,11 @@ package body LSP.GPR_Did_Change_Document is
       Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector renames
         Message.Params.contentChanges;
 
-      File : constant GNATCOLL.VFS.Virtual_File :=
+      File     : constant GNATCOLL.VFS.Virtual_File :=
         Self.Parent.Context.To_File (Message.Params.textDocument.uri);
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Parent.Context.Get_Open_Document
+          (Message.Params.textDocument.uri);
 
    begin
       if Next /= null and then
@@ -97,8 +100,12 @@ package body LSP.GPR_Did_Change_Document is
          end;
       end if;
 
+      if Document = null then
+         return;
+      end if;
+
       if not Is_Incremental (Changes) then
-         Self.Document.Apply_Changes
+         Document.Apply_Changes
            (Message.Params.textDocument.version, Changes);
       end if;
 
@@ -106,7 +113,7 @@ package body LSP.GPR_Did_Change_Document is
       --  Do not update the tree's sources because it's too slow: we only want
       --  to publish syntactic and semantic diagnostics here.
 
-      Self.Document.Load
+      Document.Load
         (Client         => Self.Parent.Context.Get_Client.all,
          Configuration  => Self.Parent.Context.Get_Configuration,
          Update_Sources => False);
@@ -119,7 +126,7 @@ package body LSP.GPR_Did_Change_Document is
            (Message.Params.textDocument.uri));
 
       --  Emit diagnostics
-      Self.Parent.Context.Publish_Diagnostics (Self.Document);
+      Self.Parent.Context.Publish_Diagnostics (Document);
    end Complete;
 
    ----------------
@@ -131,19 +138,9 @@ package body LSP.GPR_Did_Change_Document is
       Message : LSP.Server_Messages.Server_Message_Access)
       return LSP.Server_Jobs.Server_Job_Access
    is
-      Value : LSP.Server_Notifications.DidChange.Notification renames
-        LSP.Server_Notifications.DidChange.Notification (Message.all);
-
-      URI : LSP.Structures.DocumentUri renames
-        Value.Params.textDocument.uri;
-
-      Document : constant LSP.GPR_Documents.Document_Access :=
-        Self.Context.Get_Open_Document (URI);
-
       Result : constant Did_Change_Job_Access :=
         new Did_Change_Job'
           (Parent   => Self'Unchecked_Access,
-           Document => Document,
            Message  => Message);
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
@@ -166,17 +163,20 @@ package body LSP.GPR_Did_Change_Document is
 
       Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector renames
         Message.Params.contentChanges;
+
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Parent.Context.Get_Open_Document (Message.Params.textDocument.uri);
    begin
       Status := LSP.Server_Jobs.Done;
 
-      if Self.Document = null then
+      if Document = null then
          return;
       end if;
 
       if Is_Incremental (Changes) then
          --  If we are applying incremental changes, we can't skip the
          --  call to Apply_Changes, since this would break synchronization.
-         Self.Document.Apply_Changes
+         Document.Apply_Changes
            (Message.Params.textDocument.version, Changes);
 
          --  However, we should skip the Indexing part if the next didChange
