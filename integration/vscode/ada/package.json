@@ -1293,6 +1293,20 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.externalAnnotations.create",
+                "title": "GNATcoverage - Create external annotation",
+                "category": "Ada",
+                "icon": "$(add)",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.externalAnnotations.delete",
+                "title": "GNATcoverage - Delete external annotation",
+                "category": "Ada",
+                "icon": "$(trash)",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "ada.visualizeFiles",
                 "category": "Ada",
                 "title": "Show File Dependencies Graph"
@@ -1621,6 +1635,11 @@
                 {
                     "command": "ada.projectView.visualizeGPR",
                     "when": "false"
+                },
+                {
+                    "comment": "Deletion targets a specific tree item, so it is meaningless from the palette.",
+                    "command": "ada.externalAnnotations.delete",
+                    "when": "false"
                 }
             ],
             "issue/reporter": [
@@ -1629,6 +1648,11 @@
                 }
             ],
             "editor/context": [
+                {
+                    "command": "ada.externalAnnotations.create",
+                    "group": "ada",
+                    "when": "ADA_PROJECT_CONTEXT && (editorLangId == ada || editorLangId == c || editorLangId == cpp)"
+                },
                 {
                     "command": "ada.otherFile",
                     "group": "ada",
@@ -1698,6 +1722,16 @@
             ],
             "view/title": [
                 {
+                    "command": "ada.externalAnnotations.create",
+                    "group": "navigation@1",
+                    "when": "view == gnatcovAnnotations"
+                },
+                {
+                    "command": "ada.externalAnnotations.refresh",
+                    "group": "navigation@2",
+                    "when": "view == gnatcovAnnotations"
+                },
+                {
                     "command": "als-reload-project",
                     "group": "navigation",
                     "when": "view == projectView && ADA_PROJECT_CONTEXT",
@@ -1728,6 +1762,11 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "ada.externalAnnotations.delete",
+                    "when": "view == gnatcovAnnotations && viewItem == gnatcovAnnotation",
+                    "group": "inline"
+                },
                 {
                     "command": "ada.editProjectFile",
                     "when": "view == projectView && viewItem == gprFile",
@@ -1912,6 +1951,12 @@
                     "id": "projectView",
                     "name": "Project View",
                     "icon": "$(project)"
+                },
+                {
+                    "id": "gnatcovAnnotations",
+                    "name": "GNATcoverage Annotations",
+                    "icon": "$(shield)",
+                    "when": "ADA_PROJECT_CONTEXT"
                 }
             ]
         },

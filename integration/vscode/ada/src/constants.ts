@@ -174,6 +174,18 @@ export const CMD_EXT_ANNOTATIONS_REFRESH = 'ada.externalAnnotations.refresh';
 export const CMD_EXT_ANNOTATIONS_TOGGLE = 'ada.externalAnnotations.toggleDisplay';
 
 /**
+ * Identifier for the command that creates a GNATcoverage external annotation
+ * from the current selection.
+ */
+export const CMD_EXT_ANNOTATIONS_CREATE = 'ada.externalAnnotations.create';
+
+/**
+ * Identifier for the command that deletes a GNATcoverage external annotation.
+ * The command accepts the tree item of the annotation to delete.
+ */
+export const CMD_EXT_ANNOTATIONS_DELETE = 'ada.externalAnnotations.delete';
+
+/**
  * Live doc URL of the Ada & SPARK VS Code extension User's Guide.
  */
 export const VSCODE_UG_LIVE_DOC_URL =

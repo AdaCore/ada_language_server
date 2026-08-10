@@ -40,6 +40,71 @@ export const enum AnnotationCategory {
 }
 
 /**
+ * Which location switches `gnatcov add-annotation` takes for a kind.
+ *
+ *   - `region`: `--start-location` and `--end-location`
+ *   - `point`: `--location`
+ *
+ * Every kind needs one or the other. Without a location gnatcov stops with
+ * "Missing --start-location on the command line", the decision kinds included:
+ * their `--decision`, `--condition` and `--outcome` say *which* decision at
+ * that location is meant, not where it is.
+ *
+ * Only Exempt_Region takes a range. Exempt_Branch accepts either form but
+ * stores a point in both cases, discarding any end location.
+ */
+export type AnnotationShape = 'region' | 'point';
+
+export function shapeOf(kind: AnnotationKind): AnnotationShape {
+    return kind === 'Exempt_Region' ? 'region' : 'point';
+}
+
+/**
+ * Whether gnatcov expects a justification for this kind.
+ *
+ * For Cov_Off the justification is optional, but gnatcov emits
+ * `warning: --justification missing for a --kind=Cov_Off annotation`, so it is
+ * treated as expected and the user is prompted for one.
+ */
+export function requiresJustification(kind: AnnotationKind): boolean {
+    switch (kind) {
+        case 'Exempt_On':
+        case 'Exempt_Region':
+        case 'Exempt_Branch':
+        case 'Cov_Off':
+        case 'Exempt_Decision_Outcome':
+        case 'Exempt_Decision_Condition':
+        case 'Exempt_Full_Decision':
+        case 'Manual_Decision_Evaluation':
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
+ * The kinds the IDE offers when creating an annotation.
+ *
+ * The four decision-related kinds are deliberately excluded. They take a
+ * location like the rest, but also need `--outcome`, `--condition`,
+ * `--decision` or `--values` to say which decision at that location is meant.
+ * That input deserves a dedicated UI, not a string prompt.
+ *
+ * They can still be created with `gnatcov add-annotation`. Once created they
+ * display and delete like any other.
+ */
+export const creatableKinds: readonly AnnotationKind[] = [
+    'Exempt_Region',
+    'Exempt_On',
+    'Exempt_Off',
+    'Exempt_Branch',
+    'Cov_Off',
+    'Cov_On',
+    'Dump_Buffers',
+    'Reset_Buffers',
+];
+
+/**
  * Short label displayed inline next to an annotation.
  *
  * Annotations are rendered as a text badge rather than a symbol: a marker
@@ -76,6 +141,21 @@ export function labelOf(kind: AnnotationKind): string {
         case 'Unknown':
             return 'unknown annotation';
     }
+}
+
+/**
+ * Whether the annotation applies to one side of the statement it designates,
+ * i.e. whether gnatcov records `--annotate-after` for this kind.
+ *
+ * Only the buffer kinds do, because only they insert code. Where the call sits
+ * in the statement list decides when it runs.
+ *
+ * Every other kind is consumed by comparing positions. An exempted region is
+ * applied line by line, and a fine-grained exemption resolves through a
+ * decision offset. A side would be a preference nothing reads.
+ */
+export function hasInsertionSide(kind: AnnotationKind): boolean {
+    return kind === 'Dump_Buffers' || kind === 'Reset_Buffers';
 }
 
 export function categoryOf(kind: AnnotationKind): AnnotationCategory {
@@ -259,6 +339,113 @@ export function parseShowAnnotationsJson(stdout: string): ShowAnnotationsOutput 
 
 function isAnnotationKind(value: string): value is AnnotationKind {
     return (annotationKinds as readonly string[]).includes(value);
+}
+
+/*----------------------------------------------------------------------------
+--                           Creating annotations                           --
+----------------------------------------------------------------------------*/
+
+/**
+ * A zero-based, end-exclusive text span, i.e. the shape of a
+ * `vscode.Selection`. Duck-typed rather than typed as vscode.Selection so that
+ * the conversion below stays testable outside the editor.
+ */
+export type EditorSpan = {
+    start: { line: number; character: number };
+    end: { line: number; character: number };
+};
+
+/**
+ * Convert an editor selection into the 1-based, end-inclusive location that
+ * gnatcov expects.
+ *
+ * vscode.Selection is 0-based with an *exclusive* end; gnatcov is 1-based with
+ * an *inclusive* end. So lines and the start column gain 1, while the end
+ * column does not: the exclusive end column of a 0-based span is already the
+ * inclusive end column of the corresponding 1-based span. This is the exact
+ * inverse of `toVscodeRange`.
+ */
+export function toGnatcovLocation(span: EditorSpan): AnnotationLocation {
+    const sameLine = span.start.line === span.end.line;
+
+    return {
+        startLine: span.start.line + 1,
+        startColumn: span.start.character + 1,
+        endLine: span.end.line + 1,
+
+        /*
+         * Ordering is only enforced within a single line. On a later line the
+         * end column stands on its own, and clamping it against the start
+         * column would push the end beyond what the user selected: selecting
+         * from line 1 column 20 to the start of line 2 would be recorded as
+         * ending at line 2 column 20.
+         *
+         * The floor of 1 keeps the column a valid 1-based one; callers holding
+         * the document are expected to have moved an end sitting at column 0
+         * back to the end of the previous line.
+         */
+        endColumn: sameLine
+            ? Math.max(span.end.character, span.start.character + 1)
+            : Math.max(span.end.character, 1),
+    };
+}
+
+export type CreateAnnotationParams = {
+    kind: AnnotationKind;
+    /** 1-based, end-inclusive, as returned by {@link toGnatcovLocation}. */
+    location: AnnotationLocation;
+    justification?: string;
+    annotationId?: string;
+    /** Dump_Buffers and Reset_Buffers only. */
+    insertAfter?: boolean;
+    /** Dump_Buffers only. */
+    tracePrefix?: string;
+};
+
+/**
+ * Build the kind-specific part of a `gnatcov add-annotation` command line.
+ *
+ * The project, annotation file, output file and source file are added by the
+ * caller, which is the part that knows about the workspace.
+ *
+ * The selection is passed through as the user made it: gnatcov accepts an
+ * arbitrary range, including one that starts mid-expression, and silently
+ * stores it as given. Snapping it to statement boundaries here would hide what
+ * actually ends up in the annotation file.
+ */
+export function buildAddAnnotationArgs(params: CreateAnnotationParams): string[] {
+    const args: string[] = [`--kind=${params.kind}`];
+    const loc = params.location;
+
+    switch (shapeOf(params.kind)) {
+        case 'region':
+            args.push(
+                `--start-location=${String(loc.startLine)}:${String(loc.startColumn)}`,
+                `--end-location=${String(loc.endLine)}:${String(loc.endColumn)}`,
+            );
+            break;
+        case 'point':
+            args.push(`--location=${String(loc.startLine)}:${String(loc.startColumn)}`);
+            break;
+    }
+
+    if (params.justification !== undefined && params.justification.length > 0) {
+        args.push(`--justification=${params.justification}`);
+    }
+
+    if (params.annotationId !== undefined && params.annotationId.length > 0) {
+        args.push(`--annotation-id=${params.annotationId}`);
+    }
+
+    if (params.insertAfter === true) {
+        args.push('--annotate-after');
+    }
+
+    if (params.tracePrefix !== undefined && params.tracePrefix.length > 0) {
+        args.push(`--dump-filename-prefix=${params.tracePrefix}`);
+    }
+
+    return args;
 }
 
 /**

@@ -15,7 +15,9 @@ import * as vscode from 'vscode';
 import { adaExtState, logger } from './extension';
 import {
     AnnotationLocation,
+    CreateAnnotationParams,
     ShowAnnotationsOutput,
+    buildAddAnnotationArgs,
     parseShowAnnotationsJson,
 } from './extAnnotationsParser';
 import { setTerminalEnvironment, which } from './helpers';
@@ -211,6 +213,75 @@ async function resolveContext(): Promise<ResolvedContext | { error: string }> {
     } catch (err) {
         return { error: `could not determine the project file: ${String(err)}` };
     }
+}
+
+/**
+ * Create an annotation, by running `gnatcov add-annotation`.
+ *
+ * Neither the annotation files nor the output file are named: gnatcov takes
+ * both from the project's `Coverage'External_Annotations` attribute, updating
+ * the first file it designates.
+ *
+ * @returns undefined on success, or a message describing the failure.
+ */
+export async function addAnnotation(
+    params: CreateAnnotationParams,
+    sourcePath: string,
+): Promise<string | undefined> {
+    const context = await resolveContext();
+    if ('error' in context) {
+        return context.error;
+    }
+
+    const args = [
+        'add-annotation',
+        `-P${context.projectFile}`,
+        ...getScenarioArgs(),
+        ...buildAddAnnotationArgs(params),
+        sourcePath,
+    ];
+
+    logSafely(args);
+
+    return failureOf(await invoke(args));
+}
+
+/**
+ * Delete the annotation with the given identifier.
+ *
+ * As for creation, gnatcov takes the files to read and the file to update from
+ * the project.
+ *
+ * @returns undefined on success, or a message describing the failure.
+ */
+export async function deleteAnnotation(id: string): Promise<string | undefined> {
+    const context = await resolveContext();
+    if ('error' in context) {
+        return context.error;
+    }
+
+    const args = [
+        'delete-annotation',
+        `-P${context.projectFile}`,
+        `--annotation-id=${id}`,
+        ...getScenarioArgs(),
+    ];
+
+    logSafely(args);
+
+    return failureOf(await invoke(args));
+}
+
+/**
+ * @returns undefined if the process succeeded, else the most informative
+ * message it produced.
+ */
+function failureOf(output: ProcessOutput): string | undefined {
+    if (output.code === 0) {
+        return undefined;
+    }
+
+    return output.stderr.trim() || output.stdout.trim() || `exit status ${String(output.code)}`;
 }
 
 /**

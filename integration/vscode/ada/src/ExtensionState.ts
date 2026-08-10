@@ -10,6 +10,8 @@ import {
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { AdaLanguageClient, createClient } from './clients';
 import {
+    CMD_EXT_ANNOTATIONS_CREATE,
+    CMD_EXT_ANNOTATIONS_DELETE,
     CMD_EXT_ANNOTATIONS_REFRESH,
     CMD_EXT_ANNOTATIONS_TOGGLE,
     CMD_PROJECT_VIEW_INFORMATION,
@@ -20,7 +22,13 @@ import {
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
 import { watchAnnotationFiles } from './extAnnotations';
+import { createAnnotationCommand, deleteAnnotationCommand } from './extAnnotationsCommands';
 import { ExternalAnnotationDecorator } from './extAnnotationsDecorations';
+import {
+    AnnotationNode,
+    AnnotationTreeItem,
+    ExternalAnnotationTreeProvider,
+} from './extAnnotationsTree';
 import {
     ProjectViewItem,
     ProjectViewProvider,
@@ -106,6 +114,12 @@ export class ExtensionState {
      * Displays the GNATcoverage external annotations in the editor.
      */
     public readonly externalAnnotations = new ExternalAnnotationDecorator();
+
+    /**
+     * Lists the GNATcoverage external annotations of the whole project, and
+     * provides the affordance for deleting them.
+     */
+    public readonly externalAnnotationsTree = new ExternalAnnotationTreeProvider();
 
     /**
      * The following fields are caches for ALS requests or costly properties.
@@ -202,32 +216,43 @@ export class ExtensionState {
             await updateMetricsDiagnostics(doc);
         }
 
-        // Display the GNATcoverage external annotations in the editor.
+        // Display the GNATcoverage external annotations in the editor and in a
+        // dedicated tree view.
         this.externalAnnotations.activate(this.context);
 
+        const annotationsTreeView = vscode.window.createTreeView('gnatcovAnnotations', {
+            treeDataProvider: this.externalAnnotationsTree,
+        });
+
+        const refreshAnnotations = () => {
+            this.externalAnnotationsTree.refresh();
+            return this.externalAnnotations.refresh();
+        };
+
         /*
-         * The watchers are bound to the paths the project designated, so they
-         * are recreated whenever a project file is saved or a refresh is asked
-         * for. This also covers a change made on the command line or by editing
-         * an annotation file by hand.
+         * A single watcher drives both views, so that a change made by the IDE
+         * itself, by the command line, or by editing an annotation file by hand
+         * all refresh the same way.
          */
         let annotationWatcher: vscode.Disposable | undefined;
         const rewatchAnnotations = async () => {
             annotationWatcher?.dispose();
-            annotationWatcher = await watchAnnotationFiles(
-                () => void this.externalAnnotations.refresh(),
-            );
+            annotationWatcher = await watchAnnotationFiles(() => void refreshAnnotations());
         };
         void rewatchAnnotations();
 
         this.context.subscriptions.push(
+            annotationsTreeView,
+            this.externalAnnotationsTree,
             new vscode.Disposable(() => {
                 annotationWatcher?.dispose();
             }),
 
             /*
-             * The decorations refresh themselves on save, so only the watchers
-             * are this handler's business.
+             * Saving a source file may move the annotations within it, and
+             * saving the project may change everything about them. The
+             * decorations refresh themselves on save, so only the tree and the
+             * watchers are this handler's business.
              */
             vscode.workspace.onDidSaveTextDocument(async (doc) => {
                 if (doc.languageId === 'gpr') {
@@ -235,11 +260,27 @@ export class ExtensionState {
                     // watchers are bound to stale paths.
                     await rewatchAnnotations();
                 }
+                this.externalAnnotationsTree.refresh();
+            }),
+
+            /*
+             * Changing the project or its scenario changes which annotations
+             * apply and where they live, so the tree and the watchers follow it
+             * as the decorations already do.
+             */
+            vscode.workspace.onDidChangeConfiguration(async (e) => {
+                if (
+                    e.affectsConfiguration('ada.projectFile') ||
+                    e.affectsConfiguration('ada.scenarioVariables')
+                ) {
+                    await rewatchAnnotations();
+                    this.externalAnnotationsTree.refresh();
+                }
             }),
 
             vscode.commands.registerCommand(CMD_EXT_ANNOTATIONS_REFRESH, async () => {
                 await rewatchAnnotations();
-                await this.externalAnnotations.refresh();
+                await refreshAnnotations();
             }),
             vscode.commands.registerCommand(CMD_EXT_ANNOTATIONS_TOGGLE, async () => {
                 const conf = vscode.workspace.getConfiguration();
@@ -247,6 +288,15 @@ export class ExtensionState {
                 const enabled = conf.get<boolean>(setting) ?? true;
                 await conf.update(setting, !enabled, vscode.ConfigurationTarget.Workspace);
             }),
+            vscode.commands.registerCommand(CMD_EXT_ANNOTATIONS_CREATE, createAnnotationCommand),
+            vscode.commands.registerCommand(
+                CMD_EXT_ANNOTATIONS_DELETE,
+                async (item: AnnotationTreeItem) => {
+                    if (item instanceof AnnotationNode) {
+                        await deleteAnnotationCommand(item.annotation);
+                    }
+                },
+            ),
         );
 
         // Override VS Code's language detection for source files whose
