@@ -411,6 +411,19 @@
             },
             {
                 "type": "object",
+                "title": "GNATcoverage - Display external annotations",
+                "order": 1,
+                "properties": {
+                    "ada.externalAnnotations.showInEditor": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Highlight GNATcoverage external annotations in the editor."
+                    }
+                }
+            },
+            {
+                "type": "object",
                 "title": "Formatting",
                 "order": 1,
                 "properties": {
@@ -1197,10 +1210,85 @@
                 }
             }
         ],
+        "colors": [
+            {
+                "id": "ada.exemptedRegionBackground",
+                "description": "Background color of source regions covered by a GNATcoverage exemption annotation.",
+                "defaults": {
+                    "light": "#f0b98d40",
+                    "dark": "#c0873f40",
+                    "highContrast": "#c0873f60",
+                    "highContrastLight": "#f0b98d60"
+                }
+            },
+            {
+                "id": "ada.coverageSwitchRegionBackground",
+                "description": "Background color of source regions where GNATcoverage coverage analysis is switched off (Cov_Off / Cov_On annotations).",
+                "defaults": {
+                    "light": "#b3b3b340",
+                    "dark": "#8c8c8c40",
+                    "highContrast": "#8c8c8c60",
+                    "highContrastLight": "#b3b3b360"
+                }
+            },
+            {
+                "id": "ada.buffersRegionBackground",
+                "description": "Background color of locations carrying a GNATcoverage coverage buffer annotation (Dump_Buffers / Reset_Buffers).",
+                "defaults": {
+                    "light": "#8db8f040",
+                    "dark": "#3f7fc040",
+                    "highContrast": "#3f7fc060",
+                    "highContrastLight": "#8db8f060"
+                }
+            },
+            {
+                "id": "ada.exemptedAnnotationLabel",
+                "description": "Color of the inline label of a GNATcoverage exemption annotation.",
+                "defaults": {
+                    "light": "#8a4b00",
+                    "dark": "#e0a458",
+                    "highContrast": "#ffbf6b",
+                    "highContrastLight": "#5c3200"
+                }
+            },
+            {
+                "id": "ada.coverageSwitchAnnotationLabel",
+                "description": "Color of the inline label of a GNATcoverage coverage switching annotation (Cov_Off / Cov_On).",
+                "defaults": {
+                    "light": "#4a4a4a",
+                    "dark": "#c2c2c2",
+                    "highContrast": "#ffffff",
+                    "highContrastLight": "#000000"
+                }
+            },
+            {
+                "id": "ada.buffersAnnotationLabel",
+                "description": "Color of the inline label of a GNATcoverage coverage buffer annotation (Dump_Buffers / Reset_Buffers).",
+                "defaults": {
+                    "light": "#0a4a8a",
+                    "dark": "#6cb0f0",
+                    "highContrast": "#8fc9ff",
+                    "highContrastLight": "#00335c"
+                }
+            }
+        ],
         "commands": [
             {
                 "command": "ada.restartLanguageServers",
                 "title": "Restart Language Servers",
+                "category": "Ada",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.externalAnnotations.refresh",
+                "title": "GNATcoverage - Refresh external annotations",
+                "category": "Ada",
+                "icon": "$(refresh)",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.externalAnnotations.toggleDisplay",
+                "title": "GNATcoverage - Toggle display of external annotations",
                 "category": "Ada",
                 "when": "ADA_PROJECT_CONTEXT"
             },

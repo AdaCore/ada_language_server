@@ -508,6 +508,20 @@ package body LSP.Ada_Configurations is
                --  nested JSON object rather than individual flat keys.
                null;
 
+            elsif Name = "externalAnnotations.showInEditor"
+            then
+               --  This is a VS Code only setting, treated at the VS Code
+               --  extension's level. We still include it here to mark it as
+               --  recognized and to support the settings-doc test that checks
+               --  that each setting is documented.
+               null;
+
+            elsif Name.Starts_With ("externalAnnotations")
+            then
+               --  Fallback for when VS Code sends externalAnnotations settings
+               --  as a nested JSON object rather than individual flat keys.
+               null;
+
             elsif Name = "trace"
             then
                --  Same as above. Do not merge this branch with the previous one.

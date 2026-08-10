@@ -730,6 +730,17 @@ package body LSP.GPR_External_Tools is
 
       Add_Attribute
         (Package_Name          => +"Coverage",
+         Attribute_Name        => +"External_Annotations",
+         Description           => "External annotation file to load, as " &
+           "for the --external-annotations switch of 'gnatcov'. A relative " &
+           "name is interpreted from the directory of the project that " &
+           "defines the attribute.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
          Attribute_Name        => +"Excluded_Units",
          Description           => "List of excluded units.",
          Index_Type            => PRA.No_Index,

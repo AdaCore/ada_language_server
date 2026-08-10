@@ -162,6 +162,18 @@ export const CMD_PROJECT_VIEW_VISUALIZE_GPR = 'ada.projectView.visualizeGPR';
 export const CMD_RESTART_LANG_SERVERS = 'ada.restartLanguageServers';
 
 /**
+ * Identifier for the command that re-queries gnatcov for the GNATcoverage
+ * external annotations and refreshes their display in the editor.
+ */
+export const CMD_EXT_ANNOTATIONS_REFRESH = 'ada.externalAnnotations.refresh';
+
+/**
+ * Identifier for the command that toggles the display of the GNATcoverage
+ * external annotations in the editor.
+ */
+export const CMD_EXT_ANNOTATIONS_TOGGLE = 'ada.externalAnnotations.toggleDisplay';
+
+/**
  * Live doc URL of the Ada & SPARK VS Code extension User's Guide.
  */
 export const VSCODE_UG_LIVE_DOC_URL =

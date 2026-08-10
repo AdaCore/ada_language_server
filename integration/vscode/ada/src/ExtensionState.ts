@@ -10,6 +10,8 @@ import {
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { AdaLanguageClient, createClient } from './clients';
 import {
+    CMD_EXT_ANNOTATIONS_REFRESH,
+    CMD_EXT_ANNOTATIONS_TOGGLE,
     CMD_PROJECT_VIEW_INFORMATION,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
@@ -17,6 +19,8 @@ import {
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
+import { watchAnnotationFiles } from './extAnnotations';
+import { ExternalAnnotationDecorator } from './extAnnotationsDecorations';
 import {
     ProjectViewItem,
     ProjectViewProvider,
@@ -97,6 +101,11 @@ export class ExtensionState {
      * Diagnostic collection for metrics diagnostics
      */
     public readonly metricDiagnostics = vscode.languages.createDiagnosticCollection('gnatmetric');
+
+    /**
+     * Displays the GNATcoverage external annotations in the editor.
+     */
+    public readonly externalAnnotations = new ExternalAnnotationDecorator();
 
     /**
      * The following fields are caches for ALS requests or costly properties.
@@ -192,6 +201,53 @@ export class ExtensionState {
         for (const doc of vscode.workspace.textDocuments) {
             await updateMetricsDiagnostics(doc);
         }
+
+        // Display the GNATcoverage external annotations in the editor.
+        this.externalAnnotations.activate(this.context);
+
+        /*
+         * The watchers are bound to the paths the project designated, so they
+         * are recreated whenever a project file is saved or a refresh is asked
+         * for. This also covers a change made on the command line or by editing
+         * an annotation file by hand.
+         */
+        let annotationWatcher: vscode.Disposable | undefined;
+        const rewatchAnnotations = async () => {
+            annotationWatcher?.dispose();
+            annotationWatcher = await watchAnnotationFiles(
+                () => void this.externalAnnotations.refresh(),
+            );
+        };
+        void rewatchAnnotations();
+
+        this.context.subscriptions.push(
+            new vscode.Disposable(() => {
+                annotationWatcher?.dispose();
+            }),
+
+            /*
+             * The decorations refresh themselves on save, so only the watchers
+             * are this handler's business.
+             */
+            vscode.workspace.onDidSaveTextDocument(async (doc) => {
+                if (doc.languageId === 'gpr') {
+                    // The project may now designate other files, so the
+                    // watchers are bound to stale paths.
+                    await rewatchAnnotations();
+                }
+            }),
+
+            vscode.commands.registerCommand(CMD_EXT_ANNOTATIONS_REFRESH, async () => {
+                await rewatchAnnotations();
+                await this.externalAnnotations.refresh();
+            }),
+            vscode.commands.registerCommand(CMD_EXT_ANNOTATIONS_TOGGLE, async () => {
+                const conf = vscode.workspace.getConfiguration();
+                const setting = 'ada.externalAnnotations.showInEditor';
+                const enabled = conf.get<boolean>(setting) ?? true;
+                await conf.update(setting, !enabled, vscode.ConfigurationTarget.Workspace);
+            }),
+        );
 
         // Override VS Code's language detection for source files whose
         // language is reported by the GPR project (e.g. Ada files that do
