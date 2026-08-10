@@ -1,0 +1,6 @@
+project Default is
+   package Compiler is
+      for Switches ("Ada") use ("-g");
+      
+   end Compiler;
+end Default;

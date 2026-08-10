@@ -23,6 +23,7 @@ with GPR2.Project.Registry.Pack.Description;
 
 with Gpr_Parser.Common;
 
+with LSP.Enumerations;
 with LSP.GPR_Completions.Tools;
 with LSP.GPR_Files.References;
 with LSP.Structures.LSPAny_Vectors;
@@ -115,6 +116,25 @@ package body LSP.GPR_Completions is
       Response : in out LSP.Structures.Completion_Result);
    --  Append 'Items' if element starts with 'Prefix' to 'Response'
 
+   procedure Add_Keyword
+     (Name     : VSS.Strings.Virtual_String;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result);
+   --  Append keyword 'Name' if it starts with 'Prefix' to 'Response'
+
+   procedure Fill_Keyword_Completion_Response
+     (Previous            : Gpr_Parser.Common.Token_Reference;
+      Current_Package     : GPR2.Package_Id;
+      In_Import_Partition : Boolean;
+      Prefix              : VSS.Strings.Virtual_String;
+      Response            : in out LSP.Structures.Completion_Result);
+   --  Propose GPR keywords based on the syntactic context
+
+   procedure Fill_Start_Of_File_Keywords
+     (Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result);
+   --  Propose keywords valid at the start of a GPR file
+
    --------------
    -- Add_Item --
    --------------
@@ -130,6 +150,138 @@ package body LSP.GPR_Completions is
          Response.Variant_2.items.Append (Item);
       end if;
    end Add_Item;
+
+   -----------------
+   -- Add_Keyword --
+   -----------------
+
+   procedure Add_Keyword
+     (Name     : VSS.Strings.Virtual_String;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result) is
+      Item : LSP.Structures.CompletionItem;
+   begin
+      if VSS.Strings.Starts_With (Name, Prefix) then
+         Item.label := Name;
+         Item.kind  := (Is_Set => True, Value => LSP.Enumerations.Keyword);
+         Response.Variant_2.items.Append (Item);
+      end if;
+   end Add_Keyword;
+
+   ----------------------------------------
+   -- Fill_Keyword_Completion_Response --
+   ----------------------------------------
+
+   procedure Fill_Start_Of_File_Keywords
+     (Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result) is
+   begin
+      Add_Keyword ("with", Prefix, Response);
+      Add_Keyword ("limited", Prefix, Response);
+      Add_Keyword ("project", Prefix, Response);
+      Add_Keyword ("abstract", Prefix, Response);
+      Add_Keyword ("library", Prefix, Response);
+   end Fill_Start_Of_File_Keywords;
+
+   ----------------------------------------
+   -- Fill_Keyword_Completion_Response --
+   ----------------------------------------
+
+   procedure Fill_Keyword_Completion_Response
+     (Previous            : Gpr_Parser.Common.Token_Reference;
+      Current_Package     : GPR2.Package_Id;
+      In_Import_Partition : Boolean;
+      Prefix              : VSS.Strings.Virtual_String;
+      Response            : in out LSP.Structures.Completion_Result)
+   is
+      Previous_Kind : constant GPC.Token_Kind := Previous.Data.Kind;
+
+      function Construct_Before_Is return GPC.Token_Kind;
+      --  Return the keyword token kind that introduced the 'is' construct
+      --  (e.g. Gpr_Case, Gpr_Type, Gpr_Package), or Gpr_Identifier if it
+      --  follows a project/package name.
+
+      -------------------------
+      -- Construct_Before_Is --
+      -------------------------
+
+      function Construct_Before_Is return GPC.Token_Kind is
+         use type GPC.Token_Reference;
+         T : GPC.Token_Reference := Previous.Previous (True);
+      begin
+         --  Skip back over the case selector / name.
+         --  E.g: "case Prj.V is", "package Compiler is",
+         --  or "case A.B'C is" (attribute reference).
+         while T /= GPC.No_Token
+           and then T.Data.Kind
+                    in GPC.Gpr_Identifier | GPC.Gpr_Dot | GPC.Gpr_Tick
+         loop
+            T := T.Previous (True);
+         end loop;
+
+         if T = GPC.No_Token then
+            return GPC.Gpr_Identifier;
+         end if;
+
+         return T.Data.Kind;
+      end Construct_Before_Is;
+
+      procedure Add_Body_Keywords;
+      --  Add keywords valid in a project or package body
+
+      procedure Add_Body_Keywords is
+      begin
+         Add_Keyword ("for", Prefix, Response);
+         Add_Keyword ("case", Prefix, Response);
+         Add_Keyword ("end", Prefix, Response);
+         Add_Keyword ("null", Prefix, Response);
+         --  type and package are only valid at project level,
+         --  not inside a package body (GPR grammar restriction).
+         if Current_Package = GPR2.Project_Level_Scope then
+            Add_Keyword ("package", Prefix, Response);
+            Add_Keyword ("type", Prefix, Response);
+         end if;
+      end Add_Body_Keywords;
+
+   begin
+      case Previous_Kind is
+         when GPC.Gpr_Semicolon =>
+            if In_Import_Partition then
+               Fill_Start_Of_File_Keywords (Prefix, Response);
+            else
+               Add_Body_Keywords;
+            end if;
+
+         when GPC.Gpr_Is =>
+            case Construct_Before_Is is
+               when GPC.Gpr_Case =>
+                  Add_Keyword ("when", Prefix, Response);
+               when GPC.Gpr_Type =>
+                  null;
+               when GPC.Gpr_Package =>
+                  --  Inside a package body: simple_declarative_item only
+                  Add_Keyword ("for", Prefix, Response);
+                  Add_Keyword ("case", Prefix, Response);
+                  Add_Keyword ("end", Prefix, Response);
+                  Add_Keyword ("null", Prefix, Response);
+               when others =>
+                  Add_Body_Keywords;
+            end case;
+
+         when GPC.Gpr_Arrow =>
+            Add_Keyword ("for", Prefix, Response);
+            Add_Keyword ("null", Prefix, Response);
+            Add_Keyword ("case", Prefix, Response);
+            Add_Keyword ("when", Prefix, Response);
+            Add_Keyword ("end", Prefix, Response);
+
+         when GPC.Gpr_When =>
+            Add_Keyword ("others", Prefix, Response);
+
+         when others =>
+            null;
+      end case;
+   end Fill_Keyword_Completion_Response;
 
    ---------------
    -- Add_Items --
@@ -566,29 +718,53 @@ package body LSP.GPR_Completions is
       end Fill_Tick_Completion;
 
    begin
-      if not In_Comment
-        and then Previous /= GPC.No_Token
-      then
-         --  Don't offer completion if cursor is inside an identifier
-         --  (not at the end)
-         if Current.Data.Kind = GPC.Gpr_Identifier
-           and then not LSP.GPR_Files.At_End
-                          (Current.Data.Sloc_Range, Location)
-         then
-            return;
-         end if;
+      if In_Comment then
+         return;
+      end if;
 
-         declare
-            Identifier_Prefix : constant VSS.Strings.Virtual_String :=
-              (if Current.Data.Kind /= GPC.Gpr_Identifier
-                 and then Previous.Data.Kind = GPC.Gpr_Identifier
-                 and then LSP.GPR_Files.At_End
-                            (Previous.Data.Sloc_Range, Location)
-               then To_Lower (VSS.Strings.To_Virtual_String (Previous.Text))
-               else "");
-         begin
+      --  Don't offer completion if cursor is inside an identifier
+      --  (not at the end)
+      if Current.Data.Kind = GPC.Gpr_Identifier
+        and then not LSP.GPR_Files.At_End
+                       (Current.Data.Sloc_Range, Location)
+      then
+         return;
+      end if;
+
+      declare
+         First_Token_Prefix : constant VSS.Strings.Virtual_String :=
+           (if Previous = GPC.No_Token
+              and then Current.Data.Kind = GPC.Gpr_Identifier
+              and then LSP.GPR_Files.At_End
+                         (Current.Data.Sloc_Range, Location)
+            then To_Lower (VSS.Strings.To_Virtual_String (Current.Text))
+            else "");
+
+         Identifier_Prefix : constant VSS.Strings.Virtual_String :=
+           (if Previous /= GPC.No_Token
+              and then Current.Data.Kind /= GPC.Gpr_Identifier
+              and then Previous.Data.Kind = GPC.Gpr_Identifier
+              and then LSP.GPR_Files.At_End
+                         (Previous.Data.Sloc_Range, Location)
+            then To_Lower (VSS.Strings.To_Virtual_String (Previous.Text))
+            else "");
+      begin
+            --  Start of file: offer file-start keywords with prefix
+            if Previous = GPC.No_Token then
+               Fill_Start_Of_File_Keywords
+                 (First_Token_Prefix, Response);
+               return;
+            end if;
+
             if not VSS.Strings.Is_Empty (Identifier_Prefix) then
                Previous := Previous.Previous (True);
+            end if;
+
+            --  After consuming prefix, Previous may become No_Token
+            if Previous = GPC.No_Token then
+               Fill_Start_Of_File_Keywords
+                 (Identifier_Prefix, Response);
+               return;
             end if;
 
             if Previous.Data.Kind
@@ -787,11 +963,17 @@ package body LSP.GPR_Completions is
                   end;
 
                when others =>
-                  null;
+                  Fill_Keyword_Completion_Response
+                    (Previous            => Previous,
+                     Current_Package     =>
+                       File.Get_Package (Value.position),
+                     In_Import_Partition =>
+                       File.Token_In_Import_Partition (Previous),
+                     Prefix              => Identifier_Prefix,
+                     Response            => Response);
 
             end case;
-         end;
-      end if;
+      end;
    end Fill_Completion_Response;
 
    procedure Fill_Completion_Resolve_Response
