@@ -261,6 +261,21 @@ export function getToolEnvironment(): NodeJS.ProcessEnv {
     return env;
 }
 
+/**
+ * @returns the `-X<name>=<value>` switches for the scenario variables
+ * configured for the workspace, for use with GPR-based tools.
+ *
+ * Pass these to anything the extension spawns that loads the project, so that
+ * it sees the same project as the language server.
+ */
+export function gprScenarioArgs(): string[] {
+    const vars: string[][] = Object.entries(
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
+    );
+
+    return vars.map(([name, value]) => `-X${name}=${value}`);
+}
+
 export function assertSupportedEnvironments(mainChannel: winston.Logger) {
     // Get the ALS environment variable from the custom environment, or from the
     // process environment

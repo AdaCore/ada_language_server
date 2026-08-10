@@ -13,8 +13,8 @@ import {
     CoberturaFileCoverage,
     GnatcovFileCoverage,
 } from './gnatcov';
-import { getScenarioArgs } from './gnatTaskProvider';
-import { escapeRegExp, exe, getToolEnvironment, slugify } from './helpers';
+
+import { escapeRegExp, exe, getToolEnvironment, gprScenarioArgs, slugify } from './helpers';
 import {
     findTaskByName,
     getOrCreateTask,
@@ -884,7 +884,7 @@ async function buildTestDriverAndReportErrors(
                     ...(await getCoverageLevelArgs('instrument')),
                     '-P',
                     await getGnatTestDriverProjectPath(),
-                ].concat(getScenarioArgs()),
+                ].concat(gprScenarioArgs()),
             }),
         );
 
@@ -901,7 +901,7 @@ async function buildTestDriverAndReportErrors(
                     '-P',
                     await getGnatTestDriverProjectPath(),
                 ]
-                    .concat(getScenarioArgs())
+                    .concat(gprScenarioArgs())
                     .concat(["'-cargs:ada'", '-gnatef']),
             }),
         );

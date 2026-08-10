@@ -20,7 +20,7 @@ import {
     buildAddAnnotationArgs,
     parseShowAnnotationsJson,
 } from './extAnnotationsParser';
-import { getToolEnvironment, which } from './helpers';
+import { getToolEnvironment, gprScenarioArgs, which } from './helpers';
 
 export * from './extAnnotationsParser';
 
@@ -94,7 +94,7 @@ export async function showAnnotations(sourcePath?: string): Promise<ShowAnnotati
         'show-annotations',
         '--format=json',
         `-P${context.projectFile}`,
-        ...getScenarioArgs(),
+        ...gprScenarioArgs(),
     ];
 
     /*
@@ -236,7 +236,7 @@ export async function addAnnotation(
     const args = [
         'add-annotation',
         `-P${context.projectFile}`,
-        ...getScenarioArgs(),
+        ...gprScenarioArgs(),
         ...buildAddAnnotationArgs(params),
         sourcePath,
     ];
@@ -264,7 +264,7 @@ export async function deleteAnnotation(id: string): Promise<string | undefined> 
         'delete-annotation',
         `-P${context.projectFile}`,
         `--annotation-id=${id}`,
-        ...getScenarioArgs(),
+        ...gprScenarioArgs(),
     ];
 
     logSafely(args);
@@ -282,22 +282,6 @@ function failureOf(output: ProcessOutput): string | undefined {
     }
 
     return output.stderr.trim() || output.stdout.trim() || `exit status ${String(output.code)}`;
-}
-
-/**
- * @returns `-X` switches for the scenario variables configured for the
- * workspace, so that gnatcov loads the project the same way the ALS does.
- */
-function getScenarioArgs(): string[] {
-    const vars = vscode.workspace
-        .getConfiguration()
-        .get<Record<string, string>>('ada.scenarioVariables');
-
-    if (!vars) {
-        return [];
-    }
-
-    return Object.entries(vars).map(([name, value]) => `-X${name}=${value}`);
 }
 
 /**
