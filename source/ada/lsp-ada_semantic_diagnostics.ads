@@ -61,8 +61,8 @@ private
       --  Used to detect if the project was reloaded during execution,
       --  in which case results are discarded and the job is terminated.
 
-      Document : LSP.Ada_Documents.Document_Access;
-      --  The document to analyze.
+      Document_URI : LSP.Structures.DocumentUri;
+      --  Saved URI used to re-fetch Document safely on each Execute call.
 
       File_Name : GNATCOLL.VFS.Virtual_File;
       --  Saved copy of the Document's virtual file, used for traces.

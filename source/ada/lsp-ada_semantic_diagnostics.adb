@@ -58,6 +58,14 @@ package body LSP.Ada_Semantic_Diagnostics is
       use type LSP.Ada_Handlers.Project_Stamp;
       use type LSP.Ada_Documents.Document_Access;
 
+      Document : constant LSP.Ada_Documents.Document_Access
+        := Self.Handler.Get_Open_Document (Self.Document_URI);
+      --  Fetch the document on every call of `Execute` to prevent dangling
+      --  pointers if the document was closed while this job was in the
+      --  queue.
+
+      --  The document to analyze.
+
       procedure Process_Node (Node : Ada_Node);
       --  Process a single node during traversal: if it is an xref entry point and
       --  overlaps changed ranges (when applicable), extract diagnostics and add
@@ -137,8 +145,8 @@ package body LSP.Ada_Semantic_Diagnostics is
                   Error_Loc  : constant Ada_Node := Contextual.Error.Location;
                   Diag_Range : constant LSP.Structures.A_Range :=
                     (if Error_Loc.Is_Null
-                     then Self.Document.To_A_Range (Node.Sloc_Range)
-                     else Self.Document.To_A_Range (Error_Loc.Sloc_Range));
+                     then Document.To_A_Range (Node.Sloc_Range)
+                     else Document.To_A_Range (Error_Loc.Sloc_Range));
                   Item       : LSP.Structures.Diagnostic;
                begin
                   Item.source := "libadalang";
@@ -157,7 +165,7 @@ package body LSP.Ada_Semantic_Diagnostics is
    begin
       if Self.Handler.Get_Project_Stamp /= Self.Project_Stamp
         or else Self.Handler.Is_Shutdown
-        or else Self.Document = null
+        or else Document = null
       then
           --  Project was reloaded, server is shutting down, or document was
           --  closed while this job was in the queue: discard it.
@@ -170,7 +178,7 @@ package body LSP.Ada_Semantic_Diagnostics is
          return;
       end if;
 
-      if Self.Document.Identifier.version /= Self.Document_Version then
+      if Document.Identifier.version /= Self.Document_Version then
          --  The document has been edited since this job was enqueued.  A
          --  newer job will already be (or will soon be) in the queue, so
          --  discard this one to avoid wasting CPU on a result that will be
@@ -191,9 +199,9 @@ package body LSP.Ada_Semantic_Diagnostics is
       if Self.Cursor = null then
          declare
             Context : constant LSP.Ada_Context_Sets.Context_Access :=
-              Self.Handler.Get_Best_Context (Self.Document.URI);
+              Self.Handler.Get_Best_Context (Self.Document_URI);
             File    : constant GNATCOLL.VFS.Virtual_File :=
-              Self.Handler.To_File (Self.Document.URI);
+              Self.Handler.To_File (Self.Document_URI);
             Unit    : constant Analysis_Unit := Context.Get_AU (File);
             Start   : Ada_Node := Unit.Root;
          begin
@@ -268,7 +276,7 @@ package body LSP.Ada_Semantic_Diagnostics is
                         .Ada_Documents
                         .Semantic_Diagnostics
                         .Semantic_Diagnostic_Source_Access
-                           (Self.Document.Semantic_Diagnostic_Source);
+                           (Document.Semantic_Diagnostic_Source);
                begin
                   Me_Debug.Trace
                     ("Semantic diagnostics traversal completed for "
@@ -279,7 +287,7 @@ package body LSP.Ada_Semantic_Diagnostics is
 
                   Semantic_Diags_Source.Update_Diagnostics
                     (Errors => Self.Errors);
-                  Self.Handler.Publish_Diagnostics (Self.Document);
+                  Self.Handler.Publish_Diagnostics (Document);
                end;
 
                Free (Self.Cursor);
@@ -345,8 +353,14 @@ package body LSP.Ada_Semantic_Diagnostics is
            new Semantic_Diagnostics_Job (Handler => Handler);
          Job_Access : LSP.Server_Jobs.Server_Job_Access;
       begin
+         --  Note, the document pointer stored at job creation time
+         --  becomes a dangling pointer if the document is closed and freed
+         --  (On_DidClose_Notification) while the job is still queued. So,
+         --  `Get_Open_Document` is used to obtain document on each call of
+         --  `Execute` for safety.
+
          Job.Project_Stamp    := Handler.Get_Project_Stamp;
-         Job.Document         := Document;
+         Job.Document_URI     := Document.URI;
          Job.File_Name        := Handler.To_File (Document.URI);
          Job.Document_Version := Document.Identifier.version;
          Job.Ranges           := Ranges;
