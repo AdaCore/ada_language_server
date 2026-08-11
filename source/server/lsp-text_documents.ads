@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                     Copyright (C) 2023-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,6 +18,7 @@
 --  This package provides an text document abstraction. It provides capability
 --  to apply and generate text edits.
 
+with Ada.Calendar;
 private with Ada.Containers.Vectors;
 
 with VSS.Strings;
@@ -44,14 +45,34 @@ package LSP.Text_Documents is
       Last  : Text_Position;
    end record;
 
+   type Document_Signature is record
+      URI       : LSP.Structures.DocumentUri;
+      Version   : Integer;
+      Timestamp : Ada.Calendar.Time;
+   end record;
+
    type Text_Document is abstract tagged limited private;
 
-   function URI (Self : Text_Document'Class) return LSP.Structures.DocumentUri;
+   function URI
+     (Self : Text_Document'Class) return LSP.Structures.DocumentUri;
    --  Return the URI associated with Self
 
    function Identifier
      (Self : Text_Document'Class)
       return LSP.Structures.OptionalVersionedTextDocumentIdentifier;
+
+   function Open_Timestamp
+     (Self : Text_Document'Class) return Ada.Calendar.Time;
+   --  Return the timestamp of the document initialization.
+
+   function Signature
+     (Self : Text_Document'Class) return Document_Signature;
+   --  Return the document signature containing URI, version, and timestamp.
+
+   function Is_Same
+     (Self      : Text_Document'Class;
+      Signature : Document_Signature) return Boolean;
+   --  Return True if Self has the same signature as the one provided.
 
    function Text
      (Self : Text_Document'Class) return VSS.Strings.Virtual_String;
@@ -127,6 +148,9 @@ private
    type Text_Document is abstract tagged limited record
       URI             : LSP.Structures.DocumentUri;
       --  URI of the document
+
+      Open_Timestamp  : Ada.Calendar.Time;
+      --  Timestamp of the document initialization.
 
       Version         : Integer := 1;
       --  Document version
