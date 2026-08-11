@@ -134,6 +134,7 @@ line 225: column 22 - 36: type                                             : Mes
 line 226: column  7 -  9: parameter     [declaration, readonly]            : URI
 line 227: column  7 - 11: parameter     [declaration, readonly]            : Force
 line 237: column 13 - 20: variable      [declaration, readonly]            : Document
+line 244: column 17 - 20: variable      [readonly]                         : null
 line 246: column  8 - 24: function                                         : Get_Open_Document
 line 252: column 14 - 40: function      [declaration]                      : Send_Imprecise_Xref_Message
 line 253: column  7 - 10: parameter     [declaration, readonly]            : Self
@@ -156,6 +157,8 @@ line 290: column 20 - 26: enum          [static, defaultLibrary]           : Boo
 line 308: column  8 - 29: function                                         : Imprecise_Resolve_Name
 line 314: column 14 - 33: function      [declaration]                      : Release_Project_Info
 line 314: column 36 - 39: parameter     [declaration, readonly]            : Self
+line 317: column 31 - 34: variable      [readonly]                         : null
+line 321: column 38 - 41: variable      [readonly]                         : null
 line 326: column  8 - 27: function                                         : Release_Project_Info
 line 332: column 14 - 20: function      [definition]                       : Cleanup
 line 332: column 23 - 26: parameter     [definition, readonly]             : Self
@@ -187,6 +190,7 @@ line 444: column  7 - 16: variable      [declaration]                      : GPR
 line 444: column 20 - 26: type          [static, defaultLibrary]           : Natural
 line 445: column  7 - 11: variable      [declaration]                      : Files
 line 446: column  7 -  9: variable      [declaration]                      : GPR
+line 468: column 19 - 22: variable      [readonly]                         : null
 line 469: column 14 - 14: variable      [declaration, localVariable]       : X
 line 498: column  8 - 28: function                                         : Ensure_Project_Loaded
 line 504: column 24 - 44: function      [declaration]                      : On_Initialize_Request
@@ -270,6 +274,7 @@ line 851: column 11 - 28: function                                         : Ana
 line 853: column  7 - 14: variable      [declaration, readonly]            : Document
 line 856: column  7 - 14: variable      [declaration]                      : Response
 line 859: column  7 - 11: variable      [declaration]                      : Found
+line 861: column 21 - 24: variable      [readonly]                         : null
 line 866: column 11 - 11: variable      [declaration, localVariable]       : C
 line 873: column  8 - 28: function                                         : On_CodeAction_Request
 line 879: column 24 - 49: function      [declaration]                      : On_Execute_Command_Request
@@ -374,6 +379,7 @@ line 1315: column 16 - 30: function      [definition]                       : Sk
 line 1315: column 39 - 45: enum          [static, defaultLibrary]           : Boolean
 line 1318: column 18 - 51: type          [declaration]                      : DidChangeTextDocument_Notification
 line 1321: column 10 - 13: variable      [declaration, readonly]            : Next
+line 1324: column 20 - 23: variable      [readonly]                         : null
 line 1332: column 13 - 18: variable      [declaration]                      : Object
 line 1341: column 11 - 25: function                                         : Skip_Did_Change
 line 1343: column  7 - 14: variable      [declaration, readonly]            : Document
@@ -409,6 +415,7 @@ line 1495: column  7 - 11: variable      [declaration]                      : Va
 line 1498: column  7 - 13: variable      [declaration, readonly]            : Context
 line 1500: column  7 - 14: variable      [declaration, readonly]            : Document
 line 1502: column  7 - 12: variable      [declaration]                      : Result
+line 1505: column 22 - 25: variable      [readonly]                         : null
 line 1509: column 17 - 24: variable      [declaration, localVariable]       : Response
 line 1516: column 17 - 24: variable      [declaration, localVariable]       : Response
 line 1526: column  8 - 31: function                                         : On_Folding_Range_Request
@@ -556,6 +563,7 @@ line 2097: column  7 - 11: variable      [declaration]                      : Va
 line 2098: column  7 - 14: variable      [declaration, readonly]            : Document
 line 2100: column  7 - 13: variable      [declaration, readonly]            : Context
 line 2102: column  7 - 12: variable      [declaration]                      : Result
+line 2108: column 21 - 24: variable      [readonly]                         : null
 line 2110: column 13 - 20: variable      [declaration]                      : Document
 line 2120: column  8 - 34: function                                         : On_Document_Symbols_Request
 line 2126: column 24 - 40: function      [declaration]                      : On_Rename_Request

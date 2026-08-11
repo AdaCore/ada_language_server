@@ -19,6 +19,101 @@
 #                        ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada constant.numeric.ada
 #                         ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada punctuation.ada
 >
+>   --  'null' in value position: the TextMate grammar classifies it as a
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada meta.declaration.package.body.ada comment.line.double-dash.ada
+>   --  keyword, but the server should emit a constant semantic token for it.
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada meta.declaration.package.body.ada comment.line.double-dash.ada
+>   type Int_Access is access all Integer;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada keyword.ada
+#       ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada
+#        ^^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#            ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                  ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada
+#                   ^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada keyword.ada
+#                     ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada
+#                      ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.access.ada storage.visibility.ada
+#                            ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.access.ada
+#                             ^^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.access.ada storage.visibility.ada
+#                                ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.access.ada
+#                                 ^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.access.ada entity.name.type.ada
+#                                        ^ source.ada meta.declaration.package.body.ada meta.declaration.type.definition.regular.ada punctuation.ada
+>
+>   Null_Ptr : constant Int_Access := null;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada variable.name.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#              ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada storage.modifier.ada
+#                      ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#                       ^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada entity.name.type.ada
+#                          ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada entity.name.type.ada punctuation.ada
+#                           ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada entity.name.type.ada
+#                                 ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#                                  ^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada keyword.operator.new.ada
+#                                    ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#                                     ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada constant.language.ada
+#                                         ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada punctuation.ada
+>   Ptr      : Int_Access := null;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada variable.name.ada
+#      ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#              ^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada entity.name.type.ada
+#                 ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada entity.name.type.ada punctuation.ada
+#                  ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada entity.name.type.ada
+#                        ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#                         ^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada keyword.operator.new.ada
+#                           ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada
+#                            ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada constant.language.ada
+#                                ^ source.ada meta.declaration.package.body.ada meta.declaration.object.ada punctuation.ada
+>
+>   procedure Reset_Ptr is
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#             ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#                      ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                       ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+>   begin
+#^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#   ^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+>      if Ptr /= null then
+#^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#      ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.control.ada
+#        ^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada
+#             ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.operator.multiplying.ada
+#              ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.operator.relational.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada
+#                ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada constant.language.ada
+#                    ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.control.ada
+#                     ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.control.ada
+>         Ptr := null;
+#^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada
+#         ^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada meta.statement.assignment.ada variable.name.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada meta.statement.assignment.ada
+#             ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada meta.statement.assignment.ada keyword.operator.new.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada meta.statement.assignment.ada
+#                ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada meta.statement.assignment.ada constant.language.ada
+#                    ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada meta.statement.assignment.ada punctuation.ada
+>      end if;
+#^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada
+#      ^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.control.ada
+#         ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada
+#          ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada keyword.control.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.if.ada punctuation.ada
+>   end Reset_Ptr;
+#^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#   ^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#      ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#       ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#                ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+>
 >   procedure Proc1 (Arg1, Arg2 : Integer) is
 #^^^ source.ada meta.declaration.package.body.ada
 #   ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
