@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* `null` is now highlighted as a keyword rather than as a constant, so that both words of `null record` are coloured alike
+
 ## 2026.3.202607051
 
 * Switch workspace symbol search to fuzzy search by default. The search algorithm can be changed through the `workspaceSearch` setting.

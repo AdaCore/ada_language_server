@@ -729,6 +729,19 @@
 #            ^^^^^^ source.ada keyword.other.ada
 #                  ^ source.ada punctuation.ada
 >
+>    type Empty_Rec is null record;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^ source.ada entity.name.label.ada
+#                  ^ source.ada
+#                   ^^ source.ada keyword.other.ada
+#                     ^ source.ada
+#                      ^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^^^^ source.ada keyword.other.ada
+#                                 ^ source.ada punctuation.ada
+>
 >    type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -739,7 +752,7 @@
 #                          ^ source.ada
 #                           ^^^ source.ada entity.name.operator.ada
 #                              ^ source.ada
-#                               ^^^^ source.ada variable.other.constant.ada
+#                               ^^^^ source.ada keyword.other.ada
 #                                   ^ source.ada
 #                                    ^^^^^^ source.ada storage.modifier.ada
 #                                          ^ source.ada

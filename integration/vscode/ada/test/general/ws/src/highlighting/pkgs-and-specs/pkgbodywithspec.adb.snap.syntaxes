@@ -60,7 +60,7 @@
 #   ^^^^^ source.ada keyword.other.ada
 >      null;
 #^^^^^^ source.ada
-#      ^^^^ source.ada variable.other.constant.ada
+#      ^^^^ source.ada keyword.other.ada
 #          ^ source.ada punctuation.ada
 >   end Proc1;
 #^^^ source.ada
@@ -165,7 +165,7 @@
 #   ^^^^^ source.ada keyword.other.ada
 >      null;
 #^^^^^^ source.ada
-#      ^^^^ source.ada variable.other.constant.ada
+#      ^^^^ source.ada keyword.other.ada
 #          ^ source.ada punctuation.ada
 >   end Proc2;
 #^^^ source.ada

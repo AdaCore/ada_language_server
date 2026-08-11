@@ -77,6 +77,8 @@ package Types is
             end case;
         end record;
 
+    type Empty_Rec is null record;
+
     type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
     type Binop_Ptr is 
         access all Binary_Operation'Class;

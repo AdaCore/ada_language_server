@@ -15,7 +15,7 @@
 #^^^^^ source.ada keyword.other.ada
 >   null;
 #^^^ source.ada
-#   ^^^^ source.ada variable.other.constant.ada
+#   ^^^^ source.ada keyword.other.ada
 #       ^ source.ada punctuation.ada
 >end Hello;
 #^^^ source.ada keyword.other.ada

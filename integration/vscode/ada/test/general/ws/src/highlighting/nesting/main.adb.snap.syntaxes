@@ -29,7 +29,7 @@
 #                    ^ source.ada
 #                     ^^^^^ source.ada keyword.other.ada
 #                          ^ source.ada
-#                           ^^^^ source.ada variable.other.constant.ada
+#                           ^^^^ source.ada keyword.other.ada
 #                               ^ source.ada punctuation.ada
 #                                ^ source.ada
 #                                 ^^^ source.ada keyword.other.ada
@@ -62,7 +62,7 @@
 #                    ^ source.ada
 #                     ^^^^^ source.ada keyword.other.ada
 #                          ^ source.ada
-#                           ^^^^ source.ada variable.other.constant.ada
+#                           ^^^^ source.ada keyword.other.ada
 #                               ^ source.ada punctuation.ada
 #                                ^ source.ada
 #                                 ^^^ source.ada keyword.other.ada
