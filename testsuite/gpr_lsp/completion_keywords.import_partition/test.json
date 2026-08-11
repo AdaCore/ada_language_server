@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "GPR keyword completion after case...is with tick selector"
+         "GPR keyword completion after a with clause semicolon"
       ]
    },
    {
@@ -74,7 +74,7 @@
                   "uri": "$URI{default.gpr}",
                   "languageId": "Gpr",
                   "version": 0,
-                  "text": "project Default is\n   case Default'Target is\n      when \"x86\" =>\n         null;\n   end case;\nend Default;\n"
+                  "text": "with \"a.gpr\";\n   \nproject Default is\nend Default;\n"
                }
             }
          },
@@ -82,38 +82,8 @@
       }
    },
    {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{default.gpr}",
-                  "version": 1
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 0
-                        },
-                        "end": {
-                           "line": 4,
-                           "character": 0
-                        }
-                     },
-                     "text": "      \n"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
       "comment": [
-         "After case X'Y is: propose when"
+         "After ; in the import partition: file-start keywords only"
       ]
    },
    {
@@ -127,8 +97,8 @@
                   "uri": "$URI{default.gpr}"
                },
                "position": {
-                  "line": 2,
-                  "character": 6
+                  "line": 1,
+                  "character": 3
                },
                "context": {
                   "triggerKind": 1
@@ -142,7 +112,23 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "when",
+                        "label": "with",
+                        "kind": 14
+                     },
+                     {
+                        "label": "limited",
+                        "kind": 14
+                     },
+                     {
+                        "label": "project",
+                        "kind": 14
+                     },
+                     {
+                        "label": "abstract",
+                        "kind": 14
+                     },
+                     {
+                        "label": "library",
                         "kind": 14
                      }
                   ]

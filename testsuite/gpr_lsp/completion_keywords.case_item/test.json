@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "GPR keyword completion after case...is with tick selector"
+         "GPR keyword completion after semicolon inside a case item"
       ]
    },
    {
@@ -74,7 +74,7 @@
                   "uri": "$URI{default.gpr}",
                   "languageId": "Gpr",
                   "version": 0,
-                  "text": "project Default is\n   case Default'Target is\n      when \"x86\" =>\n         null;\n   end case;\nend Default;\n"
+                  "text": "project Default is\n   type Mode is (\"a\", \"b\");\n   V : Mode := \"a\";\n   case V is\n      when \"a\" =>\n         for Source_Dirs use ();\n         \n   end case;\nend Default;\n"
                }
             }
          },
@@ -82,38 +82,8 @@
       }
    },
    {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{default.gpr}",
-                  "version": 1
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 0
-                        },
-                        "end": {
-                           "line": 4,
-                           "character": 0
-                        }
-                     },
-                     "text": "      \n"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
       "comment": [
-         "After case X'Y is: propose when"
+         "After ; inside a case item: no package/type, which a case_item forbids"
       ]
    },
    {
@@ -127,8 +97,8 @@
                   "uri": "$URI{default.gpr}"
                },
                "position": {
-                  "line": 2,
-                  "character": 6
+                  "line": 6,
+                  "character": 9
                },
                "context": {
                   "triggerKind": 1
@@ -142,7 +112,19 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "when",
+                        "label": "for",
+                        "kind": 14
+                     },
+                     {
+                        "label": "case",
+                        "kind": 14
+                     },
+                     {
+                        "label": "end",
+                        "kind": 14
+                     },
+                     {
+                        "label": "null",
                         "kind": 14
                      }
                   ]

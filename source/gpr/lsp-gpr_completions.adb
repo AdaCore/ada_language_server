@@ -168,9 +168,9 @@ package body LSP.GPR_Completions is
       end if;
    end Add_Keyword;
 
-   ----------------------------------------
-   -- Fill_Keyword_Completion_Response --
-   ----------------------------------------
+   ---------------------------------
+   -- Fill_Start_Of_File_Keywords --
+   ---------------------------------
 
    procedure Fill_Start_Of_File_Keywords
      (Prefix   : VSS.Strings.Virtual_String;
@@ -183,9 +183,9 @@ package body LSP.GPR_Completions is
       Add_Keyword ("library", Prefix, Response);
    end Fill_Start_Of_File_Keywords;
 
-   ----------------------------------------
+   --------------------------------------
    -- Fill_Keyword_Completion_Response --
-   ----------------------------------------
+   --------------------------------------
 
    procedure Fill_Keyword_Completion_Response
      (Previous            : Gpr_Parser.Common.Token_Reference;
@@ -226,18 +226,63 @@ package body LSP.GPR_Completions is
          return T.Data.Kind;
       end Construct_Before_Is;
 
-      procedure Add_Body_Keywords;
-      --  Add keywords valid in a project or package body
+      function In_Case_Construct return Boolean;
+      --  Return True when the cursor lies inside a case construct, i.e. when
+      --  a 'case ... is' has been opened before it and not yet closed by an
+      --  'end case'.
 
-      procedure Add_Body_Keywords is
+      -----------------------
+      -- In_Case_Construct --
+      -----------------------
+
+      function In_Case_Construct return Boolean is
+         use type GPC.Token_Reference;
+         use type GPC.Token_Kind;
+         T     : GPC.Token_Reference := Previous;
+         Depth : Natural := 0;
+      begin
+         --  Walk backwards, balancing every 'end case' against the 'case' it
+         --  closes: the first unbalanced 'case' is the one we stand in.
+         while T /= GPC.No_Token loop
+            if T.Data.Kind = GPC.Gpr_Case then
+               declare
+                  Before : constant GPC.Token_Reference := T.Previous (True);
+               begin
+                  if Before /= GPC.No_Token
+                    and then Before.Data.Kind = GPC.Gpr_End
+                  then
+                     Depth := Depth + 1;
+                  elsif Depth = 0 then
+                     return True;
+                  else
+                     Depth := Depth - 1;
+                  end if;
+               end;
+            end if;
+
+            T := T.Previous (True);
+         end loop;
+
+         return False;
+      end In_Case_Construct;
+
+      procedure Add_Body_Keywords (Simple_Only : Boolean := False);
+      --  Add keywords valid in a project or package body.
+      --  When Simple_Only is set, only simple_declarative_item keywords are
+      --  proposed: 'package' and 'type' declarations are not admissible.
+
+      procedure Add_Body_Keywords (Simple_Only : Boolean := False) is
       begin
          Add_Keyword ("for", Prefix, Response);
          Add_Keyword ("case", Prefix, Response);
          Add_Keyword ("end", Prefix, Response);
          Add_Keyword ("null", Prefix, Response);
-         --  type and package are only valid at project level,
-         --  not inside a package body (GPR grammar restriction).
-         if Current_Package = GPR2.Project_Level_Scope then
+         --  type and package are only valid at project level, neither inside
+         --  a package body nor inside a case item, which admit
+         --  simple_declarative_item only (GPR grammar restriction).
+         if not Simple_Only
+           and then Current_Package = GPR2.Project_Level_Scope
+         then
             Add_Keyword ("package", Prefix, Response);
             Add_Keyword ("type", Prefix, Response);
          end if;
@@ -249,7 +294,7 @@ package body LSP.GPR_Completions is
             if In_Import_Partition then
                Fill_Start_Of_File_Keywords (Prefix, Response);
             else
-               Add_Body_Keywords;
+               Add_Body_Keywords (Simple_Only => In_Case_Construct);
             end if;
 
          when GPC.Gpr_Is =>
@@ -749,230 +794,230 @@ package body LSP.GPR_Completions is
             then To_Lower (VSS.Strings.To_Virtual_String (Previous.Text))
             else "");
       begin
-            --  Start of file: offer file-start keywords with prefix
-            if Previous = GPC.No_Token then
-               Fill_Start_Of_File_Keywords
-                 (First_Token_Prefix, Response);
-               return;
-            end if;
+         --  Start of file: offer file-start keywords with prefix
+         if Previous = GPC.No_Token then
+            Fill_Start_Of_File_Keywords
+              (First_Token_Prefix, Response);
+            return;
+         end if;
 
-            if not VSS.Strings.Is_Empty (Identifier_Prefix) then
-               Previous := Previous.Previous (True);
-            end if;
+         if not VSS.Strings.Is_Empty (Identifier_Prefix) then
+            Previous := Previous.Previous (True);
+         end if;
 
-            --  After consuming prefix, Previous may become No_Token
-            if Previous = GPC.No_Token then
-               Fill_Start_Of_File_Keywords
-                 (Identifier_Prefix, Response);
-               return;
-            end if;
+         --  After consuming prefix, Previous may become No_Token
+         if Previous = GPC.No_Token then
+            Fill_Start_Of_File_Keywords
+              (Identifier_Prefix, Response);
+            return;
+         end if;
 
-            if Previous.Data.Kind
-               in GPC.Gpr_For
-                | GPC.Gpr_Package
-                | GPC.Gpr_Extends
-                | GPC.Gpr_Renames
-                | GPC.Gpr_Use
-              and then LSP.GPR_Files.At_End
-                         (Previous.Data.Sloc_Range, Location)
-            then
-               --  missing space after 'package', 'renames', 'extends', 'for',
-               --  'use' keyword to allow completion
-               return;
-            end if;
+         if Previous.Data.Kind
+            in GPC.Gpr_For
+             | GPC.Gpr_Package
+             | GPC.Gpr_Extends
+             | GPC.Gpr_Renames
+             | GPC.Gpr_Use
+           and then LSP.GPR_Files.At_End
+                      (Previous.Data.Sloc_Range, Location)
+         then
+            --  missing space after 'package', 'renames', 'extends', 'for',
+            --  'use' keyword to allow completion
+            return;
+         end if;
 
-            case Previous.Data.Kind is
+         case Previous.Data.Kind is
 
-               when GPC.Gpr_For =>
-                  Fill_Attribute_Completion_Response
+            when GPC.Gpr_For =>
+               Fill_Attribute_Completion_Response
+                 (File            => File,
+                  Current_Package => File.Get_Package (Value.position),
+                  Doc             => Compute_Doc_And_Details,
+                  Doc_Formats     => Doc_Formats,
+                  Prefix          => Identifier_Prefix,
+                  Response => Response);
+
+            when GPC.Gpr_Package =>
+               Fill_Package_Completion_Response
+                 (File            => File,
+                  Doc             => Compute_Doc_And_Details,
+                  Doc_Formats     => Doc_Formats,
+                  Prefix          => Identifier_Prefix,
+                  Unexisting_Only => True,
+                  Response        => Response);
+
+            when GPC.Gpr_Colon =>
+               Fill_Type_Completion_Response
+                 (File     => File,
+                  Prefix   => Identifier_Prefix,
+                  Response => Response);
+
+            when GPC.Gpr_Dot =>
+               Fill_Dot_Completion (Previous, Identifier_Prefix);
+
+            when GPC.Gpr_Tick =>
+               Fill_Tick_Completion (Previous, Identifier_Prefix);
+
+            when GPC.Gpr_Assign
+               | GPC.Gpr_Par_Open
+               | GPC.Gpr_Comma
+               | GPC.Gpr_Amp
+               | GPC.Gpr_Use
+               | GPC.Gpr_Renames
+               | GPC.Gpr_Extends =>
+
+               declare
+                  function Find_Attribute_Token return GPC.Token_Reference;
+                  --  Find the attribute name token when completing after
+                  --  '(' or ',' in an attribute value context.
+
+                  function Skip_Use_Keyword
+                    (T : GPC.Token_Reference;
+                     Found_Use : out Boolean) return GPC.Token_Reference;
+                  --  Skip past 'use' keyword if present, setting Found_Use
+                  --  to indicate whether a 'use' keyword was found.
+
+                  function Skip_To_Opening_Paren
+                    (T : GPC.Token_Reference) return GPC.Token_Reference;
+                  --  Skip backward through nested expressions to find the
+                  --  opening '(' of the attribute value list.
+
+                  ----------------------
+                  -- Skip_Use_Keyword --
+                  ----------------------
+
+                  function Skip_Use_Keyword
+                    (T : GPC.Token_Reference;
+                     Found_Use : out Boolean) return GPC.Token_Reference is
+                  begin
+                     if T /= GPC.No_Token
+                       and then T.Data.Kind = GPC.Gpr_Use
+                     then
+                        Found_Use := True;
+                        return T.Previous (True);
+                     end if;
+                     Found_Use := False;
+                     return T;
+                  end Skip_Use_Keyword;
+
+                  ---------------------------
+                  -- Skip_To_Opening_Paren --
+                  ---------------------------
+
+                  function Skip_To_Opening_Paren
+                    (T : GPC.Token_Reference) return GPC.Token_Reference
+                  is
+                     Result      : GPC.Token_Reference := T;
+                     Paren_Count : Natural := 0;
+                  begin
+                     while Result /= GPC.No_Token loop
+                        case Result.Data.Kind is
+                           when GPC.Gpr_Par_Close =>
+                              Paren_Count := Paren_Count + 1;
+                           when GPC.Gpr_Par_Open =>
+                              if Paren_Count = 0 then
+                                 --  Found the opening '(', return previous
+                                 return Result.Previous (True);
+                              end if;
+                              Paren_Count := Paren_Count - 1;
+                           when others =>
+                              null;
+                        end case;
+                        Result := Result.Previous (True);
+                     end loop;
+                     return Result;
+                  end Skip_To_Opening_Paren;
+
+                  --------------------------
+                  -- Find_Attribute_Token --
+                  --------------------------
+
+                  function Find_Attribute_Token return GPC.Token_Reference
+                  is
+                     T : GPC.Token_Reference := Previous.Previous (True);
+                     Found_Use : Boolean;
+                  begin
+                     --  Pattern: "for" Attr_Name "(" Index ")" "use" "("
+                     T := Skip_Use_Keyword (T, Found_Use);
+
+                     --  For comma or ampersand, skip back through the expression list
+                     if Previous.Data.Kind in GPC.Gpr_Comma | GPC.Gpr_Amp
+                     then
+                        --  For ampersand, we might not have parentheses if the value
+                        --  is a concatenation of variables. Skip backwards until we
+                        --  find either a 'use' keyword or an opening paren.
+                        if Previous.Data.Kind = GPC.Gpr_Amp then
+                           while T /= GPC.No_Token
+                             and then T.Data.Kind
+                                      not in GPC.Gpr_Use | GPC.Gpr_Par_Open
+                           loop
+                              T := T.Previous (True);
+                           end loop;
+                           T := Skip_Use_Keyword (T, Found_Use);
+                        else
+                           T := Skip_To_Opening_Paren (T);
+                           T := Skip_Use_Keyword (T, Found_Use);
+                        end if;
+                     end if;
+
+                     if not Found_Use then
+                        --  No 'use' keyword found, not in attribute
+                        --  value context.
+                        return GPC.No_Token;
+                     end if;
+
+                     --  Skip past index parameter: ')' Index '('
+                     if T /= GPC.No_Token
+                       and then T.Data.Kind = GPC.Gpr_Par_Close
+                     then
+                        T := T.Previous (True);  --  Index value
+                        if T /= GPC.No_Token then
+                           T := T.Previous (True);  --  '('
+                           if T /= GPC.No_Token
+                             and then T.Data.Kind = GPC.Gpr_Par_Open
+                           then
+                              T := T.Previous (True);  --  Attribute name
+                           end if;
+                        end if;
+                     end if;
+
+                     --  Return the attribute name if it's an identifier
+                     if T /= GPC.No_Token
+                       and then T.Data.Kind = GPC.Gpr_Identifier
+                     then
+                        return T;
+                     end if;
+
+                     return GPC.No_Token;
+                  end Find_Attribute_Token;
+
+                  Attribute_Token : constant GPC.Token_Reference :=
+                    (if Previous.Data.Kind in GPC.Gpr_Par_Open | GPC.Gpr_Comma | GPC.Gpr_Amp
+                     then Find_Attribute_Token
+                     else GPC.No_Token);
+               begin
+                  Fill_Left_Part_Completion_Response
                     (File            => File,
                      Current_Package => File.Get_Package (Value.position),
+                     Token_Kind      => Previous.Data.Kind,
                      Doc             => Compute_Doc_And_Details,
                      Doc_Formats     => Doc_Formats,
                      Prefix          => Identifier_Prefix,
-                     Response => Response);
+                     Response        => Response,
+                     Attribute_Token => Attribute_Token);
+               end;
 
-               when GPC.Gpr_Package =>
-                  Fill_Package_Completion_Response
-                    (File            => File,
-                     Doc             => Compute_Doc_And_Details,
-                     Doc_Formats     => Doc_Formats,
-                     Prefix          => Identifier_Prefix,
-                     Unexisting_Only => True,
-                     Response        => Response);
+            when others =>
+               Fill_Keyword_Completion_Response
+                 (Previous            => Previous,
+                  Current_Package     =>
+                    File.Get_Package (Value.position),
+                  In_Import_Partition =>
+                    File.Token_In_Import_Partition (Previous),
+                  Prefix              => Identifier_Prefix,
+                  Response            => Response);
 
-               when GPC.Gpr_Colon =>
-                  Fill_Type_Completion_Response
-                    (File     => File,
-                     Prefix   => Identifier_Prefix,
-                     Response => Response);
-
-               when GPC.Gpr_Dot =>
-                  Fill_Dot_Completion (Previous, Identifier_Prefix);
-
-               when GPC.Gpr_Tick =>
-                  Fill_Tick_Completion (Previous, Identifier_Prefix);
-
-               when GPC.Gpr_Assign
-                  | GPC.Gpr_Par_Open
-                  | GPC.Gpr_Comma
-                  | GPC.Gpr_Amp
-                  | GPC.Gpr_Use
-                  | GPC.Gpr_Renames
-                  | GPC.Gpr_Extends =>
-
-                  declare
-                     function Find_Attribute_Token return GPC.Token_Reference;
-                     --  Find the attribute name token when completing after
-                     --  '(' or ',' in an attribute value context.
-
-                     function Skip_Use_Keyword
-                       (T : GPC.Token_Reference;
-                        Found_Use : out Boolean) return GPC.Token_Reference;
-                     --  Skip past 'use' keyword if present, setting Found_Use
-                     --  to indicate whether a 'use' keyword was found.
-
-                     function Skip_To_Opening_Paren
-                       (T : GPC.Token_Reference) return GPC.Token_Reference;
-                     --  Skip backward through nested expressions to find the
-                     --  opening '(' of the attribute value list.
-
-                     ----------------------
-                     -- Skip_Use_Keyword --
-                     ----------------------
-
-                     function Skip_Use_Keyword
-                       (T : GPC.Token_Reference;
-                        Found_Use : out Boolean) return GPC.Token_Reference is
-                     begin
-                        if T /= GPC.No_Token
-                          and then T.Data.Kind = GPC.Gpr_Use
-                        then
-                           Found_Use := True;
-                           return T.Previous (True);
-                        end if;
-                        Found_Use := False;
-                        return T;
-                     end Skip_Use_Keyword;
-
-                     ---------------------------
-                     -- Skip_To_Opening_Paren --
-                     ---------------------------
-
-                     function Skip_To_Opening_Paren
-                       (T : GPC.Token_Reference) return GPC.Token_Reference
-                     is
-                        Result      : GPC.Token_Reference := T;
-                        Paren_Count : Natural := 0;
-                     begin
-                        while Result /= GPC.No_Token loop
-                           case Result.Data.Kind is
-                              when GPC.Gpr_Par_Close =>
-                                 Paren_Count := Paren_Count + 1;
-                              when GPC.Gpr_Par_Open =>
-                                 if Paren_Count = 0 then
-                                    --  Found the opening '(', return previous
-                                    return Result.Previous (True);
-                                 end if;
-                                 Paren_Count := Paren_Count - 1;
-                              when others =>
-                                 null;
-                           end case;
-                           Result := Result.Previous (True);
-                        end loop;
-                        return Result;
-                     end Skip_To_Opening_Paren;
-
-                     --------------------------
-                     -- Find_Attribute_Token --
-                     --------------------------
-
-                     function Find_Attribute_Token return GPC.Token_Reference
-                     is
-                        T : GPC.Token_Reference := Previous.Previous (True);
-                        Found_Use : Boolean;
-                     begin
-                        --  Pattern: "for" Attr_Name "(" Index ")" "use" "("
-                        T := Skip_Use_Keyword (T, Found_Use);
-
-                        --  For comma or ampersand, skip back through the expression list
-                        if Previous.Data.Kind in GPC.Gpr_Comma | GPC.Gpr_Amp
-                        then
-                           --  For ampersand, we might not have parentheses if the value
-                           --  is a concatenation of variables. Skip backwards until we
-                           --  find either a 'use' keyword or an opening paren.
-                           if Previous.Data.Kind = GPC.Gpr_Amp then
-                              while T /= GPC.No_Token
-                                and then T.Data.Kind
-                                         not in GPC.Gpr_Use | GPC.Gpr_Par_Open
-                              loop
-                                 T := T.Previous (True);
-                              end loop;
-                              T := Skip_Use_Keyword (T, Found_Use);
-                           else
-                              T := Skip_To_Opening_Paren (T);
-                              T := Skip_Use_Keyword (T, Found_Use);
-                           end if;
-                        end if;
-
-                        if not Found_Use then
-                           --  No 'use' keyword found, not in attribute
-                           --  value context.
-                           return GPC.No_Token;
-                        end if;
-
-                        --  Skip past index parameter: ')' Index '('
-                        if T /= GPC.No_Token
-                          and then T.Data.Kind = GPC.Gpr_Par_Close
-                        then
-                           T := T.Previous (True);  --  Index value
-                           if T /= GPC.No_Token then
-                              T := T.Previous (True);  --  '('
-                              if T /= GPC.No_Token
-                                and then T.Data.Kind = GPC.Gpr_Par_Open
-                              then
-                                 T := T.Previous (True);  --  Attribute name
-                              end if;
-                           end if;
-                        end if;
-
-                        --  Return the attribute name if it's an identifier
-                        if T /= GPC.No_Token
-                          and then T.Data.Kind = GPC.Gpr_Identifier
-                        then
-                           return T;
-                        end if;
-
-                        return GPC.No_Token;
-                     end Find_Attribute_Token;
-
-                     Attribute_Token : constant GPC.Token_Reference :=
-                       (if Previous.Data.Kind in GPC.Gpr_Par_Open | GPC.Gpr_Comma | GPC.Gpr_Amp
-                        then Find_Attribute_Token
-                        else GPC.No_Token);
-                  begin
-                     Fill_Left_Part_Completion_Response
-                       (File            => File,
-                        Current_Package => File.Get_Package (Value.position),
-                        Token_Kind      => Previous.Data.Kind,
-                        Doc             => Compute_Doc_And_Details,
-                        Doc_Formats     => Doc_Formats,
-                        Prefix          => Identifier_Prefix,
-                        Response        => Response,
-                        Attribute_Token => Attribute_Token);
-                  end;
-
-               when others =>
-                  Fill_Keyword_Completion_Response
-                    (Previous            => Previous,
-                     Current_Package     =>
-                       File.Get_Package (Value.position),
-                     In_Import_Partition =>
-                       File.Token_In_Import_Partition (Previous),
-                     Prefix              => Identifier_Prefix,
-                     Response            => Response);
-
-            end case;
+         end case;
       end;
    end Fill_Completion_Response;
 
