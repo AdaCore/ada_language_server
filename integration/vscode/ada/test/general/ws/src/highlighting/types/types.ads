@@ -77,6 +77,11 @@ package Types is
             end case;
         end record;
 
+    type Empty_Rec is null record;
+    type Tagged_Empty_Rec is tagged null record;
+    type Abstract_Empty_Rec is abstract tagged limited null record;
+    type Derived_Empty_Rec is new Tagged_Empty_Rec with null record;
+
     type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
     type Binop_Ptr is 
         access all Binary_Operation'Class;

@@ -2300,9 +2300,9 @@
             "patterns": [
                 { "include": "#enumeration_type_definition" },
                 { "include": "#integer_type_definition" },
+                { "include": "#record_type_definition" },
                 { "include": "#real_type_definition" },
                 { "include": "#array_type_definition" },
-                { "include": "#record_type_definition" },
                 { "include": "#access_type_definition" },
                 { "include": "#interface_type_definition" },
                 { "include": "#derived_type_definition" }

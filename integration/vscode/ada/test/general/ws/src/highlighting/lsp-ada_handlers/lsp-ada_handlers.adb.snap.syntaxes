@@ -1661,7 +1661,7 @@
 #^^^^^^^^^ source.ada
 #         ^^^^^^ source.ada keyword.other.ada
 #               ^ source.ada
-#                ^^^^ source.ada variable.other.constant.ada
+#                ^^^^ source.ada keyword.other.ada
 #                    ^ source.ada punctuation.ada
 >      end if;
 #^^^^^^ source.ada
@@ -2182,7 +2182,7 @@
 #                          ^ source.ada
 #                           ^^ source.ada entity.name.operator.ada
 #                             ^ source.ada
-#                              ^^^^ source.ada variable.other.constant.ada
+#                              ^^^^ source.ada keyword.other.ada
 #                                  ^ source.ada
 #                                   ^^^^ source.ada keyword.other.ada
 >         Self.Project_Tree.Unload;
@@ -2218,7 +2218,7 @@
 #                                 ^ source.ada
 #                                  ^^ source.ada entity.name.operator.ada
 #                                    ^ source.ada
-#                                     ^^^^ source.ada variable.other.constant.ada
+#                                     ^^^^ source.ada keyword.other.ada
 #                                         ^ source.ada
 #                                          ^^^^ source.ada keyword.other.ada
 >         Free (Self.Project_Environment);
@@ -3207,7 +3207,7 @@
 #              ^ source.ada
 #               ^^ source.ada entity.name.operator.ada
 #                 ^ source.ada
-#                  ^^^^ source.ada variable.other.constant.ada
+#                  ^^^^ source.ada keyword.other.ada
 #                      ^ source.ada
 #                       ^^^^ source.ada keyword.other.ada
 >         for X of Files.all loop
@@ -6069,7 +6069,7 @@
 #                        ^^ source.ada entity.name.operator.ada
 >               null;
 #^^^^^^^^^^^^^^^ source.ada
-#               ^^^^ source.ada variable.other.constant.ada
+#               ^^^^ source.ada keyword.other.ada
 #                   ^ source.ada punctuation.ada
 >
 >         end case;
@@ -6338,7 +6338,7 @@
 #                 ^ source.ada
 #                  ^ source.ada entity.name.operator.ada
 #                   ^ source.ada
-#                    ^^^^ source.ada variable.other.constant.ada
+#                    ^^^^ source.ada keyword.other.ada
 #                        ^ source.ada
 #                         ^^^^ source.ada keyword.other.ada
 >         return Response;
@@ -9542,7 +9542,7 @@
 #                ^ source.ada
 #                 ^ source.ada entity.name.operator.ada
 #                  ^ source.ada
-#                   ^^^^ source.ada variable.other.constant.ada
+#                   ^^^^ source.ada keyword.other.ada
 >           or else Next.all not in
 #^^^^^^^^^^^ source.ada
 #           ^^ source.ada entity.name.operator.ada
@@ -10806,7 +10806,7 @@
 #                 ^ source.ada
 #                  ^^ source.ada entity.name.operator.ada
 #                    ^ source.ada
-#                     ^^^^ source.ada variable.other.constant.ada
+#                     ^^^^ source.ada keyword.other.ada
 #                         ^ source.ada
 #                          ^^^^ source.ada keyword.other.ada
 >         Document.Get_Folding_Blocks
@@ -15134,7 +15134,7 @@
 #                 ^ source.ada
 #                  ^ source.ada entity.name.operator.ada
 #                   ^ source.ada
-#                    ^^^^ source.ada variable.other.constant.ada
+#                    ^^^^ source.ada keyword.other.ada
 #                        ^ source.ada
 #                         ^^^^ source.ada keyword.other.ada
 >         declare
@@ -20518,7 +20518,7 @@
 #                                          ^^ source.ada
 #                                            ^^ source.ada keyword.other.ada
 #                                              ^ source.ada
-#                                               ^^^^ source.ada variable.other.constant.ada
+#                                               ^^^^ source.ada keyword.other.ada
 #                                                   ^ source.ada punctuation.ada
 >
 >   ----------------

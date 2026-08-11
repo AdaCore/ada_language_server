@@ -4,7 +4,7 @@
 #     ./run_grammar_tests.sh  [path_to_test]
 #
 # Where path_to_test is the path to one testcase. If omitted,
-# process all tests under testsuite_grammar
+# process all tests under test/general/ws/src/highlighting
 
 update=
 for arg in $*; do
@@ -62,7 +62,7 @@ error=0
 if [ "$testpath" != "" ]; then
     run_test $testpath || error=1
 else
-    for dir in `find test/TestWorkspace/highlighing -type d -depth 1`; do
+    for dir in `find test/general/ws/src/highlighting -mindepth 1 -maxdepth 1 -type d`; do
         run_test $dir || error=1
     done
 fi

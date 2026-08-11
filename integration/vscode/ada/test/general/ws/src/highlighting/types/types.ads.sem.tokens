@@ -83,33 +83,38 @@ line  72: column 17 - 26: property      [declaration]                      : Lin
 line  72: column 30 - 36: type          [static, defaultLibrary]           : Integer
 line  74: column 17 - 24: property      [declaration]                      : Cylinder
 line  76: column 17 - 21: property      [declaration]                      : Track
-line  80: column 10 - 23: type          [declaration]                      : Peripheral_Ref
-line  80: column 44 - 53: struct                                           : Peripheral
-line  81: column 10 - 18: type          [declaration]                      : Binop_Ptr
-line  84: column 10 - 25: type          [declaration]                      : Local_Coordinate
-line  85: column 10 - 16: enum          [declaration, static]              : Midweek
-line  85: column 25 - 27: enum          [static]                           : Day
-line  85: column 35 - 37: enumMember    [static]                           : Tue
-line  85: column 42 - 44: enumMember    [static]                           : Thu
-line  86: column 10 - 16: type          [declaration, static]              : Counter
-line  86: column 25 - 32: type          [static, defaultLibrary]           : Positive
-line  89: column 10 - 14: interface     [declaration]                      : Queue
-line  90: column 10 - 27: interface     [declaration]                      : Synchronized_Queue
-line  90: column 59 - 63: interface                                        : Queue
-line  91: column 10 - 22: interface     [declaration]                      : Serial_Device
-line  93: column 15 - 20: type          [declaration]                      : Server
-line  94: column 15 - 28: function      [declaration]                      : Next_Work_Item
-line  94: column 30 - 31: parameter     [declaration, readonly]            : WI
-line  95: column 15 - 23: function      [declaration]                      : Shut_Down
-line  96: column  9 - 14: type                                             : Server
-line  98: column 15 - 29: type          [declaration]                      : Keyboard_Driver
-line  98: column 31 - 32: typeParameter [declaration, readonly]            : ID
-line  99: column 13 - 25: interface                                        : Serial_Device
-line 100: column 15 - 18: function      [declaration]                      : Read
-line 101: column 14 - 14: parameter     [declaration]                      : C
-line 101: column 22 - 30: enum          [static, defaultLibrary]           : Character
-line 102: column 15 - 19: function      [declaration]                      : Write
-line 102: column 21 - 21: parameter     [declaration, readonly]            : C
-line 102: column 29 - 37: enum          [static, defaultLibrary]           : Character
-line 103: column  9 - 23: type                                             : Keyboard_Driver
-line 105: column  5 -  9: namespace                                        : Types
+line  80: column 10 - 18: struct        [declaration]                      : Empty_Rec
+line  81: column 10 - 25: class         [declaration]                      : Tagged_Empty_Rec
+line  82: column 10 - 27: class         [declaration]                      : Abstract_Empty_Rec
+line  83: column 10 - 26: class         [declaration]                      : Derived_Empty_Rec
+line  83: column 35 - 50: class                                            : Tagged_Empty_Rec
+line  85: column 10 - 23: type          [declaration]                      : Peripheral_Ref
+line  85: column 44 - 53: struct                                           : Peripheral
+line  86: column 10 - 18: type          [declaration]                      : Binop_Ptr
+line  89: column 10 - 25: type          [declaration]                      : Local_Coordinate
+line  90: column 10 - 16: enum          [declaration, static]              : Midweek
+line  90: column 25 - 27: enum          [static]                           : Day
+line  90: column 35 - 37: enumMember    [static]                           : Tue
+line  90: column 42 - 44: enumMember    [static]                           : Thu
+line  91: column 10 - 16: type          [declaration, static]              : Counter
+line  91: column 25 - 32: type          [static, defaultLibrary]           : Positive
+line  94: column 10 - 14: interface     [declaration]                      : Queue
+line  95: column 10 - 27: interface     [declaration]                      : Synchronized_Queue
+line  95: column 59 - 63: interface                                        : Queue
+line  96: column 10 - 22: interface     [declaration]                      : Serial_Device
+line  98: column 15 - 20: type          [declaration]                      : Server
+line  99: column 15 - 28: function      [declaration]                      : Next_Work_Item
+line  99: column 30 - 31: parameter     [declaration, readonly]            : WI
+line 100: column 15 - 23: function      [declaration]                      : Shut_Down
+line 101: column  9 - 14: type                                             : Server
+line 103: column 15 - 29: type          [declaration]                      : Keyboard_Driver
+line 103: column 31 - 32: typeParameter [declaration, readonly]            : ID
+line 104: column 13 - 25: interface                                        : Serial_Device
+line 105: column 15 - 18: function      [declaration]                      : Read
+line 106: column 14 - 14: parameter     [declaration]                      : C
+line 106: column 22 - 30: enum          [static, defaultLibrary]           : Character
+line 107: column 15 - 19: function      [declaration]                      : Write
+line 107: column 21 - 21: parameter     [declaration, readonly]            : C
+line 107: column 29 - 37: enum          [static, defaultLibrary]           : Character
+line 108: column  9 - 23: type                                             : Keyboard_Driver
+line 110: column  5 -  9: namespace                                        : Types

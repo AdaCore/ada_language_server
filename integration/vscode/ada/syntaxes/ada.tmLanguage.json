@@ -32,11 +32,11 @@
         },
         {
             "name": "variable.other.constant.ada",
-            "match": "\\b(?i:(null|True|False))\\b"
+            "match": "\\b(?i:(True|False))\\b"
         },
         {
             "name": "keyword.other.ada",
-            "match": "\\b(?i:(abort|abstract|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|exception|for|generic|if|interface|is|limited|loop|new|of|others|overriding|package|private|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
+            "match": "\\b(?i:(abort|abstract|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|exception|for|generic|if|interface|is|limited|loop|new|null|of|others|overriding|package|private|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
         },
         {
             "name": "keyword.control.ada",

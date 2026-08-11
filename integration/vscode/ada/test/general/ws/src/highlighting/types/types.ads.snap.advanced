@@ -770,6 +770,87 @@
 #            ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.ada storage.modifier.ada
 #                  ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada punctuation.ada
 >
+>    type Empty_Rec is null record;
+#^^^^ source.ada meta.declaration.package.specification.ada
+#    ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#         ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#              ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#               ^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                  ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                   ^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#                     ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                      ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                          ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                           ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                 ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada punctuation.ada
+>    type Tagged_Empty_Rec is tagged null record;
+#^^^^ source.ada meta.declaration.package.specification.ada
+#    ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#         ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#               ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                     ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                      ^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                         ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                          ^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#                            ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                             ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                   ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                                    ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                                         ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                               ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada punctuation.ada
+>    type Abstract_Empty_Rec is abstract tagged limited null record;
+#^^^^ source.ada meta.declaration.package.specification.ada
+#    ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#         ^^^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                 ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                  ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                       ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                        ^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                           ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                            ^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#                              ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                               ^^^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                       ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                                        ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                              ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                                               ^^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                                      ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                                                       ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                                           ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada
+#                                                            ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.record.null.ada storage.modifier.ada
+#                                                                  ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada punctuation.ada
+>    type Derived_Empty_Rec is new Tagged_Empty_Rec with null record;
+#^^^^ source.ada meta.declaration.package.specification.ada
+#    ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#         ^^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                 ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                      ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                       ^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                          ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                           ^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#                             ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                              ^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada storage.modifier.ada
+#                                 ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                                  ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                                        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                                         ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                                              ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                                               ^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                                                  ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                                                   ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.aspect.specification.ada keyword.ada
+#                                                       ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.aspect.specification.ada
+#                                                        ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.aspect.specification.ada storage.modifier.ada
+#                                                            ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.aspect.specification.ada
+#                                                             ^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.aspect.specification.ada storage.modifier.ada
+#                                                                   ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada punctuation.ada
+>
 >    type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
 #^^^^ source.ada meta.declaration.package.specification.ada
 #    ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada

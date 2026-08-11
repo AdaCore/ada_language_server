@@ -4511,7 +4511,7 @@
 #                                    ^^ source.ada
 #                                      ^^ source.ada keyword.other.ada
 #                                        ^ source.ada
-#                                         ^^^^ source.ada variable.other.constant.ada
+#                                         ^^^^ source.ada keyword.other.ada
 #                                             ^ source.ada punctuation.ada
 >
 >   overriding procedure On_Exit_Notification
@@ -4657,7 +4657,7 @@
 #                                                    ^^ source.ada
 #                                                      ^^ source.ada keyword.other.ada
 #                                                        ^ source.ada
-#                                                         ^^^^ source.ada variable.other.constant.ada
+#                                                         ^^^^ source.ada keyword.other.ada
 #                                                             ^ source.ada punctuation.ada
 >
 >   overriding procedure On_DidChangeConfiguration_Notification
@@ -4722,7 +4722,7 @@
 #                                                          ^^ source.ada
 #                                                            ^^ source.ada keyword.other.ada
 #                                                              ^ source.ada
-#                                                               ^^^^ source.ada variable.other.constant.ada
+#                                                               ^^^^ source.ada keyword.other.ada
 #                                                                   ^ source.ada punctuation.ada
 >
 >   overriding procedure On_DidChangeWatchedFiles_Notification
@@ -4787,7 +4787,7 @@
 #                                       ^^ source.ada
 #                                         ^^ source.ada keyword.other.ada
 #                                           ^ source.ada
-#                                            ^^^^ source.ada variable.other.constant.ada
+#                                            ^^^^ source.ada keyword.other.ada
 #                                                ^ source.ada punctuation.ada
 >   --  This is intentionally null procedure, because cancel is implemented by
 #^^^ source.ada
@@ -4829,7 +4829,7 @@
 #                                         ^^ source.ada
 #                                           ^^ source.ada keyword.other.ada
 #                                             ^ source.ada
-#                                              ^^^^ source.ada variable.other.constant.ada
+#                                              ^^^^ source.ada keyword.other.ada
 #                                                  ^ source.ada punctuation.ada
 >   --  This is intentionally set to null since VS Code already handle traces
 #^^^ source.ada

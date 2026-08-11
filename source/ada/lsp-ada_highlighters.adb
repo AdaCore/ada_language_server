@@ -869,7 +869,19 @@ package body LSP.Ada_Highlighters is
       Decl          : Libadalang.Analysis.Basic_Decl;
       Kind          : LSP.Enumerations.SemanticTokenTypes;
    begin
-      if Node.Kind not in Ada_Identifier | Ada_String_Literal then
+      if Node.Kind = Ada_Null_Literal then
+         --  The TextMate grammar classifies every `null` as a keyword, since
+         --  it cannot tell `null record` from a value. Libadalang can: a
+         --  Null_Literal node is `null` in value position (`Foo := null`,
+         --  `Foo /= null`, `return null`) and never the `null` of
+         --  `null record`, `is null` or `not null access`. Emit the same
+         --  token as for a constant object so that clients recolour it as a
+         --  literal, like `True` and `False`.
+         Highlight_Token (Node.Token_Start, variable);
+         Highlight_Token (Node.Token_Start, readonly);
+
+         return;
+      elsif Node.Kind not in Ada_Identifier | Ada_String_Literal then
          --  Highlight only identifiers and operator symbols
          return;
       end if;

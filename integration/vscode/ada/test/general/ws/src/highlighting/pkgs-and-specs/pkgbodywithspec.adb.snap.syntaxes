@@ -19,6 +19,98 @@
 #                        ^ source.ada constant.numeric.ada
 #                         ^ source.ada punctuation.ada
 >
+>   --  'null' in value position: the TextMate grammar classifies it as a
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   --  keyword, but the server should emit a constant semantic token for it.
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   type Int_Access is access all Integer;
+#^^^ source.ada
+#   ^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^^^^^ source.ada entity.name.label.ada
+#                  ^ source.ada
+#                   ^^ source.ada keyword.other.ada
+#                     ^ source.ada
+#                      ^^^^^^ source.ada storage.modifier.ada
+#                            ^ source.ada
+#                             ^^^ source.ada keyword.other.ada
+#                                ^ source.ada
+#                                 ^^^^^^^ source.ada entity.name.label.ada
+#                                        ^ source.ada punctuation.ada
+>
+>   Null_Ptr : constant Int_Access := null;
+#^^^ source.ada
+#   ^^^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#           ^ source.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada
+#              ^^^^^^^^ source.ada keyword.other.ada
+#                      ^ source.ada
+#                       ^^^^^^^^^^ source.ada entity.name.label.ada
+#                                 ^ source.ada
+#                                  ^^ source.ada entity.name.operator.assignment.ada
+#                                    ^ source.ada
+#                                     ^^^^ source.ada keyword.other.ada
+#                                         ^ source.ada punctuation.ada
+>   Ptr      : Int_Access := null;
+#^^^ source.ada
+#   ^^^ source.ada meta.declaration.object.ada variable.name.ada
+#      ^^^^^^ source.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada
+#              ^^^^^^^^^^ source.ada entity.name.label.ada
+#                        ^ source.ada
+#                         ^^ source.ada entity.name.operator.assignment.ada
+#                           ^ source.ada
+#                            ^^^^ source.ada keyword.other.ada
+#                                ^ source.ada punctuation.ada
+>
+>   procedure Reset_Ptr is
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^^^^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                      ^ source.ada
+#                       ^^ source.ada keyword.other.ada
+>   begin
+#^^^ source.ada
+#   ^^^^^ source.ada keyword.other.ada
+>      if Ptr /= null then
+#^^^^^^ source.ada
+#      ^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^ source.ada entity.name.label.ada
+#            ^ source.ada
+#             ^^ source.ada entity.name.operator.ada
+#               ^ source.ada
+#                ^^^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^ source.ada keyword.other.ada
+>         Ptr := null;
+#^^^^^^^^^ source.ada
+#         ^^^ source.ada entity.name.label.ada
+#            ^ source.ada
+#             ^^ source.ada entity.name.operator.assignment.ada
+#               ^ source.ada
+#                ^^^^ source.ada keyword.other.ada
+#                    ^ source.ada punctuation.ada
+>      end if;
+#^^^^^^ source.ada
+#      ^^^ source.ada keyword.other.ada
+#         ^ source.ada
+#          ^^ source.ada keyword.other.ada
+#            ^ source.ada punctuation.ada
+>   end Reset_Ptr;
+#^^^ source.ada
+#   ^^^ source.ada keyword.other.ada
+#      ^ source.ada
+#       ^^^^^^^^^ source.ada entity.name.label.ada
+#                ^ source.ada punctuation.ada
+>
 >   procedure Proc1 (Arg1, Arg2 : Integer) is
 #^^^ source.ada
 #   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
@@ -60,7 +152,7 @@
 #   ^^^^^ source.ada keyword.other.ada
 >      null;
 #^^^^^^ source.ada
-#      ^^^^ source.ada variable.other.constant.ada
+#      ^^^^ source.ada keyword.other.ada
 #          ^ source.ada punctuation.ada
 >   end Proc1;
 #^^^ source.ada
@@ -165,7 +257,7 @@
 #   ^^^^^ source.ada keyword.other.ada
 >      null;
 #^^^^^^ source.ada
-#      ^^^^ source.ada variable.other.constant.ada
+#      ^^^^ source.ada keyword.other.ada
 #          ^ source.ada punctuation.ada
 >   end Proc2;
 #^^^ source.ada
