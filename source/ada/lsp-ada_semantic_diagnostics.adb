@@ -58,6 +58,14 @@ package body LSP.Ada_Semantic_Diagnostics is
       use type LSP.Ada_Handlers.Project_Stamp;
       use type LSP.Ada_Documents.Document_Access;
 
+      Document : constant LSP.Ada_Documents.Document_Access
+        := Self.Handler.Get_Open_Document (Self.Document_URI);
+      --  Fetch the document on every call of `Execute` to prevent dangling
+      --  pointers if the document was closed while this job was in the
+      --  queue.
+
+      --  The document to analyze.
+
       procedure Process_Node (Node : Ada_Node);
       --  Process a single node during traversal: if it is an xref entry point and
       --  overlaps changed ranges (when applicable), extract diagnostics and add
@@ -137,8 +145,8 @@ package body LSP.Ada_Semantic_Diagnostics is
                   Error_Loc  : constant Ada_Node := Contextual.Error.Location;
                   Diag_Range : constant LSP.Structures.A_Range :=
                     (if Error_Loc.Is_Null
-                     then Self.Document.To_A_Range (Node.Sloc_Range)
-                     else Self.Document.To_A_Range (Error_Loc.Sloc_Range));
+                     then Document.To_A_Range (Node.Sloc_Range)
+                     else Document.To_A_Range (Error_Loc.Sloc_Range));
                   Item       : LSP.Structures.Diagnostic;
                begin
                   Item.source := "libadalang";
@@ -157,31 +165,16 @@ package body LSP.Ada_Semantic_Diagnostics is
    begin
       if Self.Handler.Get_Project_Stamp /= Self.Project_Stamp
         or else Self.Handler.Is_Shutdown
-        or else Self.Document = null
+        or else Document = null
+        or else not Document.Is_Same (Self.Document_Signature)
       then
-          --  Project was reloaded, server is shutting down, or document was
-          --  closed while this job was in the queue: discard it.
+         --  Project was reloaded, server is shutting down, document was
+         --  closed, or the document changed/reopened since job creation.
          Me_Debug.Trace
            ("Cancelling semantic diagnostics job for "
             & Self.File_Name.Display_Base_Name
-            & " because the project was reloaded, server is shutting down, or document was closed");
-         Free (Self.Cursor);
-         Status := LSP.Server_Jobs.Done;
-         return;
-      end if;
-
-      if Self.Document.Identifier.version /= Self.Document_Version then
-         --  The document has been edited since this job was enqueued.  A
-         --  newer job will already be (or will soon be) in the queue, so
-         --  discard this one to avoid wasting CPU on a result that will be
-         --  immediately superseded.  This applies to both full-document and
-         --  per-range jobs: the newer didChange will schedule fresh jobs
-         --  covering the up-to-date content.
-
-         Me_Debug.Trace
-           ("Cancelling semantic diagnostics job for "
-            & Self.File_Name.Display_Base_Name
-            & " because the document was edited since it was enqueued");
+            & " because the project was reloaded, server is shutting down,"
+            & " or document changed");
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
          return;
@@ -191,9 +184,9 @@ package body LSP.Ada_Semantic_Diagnostics is
       if Self.Cursor = null then
          declare
             Context : constant LSP.Ada_Context_Sets.Context_Access :=
-              Self.Handler.Get_Best_Context (Self.Document.URI);
+              Self.Handler.Get_Best_Context (Self.Document_URI);
             File    : constant GNATCOLL.VFS.Virtual_File :=
-              Self.Handler.To_File (Self.Document.URI);
+              Self.Handler.To_File (Self.Document_URI);
             Unit    : constant Analysis_Unit := Context.Get_AU (File);
             Start   : Ada_Node := Unit.Root;
          begin
@@ -206,7 +199,7 @@ package body LSP.Ada_Semantic_Diagnostics is
                Me_Debug.Trace ("Executing a per-range semantic diagnostics job for "
                                & Self.File_Name.Display_Base_Name
                   & " (version "
-                  & Self.Document_Version.Value'Image
+                  & Self.Document_Signature.Version'Image
                   & ")");
                Me_Debug.Trace
                  ("Changed ranges: "
@@ -268,18 +261,18 @@ package body LSP.Ada_Semantic_Diagnostics is
                         .Ada_Documents
                         .Semantic_Diagnostics
                         .Semantic_Diagnostic_Source_Access
-                           (Self.Document.Semantic_Diagnostic_Source);
+                           (Document.Semantic_Diagnostic_Source);
                begin
                   Me_Debug.Trace
                     ("Semantic diagnostics traversal completed for "
                      & Self.File_Name.Display_Base_Name
                      & " (version "
-                     & Self.Document_Version.Value'Image
+                     & Self.Document_Signature.Version'Image
                      & ")");
 
                   Semantic_Diags_Source.Update_Diagnostics
                     (Errors => Self.Errors);
-                  Self.Handler.Publish_Diagnostics (Self.Document);
+                  Self.Handler.Publish_Diagnostics (Document);
                end;
 
                Free (Self.Cursor);
@@ -306,7 +299,7 @@ package body LSP.Ada_Semantic_Diagnostics is
          & Max_Nodes_Per_Batch'Image
          & " nodes"
          & " (version "
-         & Self.Document_Version.Value'Image
+         & Self.Document_Signature.Version'Image
          & ")");
 
    exception
@@ -337,7 +330,7 @@ package body LSP.Ada_Semantic_Diagnostics is
          & "semantic diagnostics job for "
          & Handler.To_File (Document.URI).Display_Base_Name
          & " (version "
-         & Document.Identifier.version.Value'Image
+         & Document.Signature.Version'Image
          & ")");
 
       declare
@@ -345,12 +338,15 @@ package body LSP.Ada_Semantic_Diagnostics is
            new Semantic_Diagnostics_Job (Handler => Handler);
          Job_Access : LSP.Server_Jobs.Server_Job_Access;
       begin
-         Job.Project_Stamp    := Handler.Get_Project_Stamp;
-         Job.Document         := Document;
-         Job.File_Name        := Handler.To_File (Document.URI);
-         Job.Document_Version := Document.Identifier.version;
-         Job.Ranges           := Ranges;
-         Job_Access           := LSP.Server_Jobs.Server_Job_Access (Job);
+         --  We fetch the document on each Execute call and compare it to this
+         --  creation-time signature to detect close/reopen or text updates.
+
+         Job.Project_Stamp      := Handler.Get_Project_Stamp;
+         Job.Document_URI       := Document.URI;
+         Job.Document_Signature := Document.Signature;
+         Job.File_Name          := Handler.To_File (Document.URI);
+         Job.Ranges             := Ranges;
+         Job_Access             := LSP.Server_Jobs.Server_Job_Access (Job);
          Server.Enqueue (Job_Access);
       end;
    end Schedule_Semantic_Diagnostics_For_Change;

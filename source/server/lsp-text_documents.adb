@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023-2025, AdaCore                     --
+--                     Copyright (C) 2023-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -154,9 +154,10 @@ package body LSP.Text_Documents is
          Text    : VSS.Strings.Virtual_String;
          Version : Integer) is
       begin
-         Self.URI  := URI;
-         Self.Text := Text;
-         Self.Version := Version;
+         Self.URI            := URI;
+         Self.Text           := Text;
+         Self.Version        := Version;
+         Self.Open_Timestamp := Ada.Calendar.Clock;
 
          Self.Recompute_Indexes;
       end Initialize;
@@ -915,6 +916,47 @@ package body LSP.Text_Documents is
                 (Is_Null => False,
                  Value   => Self.Version));
    end Identifier;
+
+   --------------------
+   -- Open_Timestamp --
+   --------------------
+
+   function Open_Timestamp
+     (Self : Text_Document'Class) return Ada.Calendar.Time is
+   begin
+      return Self.Open_Timestamp;
+   end Open_Timestamp;
+
+   ---------------
+   -- Signature --
+   ---------------
+
+   function Signature
+     (Self : Text_Document'Class) return Document_Signature is
+   begin
+      return
+        (URI       => Self.URI,
+         Version   => Self.Version,
+         Timestamp => Self.Open_Timestamp);
+   end Signature;
+
+   -------------
+   -- Is_Same --
+   -------------
+
+   function Is_Same
+     (Self      : Text_Document'Class;
+      Signature : Document_Signature) return Boolean
+   is
+      use type Ada.Calendar.Time;
+      use type LSP.Structures.DocumentUri;
+
+   begin
+      return
+        Self.URI = Signature.URI
+          and then Self.Version = Signature.Version
+          and then Self.Open_Timestamp = Signature.Timestamp;
+   end Is_Same;
 
    ---------------------
    -- Line_Terminator --
