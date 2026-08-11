@@ -741,6 +741,56 @@
 #                          ^ source.ada
 #                           ^^^^^^ source.ada keyword.other.ada
 #                                 ^ source.ada punctuation.ada
+>    type Tagged_Empty_Rec is tagged null record;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                         ^ source.ada
+#                          ^^ source.ada keyword.other.ada
+#                            ^ source.ada
+#                             ^^^^^^ source.ada keyword.other.ada
+#                                   ^ source.ada
+#                                    ^^^^ source.ada keyword.other.ada
+#                                        ^ source.ada
+#                                         ^^^^^^ source.ada keyword.other.ada
+#                                               ^ source.ada punctuation.ada
+>    type Abstract_Empty_Rec is abstract tagged limited null record;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                           ^ source.ada
+#                            ^^ source.ada keyword.other.ada
+#                              ^ source.ada
+#                               ^^^^^^^^ source.ada keyword.other.ada
+#                                       ^ source.ada
+#                                        ^^^^^^ source.ada keyword.other.ada
+#                                              ^ source.ada
+#                                               ^^^^^^^ source.ada keyword.other.ada
+#                                                      ^ source.ada
+#                                                       ^^^^ source.ada keyword.other.ada
+#                                                           ^ source.ada
+#                                                            ^^^^^^ source.ada keyword.other.ada
+#                                                                  ^ source.ada punctuation.ada
+>    type Derived_Empty_Rec is new Tagged_Empty_Rec with null record;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                          ^ source.ada
+#                           ^^ source.ada keyword.other.ada
+#                             ^ source.ada
+#                              ^^^ source.ada keyword.other.ada
+#                                 ^ source.ada
+#                                  ^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                                                  ^ source.ada
+#                                                   ^^^^ source.ada keyword.other.ada
+#                                                       ^ source.ada
+#                                                        ^^^^ source.ada keyword.other.ada
+#                                                            ^ source.ada
+#                                                             ^^^^^^ source.ada keyword.other.ada
+#                                                                   ^ source.ada punctuation.ada
 >
 >    type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
 #^^^^ source.ada
