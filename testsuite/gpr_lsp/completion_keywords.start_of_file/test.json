@@ -128,7 +128,19 @@
                         "kind": 14
                      },
                      {
+                        "label": "standard",
+                        "kind": 14
+                     },
+                     {
                         "label": "library",
+                        "kind": 14
+                     },
+                     {
+                        "label": "aggregate",
+                        "kind": 14
+                     },
+                     {
+                        "label": "configuration",
                         "kind": 14
                      }
                   ]

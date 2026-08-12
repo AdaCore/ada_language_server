@@ -180,7 +180,10 @@ package body LSP.GPR_Completions is
       Add_Keyword ("limited", Prefix, Response);
       Add_Keyword ("project", Prefix, Response);
       Add_Keyword ("abstract", Prefix, Response);
+      Add_Keyword ("standard", Prefix, Response);
       Add_Keyword ("library", Prefix, Response);
+      Add_Keyword ("aggregate", Prefix, Response);
+      Add_Keyword ("configuration", Prefix, Response);
    end Fill_Start_Of_File_Keywords;
 
    --------------------------------------
@@ -322,6 +325,41 @@ package body LSP.GPR_Completions is
 
          when GPC.Gpr_When =>
             Add_Keyword ("others", Prefix, Response);
+
+         when GPC.Gpr_Limited =>
+            Add_Keyword ("with", Prefix, Response);
+
+         when GPC.Gpr_Abstract =>
+            Add_Keyword ("project", Prefix, Response);
+
+         when GPC.Gpr_Identifier =>
+            --  Qualifiers library, aggregate, configuration, standard lex
+            --  as identifiers; after any of them the next keyword is
+            --  "project" (or "library" for "aggregate library project").
+            declare
+               use VSS.Strings;
+               Prev_Text : constant VSS.Strings.Virtual_String :=
+                 To_Lower (VSS.Strings.To_Virtual_String (Previous.Text));
+            begin
+               if Prev_Text = "library"
+                 or else Prev_Text = "configuration"
+                 or else Prev_Text = "standard"
+               then
+                  Add_Keyword ("project", Prefix, Response);
+               elsif Prev_Text = "aggregate" then
+                  Add_Keyword ("project", Prefix, Response);
+                  Add_Keyword ("library", Prefix, Response);
+               else
+                  Add_Keyword ("is", Prefix, Response);
+                  Add_Keyword ("extends", Prefix, Response);
+                  Add_Keyword ("renames", Prefix, Response);
+                  Add_Keyword ("use", Prefix, Response);
+               end if;
+            end;
+
+         when GPC.Gpr_Par_Close =>
+            Add_Keyword ("use", Prefix, Response);
+            Add_Keyword ("is", Prefix, Response);
 
          when others =>
             null;
