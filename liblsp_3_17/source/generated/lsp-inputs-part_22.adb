@@ -431,8 +431,13 @@ package body LSP.Inputs.Part_22 is
       begin
          Set := (others => False);
          while not Handler.Is_End_Array loop
-            Read_AlsReferenceKind (Handler, Value);
-            Set (Value) := True;
+            begin
+               Read_AlsReferenceKind (Handler, Value);
+               Set (Value) := True;
+            exception
+               when Constraint_Error =>
+                  Handler.Read_Next;
+            end;
          end loop;
       end;
 

@@ -1,0 +1,157 @@
+[
+   {
+      "comment": [
+         "Test that the server doesn't crash when receiving unknown enum values",
+         "in capability valueSet arrays. Each array below includes at least one",
+         "value beyond the range defined in LSP 3.17 to exercise all _Set readers:",
+         "  SymbolTag (1 defined, sending 1-20)",
+         "  SymbolKind (26 defined, sending 1-30)",
+         "  DiagnosticTag (2 defined, sending 1-10)",
+         "  CompletionItemKind (25 defined, sending 1-30)",
+         "  CompletionItemTag (1 defined, sending 1-5)",
+         "  InsertTextMode (2 defined, sending 1-5)",
+         "  ResourceOperationKind (3 defined, sending unknown string)",
+         "  TokenFormat (1 defined, sending unknown string)"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 36898,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "textDocument": {
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true,
+                        "symbolKind": {
+                           "valueSet": [
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+                              28, 29, 30
+                           ]
+                        },
+                        "tagSupport": {
+                           "valueSet": [
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20
+                           ]
+                        }
+                     },
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "tagSupport": {
+                              "valueSet": [1, 2, 3, 4, 5]
+                           },
+                           "insertTextModeSupport": {
+                              "valueSet": [1, 2, 3, 4, 5]
+                           }
+                        },
+                        "completionItemKind": {
+                           "valueSet": [
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+                              28, 29, 30
+                           ]
+                        }
+                     },
+                     "publishDiagnostics": {
+                        "tagSupport": {
+                           "valueSet": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        }
+                     },
+                     "semanticTokens": {
+                        "dynamicRegistration": true,
+                        "formats": ["relative", "unknown_future_format"],
+                        "requests": {
+                           "full": { "delta": true }
+                        },
+                        "tokenTypes": ["type", "class", "function"],
+                        "tokenModifiers": ["declaration"]
+                     }
+                  },
+                  "workspace": {
+                     "symbol": {
+                        "symbolKind": {
+                           "valueSet": [
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+                              28, 29, 30
+                           ]
+                        },
+                        "tagSupport": {
+                           "valueSet": [
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20
+                           ]
+                        }
+                     },
+                     "workspaceEdit": {
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete",
+                           "unknown_future_op"
+                        ]
+                     }
+                  }
+               },
+               "clientInfo": {
+                  "name": "Qt Creator",
+                  "version": "20.0.1"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
