@@ -191,7 +191,15 @@ suite('GNATcoverage external annotations: gnatcov invocations', function () {
         answer = () =>
             Promise.resolve({
                 code: 1,
-                stdout: '',
+                stdout: JSON.stringify({
+                    code: 'not_configured',
+                    message:
+                        'no external annotation file: pass --external-annotations,' +
+                        " or designate one through the Coverage'External_Annotations" +
+                        ' project attribute',
+                    annotation_files: [],
+                    annotations: [],
+                }),
                 stderr:
                     'gnatcov: no external annotation file: pass --external-annotations,' +
                     " or designate one through the Coverage'External_Annotations project attribute",
@@ -505,7 +513,12 @@ suite('GNATcoverage external annotations: gnatcov invocations', function () {
         answer = () =>
             Promise.resolve({
                 code: 1,
-                stdout: '',
+                stdout: JSON.stringify({
+                    code: 'not_configured',
+                    message: 'no external annotation file',
+                    annotation_files: [],
+                    annotations: [],
+                }),
                 stderr: 'gnatcov: no external annotation file: pass --external-annotations',
             });
         assert.ok((await messageOf()).includes("Coverage'External_Annotations"));

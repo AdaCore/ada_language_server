@@ -68,12 +68,24 @@ function noResult(rest: { error?: string; notConfigured?: boolean }): ShowAnnota
 }
 
 /**
- * How gnatcov reports that nothing designates an annotation file.
- *
- * Matched on the stable part of the message rather than the whole of it, which
- * goes on to spell out both ways of designating one.
+ * @returns the `code` of a failed `show-annotations` report, or undefined when
+ * it printed no report. Nothing is assumed of the output: a gnatcov that fails
+ * before knowing the format, or one predating the field, prints something else.
  */
-const NO_ANNOTATION_FILE = 'no external annotation file';
+function reportedCode(stdout: string): string | undefined {
+    try {
+        const code: unknown = (JSON.parse(stdout) as { code?: unknown }).code;
+        return typeof code === 'string' ? code : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * The `code` gnatcov reports when nothing designates an annotation file, i.e.
+ * when the feature is simply not in use for this project.
+ */
+const NOT_CONFIGURED = 'not_configured';
 
 /**
  * Run `gnatcov show-annotations`.
@@ -110,17 +122,22 @@ export async function showAnnotations(sourcePath?: string): Promise<ShowAnnotati
     const output = await invoke(args);
 
     if (output.code !== 0) {
-        const message = output.stderr.trim() || output.stdout.trim();
-
         /*
-         * gnatcov refuses to run when it has no annotation file, which is how a
-         * project without a Coverage'External_Annotations attribute presents
-         * itself. Report that as the feature being off, not as an error.
+         * A non-zero status is what says the command failed. Which failure it
+         * was comes from the report, when gnatcov produced one: a project
+         * without a Coverage'External_Annotations attribute is the feature
+         * being off rather than something to report as an error.
+         *
+         * The report is absent for a failure found before gnatcov knew that
+         * JSON was wanted, so fall back to the diagnostic it printed.
          */
-        if (message.includes(NO_ANNOTATION_FILE)) {
+        const reported = reportedCode(output.stdout);
+
+        if (reported === NOT_CONFIGURED) {
             return noResult({ notConfigured: true });
         }
 
+        const message = output.stderr.trim() || output.stdout.trim();
         return noResult({
             error: `gnatcov show-annotations exited with status ${String(output.code)}: ${message}`,
         });
