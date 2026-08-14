@@ -66,7 +66,7 @@ package body LSP.Ada_Documents is
      (Self       : Document; Context : LSP.Ada_Contexts.Context;
       Definition : Libadalang.Analysis.Defining_Name;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind; Cancel : in out Boolean))
    is
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=

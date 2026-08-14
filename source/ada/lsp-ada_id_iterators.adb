@@ -62,7 +62,7 @@ package body LSP.Ada_Id_Iterators is
       Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
       Units      : Libadalang.Analysis.Analysis_Unit_Array;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -81,7 +81,7 @@ package body LSP.Ada_Id_Iterators is
             if Param_Name_Id.Text = Param.F_Ids.List_Child (1).Text then
 
                Callback
-                 (Base_Id => Param.F_Ids.List_Child (1).F_Name.As_Base_Id,
+                 (Name => Param.F_Ids.List_Child (1).F_Name,
                   Kind    => Libadalang.Common.Precise,
                   Cancel  => Cancel);
 
@@ -104,7 +104,7 @@ package body LSP.Ada_Id_Iterators is
      (Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
       Tracer     : in out LSP.Tracers.Tracer'Class;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -114,7 +114,7 @@ package body LSP.Ada_Id_Iterators is
    begin
       for Subp_Decl of Hierarchy loop
          Callback
-           (Base_Id => Subp_Decl.P_Defining_Name.F_Name.As_Base_Id,
+           (Name => Subp_Decl.P_Defining_Name.F_Name,
             Kind    => Libadalang.Common.Precise,
             Cancel  => Cancel);
 
@@ -127,7 +127,7 @@ package body LSP.Ada_Id_Iterators is
          --  to the result.
          if not Subp_Body_Name.Is_Null then
             Callback
-              (Base_Id => Subp_Body_Name.F_Name.As_Base_Id,
+              (Name => Subp_Body_Name.F_Name,
                Kind    => Libadalang.Common.Precise,
                Cancel  => Cancel);
 
@@ -137,7 +137,7 @@ package body LSP.Ada_Id_Iterators is
 
             if not Subp_Body_Node.Is_Null then
                Callback
-                 (Base_Id => Subp_Body_Node.F_End_Name.F_Name.As_Base_Id,
+                 (Name => Subp_Body_Node.F_End_Name.F_Name,
                   Kind    => Libadalang.Common.Precise,
                   Cancel  => Cancel);
 
@@ -155,7 +155,7 @@ package body LSP.Ada_Id_Iterators is
      (Definition : Libadalang.Analysis.Defining_Name;
       Units      : Libadalang.Analysis.Analysis_Unit_Array;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -163,7 +163,7 @@ package body LSP.Ada_Id_Iterators is
    begin
       for Item of Definition.P_Find_All_References (Units) loop
          Callback
-           (Base_Id => Libadalang.Analysis.Ref (Item).As_Base_Id,
+           (Name => Libadalang.Analysis.Ref (Item).As_Name,
             Kind    => Libadalang.Analysis.Kind (Item),
             Cancel  => Cancel);
 

@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  This package provides iterators over Libadalang Base_Id nodes.
+--  This package provides iterators over Libadalang Name nodes.
 
 with Libadalang.Analysis;
 with Libadalang.Common;
@@ -28,7 +28,7 @@ package LSP.Ada_Id_Iterators is
      (Definition : Libadalang.Analysis.Defining_Name;
       Units      : Libadalang.Analysis.Analysis_Unit_Array;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
    --  Iterate over Definition.P_Find_All_References result
@@ -38,7 +38,7 @@ package LSP.Ada_Id_Iterators is
       Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
       Units      : Libadalang.Analysis.Analysis_Unit_Array;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
    --  Recursive function that returns all the references of the given
@@ -48,7 +48,7 @@ package LSP.Ada_Id_Iterators is
      (Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
       Tracer     : in out LSP.Tracers.Tracer'Class;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
    --  Return all the references of Decl in the given hierarchy

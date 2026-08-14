@@ -133,7 +133,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
       end Add_Incoming_Call;
 
       procedure Callback
-        (Ref    : Libadalang.Analysis.Base_Id;
+        (Ref    : Libadalang.Analysis.Name;
          Kind   : Libadalang.Common.Ref_Result_Kind;
          Cancel : in out Boolean);
 
@@ -144,7 +144,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
       --------------
 
       procedure Callback
-        (Ref     : Libadalang.Analysis.Base_Id;
+        (Ref     : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean)
       is
@@ -300,13 +300,13 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                       Reference_Type :=
                         Result.Reference (Call_Definition);
                begin
-                  R.Include (Subp_Call.As_Base_Id);
+                  R.Include (Subp_Call.As_Name);
                end;
             else
                declare
                   L : Laltools.Common.References_Sets.Set;
                begin
-                  L.Include (Subp_Call.As_Base_Id);
+                  L.Include (Subp_Call.As_Name);
                   Result.Insert (Call_Definition, L);
                end;
             end if;

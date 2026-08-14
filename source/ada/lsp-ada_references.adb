@@ -111,7 +111,7 @@ package body LSP.Ada_References is
       Status : out LSP.Server_Jobs.Execution_Status)
    is
       procedure Callback
-        (Node   : Libadalang.Analysis.Base_Id;
+        (Node   : Libadalang.Analysis.Name;
          Kind   : Libadalang.Common.Ref_Result_Kind;
          Cancel : in out Boolean);
 
@@ -126,7 +126,7 @@ package body LSP.Ada_References is
       --------------
 
       procedure Callback
-        (Node   : Libadalang.Analysis.Base_Id;
+        (Node   : Libadalang.Analysis.Name;
          Kind   : Libadalang.Common.Ref_Result_Kind;
          Cancel : in out Boolean)
       is

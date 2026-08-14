@@ -2703,7 +2703,7 @@ package body LSP.Ada_Handlers is
            Self.Imprecise_Resolve_Name (Context.all, Value);
 
          procedure Append_To_Response
-           (Node   : Libadalang.Analysis.Base_Id;
+           (Node   : Libadalang.Analysis.Name;
             Kind   : Libadalang.Common.Ref_Result_Kind;
             Cancel : in out Boolean);
          --  Called on each found reference. Used to append the reference to
@@ -2714,7 +2714,7 @@ package body LSP.Ada_Handlers is
          ------------------------
 
          procedure Append_To_Response
-           (Node   : Libadalang.Analysis.Base_Id;
+           (Node   : Libadalang.Analysis.Name;
             Kind   : Libadalang.Common.Ref_Result_Kind;
             Cancel : in out Boolean)
          is
