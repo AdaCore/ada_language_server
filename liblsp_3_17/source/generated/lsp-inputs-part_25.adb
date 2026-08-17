@@ -428,8 +428,13 @@ package body LSP.Inputs.Part_25 is
          begin
             Set := (others => False);
             while not Handler.Is_End_Array loop
-               Read_TokenFormat (Handler, Value);
-               Set (Value) := True;
+               begin
+                  Read_TokenFormat (Handler, Value);
+                  Set (Value) := True;
+               exception
+                  when Constraint_Error =>
+                     Handler.Read_Next;
+               end;
             end loop;
          end;
 

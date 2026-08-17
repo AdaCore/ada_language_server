@@ -1774,8 +1774,13 @@ package body LSP_Gen.Inputs is
                then
                   Put_Line ("Set := (others => False);");
                   Put_Line ("   while not Handler.Is_End_Array loop");
+                  Put_Line ("      begin");
                   Write_Call (Done, Tipe.Union.an_array.element.Value, "");
-                  Put_Line ("      Set (Value) := True;");
+                  Put_Line ("         Set (Value) := True;");
+                  Put_Line ("      exception");
+                  Put_Line ("         when Constraint_Error =>");
+                  Put_Line ("            Handler.Read_Next;");
+                  Put_Line ("      end;");
                else
                   Put_Line ("Set.Clear;");
                   Put_Line ("   while not Handler.Is_End_Array loop");
