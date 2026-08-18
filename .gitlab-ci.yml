@@ -22,7 +22,7 @@ include:
       cpus: 16
       disk: 80
       image: systemgtk
-      windows: true
+      windows: false
       windows-cpus: 8
       # 8GB of memory leads to heap exhaustion during compilation. We need more.
       windows-mem: 16
@@ -47,7 +47,7 @@ include:
       anod-args: run test_als_$ACI_TRACK
       image: systemgtk
       disk: 80
-      windows: true
+      windows: false
 
   # Testing of the ALS with coverage
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
@@ -71,7 +71,7 @@ include:
       job-name: vscode-extension
       anod-args: run test_vscode_extension_$ACI_TRACK
       image: systemgtk
-      windows: true
+      windows: false
       # 8GB of memory leads to heap exhaustion during compilation. We need more.
       windows-mem: 16
 
@@ -87,7 +87,7 @@ include:
       image: systemgtk
       cpus: 4
       disk: 80
-      windows: true
+      windows: false
       windows-cpus: 4
       rules:
         # integration-testsuite cannot work with edge builds
@@ -104,7 +104,7 @@ include:
       image: systemgtk
       disk: 80
       stage: optional
-      windows: true
+      windows: false
       rules:
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
           when: manual
