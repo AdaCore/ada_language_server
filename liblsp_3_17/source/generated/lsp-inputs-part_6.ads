@@ -28,6 +28,10 @@ package LSP.Inputs.Part_6 is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.Hover_Or_Null);
 
+   procedure Read_KeywordCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.KeywordCasingKind);
+
    procedure Read_TypeHierarchyClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.TypeHierarchyClientCapabilities);

@@ -711,6 +711,10 @@ private
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.SymbolKind);
 
+   procedure Read_IdentifierCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.IdentifierCasingKind);
+
    procedure Read_SelectionRangeClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.SelectionRangeClientCapabilities);
@@ -1060,6 +1064,10 @@ private
    procedure Read_WatchKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.WatchKind);
+
+   procedure Read_KeywordCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.KeywordCasingKind);
 
    procedure Read_DiagnosticSeverity
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;

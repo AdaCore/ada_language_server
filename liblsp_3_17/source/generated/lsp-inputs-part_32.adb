@@ -51,6 +51,23 @@ package body LSP.Inputs.Part_32 is
       Handler.Read_Next;
    end Read_SemanticTokenTypes;
 
+   package IdentifierCasingKind_Map is new Minimal_Perfect_Hash
+     (["Keep",
+      "Definition",
+      "Lower",
+      "Upper",
+      "Mixed"]);
+
+   procedure Read_IdentifierCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.IdentifierCasingKind) is
+   begin
+      Value :=
+        LSP.Enumerations.IdentifierCasingKind'Val
+          (IdentifierCasingKind_Map.Get_Index (Handler.String_Value) - 1);
+      Handler.Read_Next;
+   end Read_IdentifierCasingKind;
+
    package FileEvent_Scope is
       package FileEvent_Map is new Minimal_Perfect_Hash
         (["uri",

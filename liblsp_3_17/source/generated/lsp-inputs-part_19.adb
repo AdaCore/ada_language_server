@@ -384,7 +384,9 @@ package body LSP.Inputs.Part_19 is
          "insertFinalNewline",
          "trimFinalNewlines",
          "gnatFormatMaxSize",
-         "gnatFormatContinuationLineIndent"]);
+         "gnatFormatContinuationLineIndent",
+         "gnatKeywordCasing",
+         "gnatIdentifierCasing"]);
 
    end FormattingOptions_Scope;
 
@@ -442,6 +444,18 @@ package body LSP.Inputs.Part_19 is
                   Value.gnatFormatContinuationLineIndent.Value :=
                     Integer (Handler.Number_Value.Integer_Value);
                   Handler.Read_Next;
+               when 8 =>  --  gnatKeywordCasing
+                  Value.gnatKeywordCasing :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_KeywordCasingKind
+                    (Handler, Value.gnatKeywordCasing.Value);
+               when 9 =>  --  gnatIdentifierCasing
+                  Value.gnatIdentifierCasing :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_IdentifierCasingKind
+                    (Handler, Value.gnatIdentifierCasing.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;

@@ -4,6 +4,22 @@ with LSP.Messages;
 
 package LSP.Message_IO is
 
+   procedure Read_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.KeywordCasingKind);
+
+   procedure Write_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.KeywordCasingKind);
+
+   procedure Read_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.IdentifierCasingKind);
+
+   procedure Write_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.IdentifierCasingKind);
+
    procedure Read_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.RequestMessage);

@@ -346,6 +346,21 @@ package body LSP.Inputs.Part_6 is
       end if;
    end Read_Hover_Or_Null;
 
+   package KeywordCasingKind_Map is new Minimal_Perfect_Hash
+     (["Keep",
+      "Lower",
+      "Upper"]);
+
+   procedure Read_KeywordCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.KeywordCasingKind) is
+   begin
+      Value :=
+        LSP.Enumerations.KeywordCasingKind'Val
+          (KeywordCasingKind_Map.Get_Index (Handler.String_Value) - 1);
+      Handler.Read_Next;
+   end Read_KeywordCasingKind;
+
    package TypeHierarchyClientCapabilities_Scope is
       package TypeHierarchyClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration"]);

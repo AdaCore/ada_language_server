@@ -68,6 +68,35 @@ package LSP.Messages is
    package Optional_uintegers is new LSP.Generic_Optional (uinteger);
    type Optional_uinteger is new Optional_uintegers.Optional_Type;
 
+   type KeywordCasingKind is (Keep, Lower, Upper);
+
+   procedure Read_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class; V : out KeywordCasingKind);
+   procedure Write_KeywordCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class; V : KeywordCasingKind);
+   for KeywordCasingKind'Read use Read_KeywordCasingKind;
+   for KeywordCasingKind'Write use Write_KeywordCasingKind;
+
+   package Optional_KeywordCasingKinds is new
+     LSP.Generic_Optional (KeywordCasingKind);
+   type Optional_KeywordCasingKind is
+     new Optional_KeywordCasingKinds.Optional_Type;
+
+   type IdentifierCasingKind is (Keep, Definition, Lower, Upper, Mixed);
+
+   procedure Read_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out IdentifierCasingKind);
+   procedure Write_IdentifierCasingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class; V : IdentifierCasingKind);
+   for IdentifierCasingKind'Read use Read_IdentifierCasingKind;
+   for IdentifierCasingKind'Write use Write_IdentifierCasingKind;
+
+   package Optional_IdentifierCasingKinds is new
+     LSP.Generic_Optional (IdentifierCasingKind);
+   type Optional_IdentifierCasingKind is
+     new Optional_IdentifierCasingKinds.Optional_Type;
+
    --```typescript
    --/**
    -- * Defines a decimal number. Since decimal numbers are very
@@ -8722,6 +8751,8 @@ package LSP.Messages is
       insertFinalNewline: Optional_Boolean;
       trimFinalNewlines: Optional_Boolean;
       gnatFormatMaxSize : Optional_uinteger;
+      gnatKeywordCasing : Optional_KeywordCasingKind;
+      gnatIdentifierCasing : Optional_IdentifierCasingKind;
       gnatFormatContinuationLineIndent : Optional_uinteger;
       --  [key: string]: boolean | number | string; ???
    end record;

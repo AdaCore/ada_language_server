@@ -12,6 +12,10 @@ package LSP.Inputs.Part_32 is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.SemanticTokenTypes);
 
+   procedure Read_IdentifierCasingKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.IdentifierCasingKind);
+
    procedure Read_FileEvent
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.FileEvent);

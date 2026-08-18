@@ -267,6 +267,8 @@ package LSP.Enumerations is
    function Region return FoldingRangeKind is ("region");
    --  Folding range for a region (e.g. `#region`)
 
+   type IdentifierCasingKind is (Keep, Definition, Lower, Upper, Mixed);
+
    type InlayHintKind is (A_Type, Parameter);
    --  Inlay hint kinds.
    --
@@ -316,6 +318,8 @@ package LSP.Enumerations is
    --  Consider a line like this: <2tabs><cursor><3tabs>foo. Accepting a multi
    --  line completion item is indented using 2 tabs and all following lines
    --  inserted will be indented using 2 tabs as well.
+
+   type KeywordCasingKind is (Keep, Lower, Upper);
 
    type LSPErrorCodes is new Integer;
 

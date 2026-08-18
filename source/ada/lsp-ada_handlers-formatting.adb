@@ -754,6 +754,38 @@ package body LSP.Ada_Handlers.Formatting is
               (LSP_Options.gnatFormatContinuationLineIndent.Value);
          end if;
 
+         if LSP_Options.gnatKeywordCasing.Is_Set then
+            case LSP_Options.gnatKeywordCasing.Value is
+               when LSP.Enumerations.Keep  =>
+                  Format_Options_Builder.With_Keyword_Casing (Keep);
+
+               when LSP.Enumerations.Lower =>
+                  Format_Options_Builder.With_Keyword_Casing (Lower);
+
+               when LSP.Enumerations.Upper =>
+                  Format_Options_Builder.With_Keyword_Casing (Upper);
+            end case;
+         end if;
+
+         if LSP_Options.gnatIdentifierCasing.Is_Set then
+            case LSP_Options.gnatIdentifierCasing.Value is
+               when LSP.Enumerations.Keep       =>
+                  Format_Options_Builder.With_Identifier_Casing (Keep);
+
+               when LSP.Enumerations.Definition =>
+                  Format_Options_Builder.With_Identifier_Casing (Definition);
+
+               when LSP.Enumerations.Lower      =>
+                  Format_Options_Builder.With_Identifier_Casing (Lower);
+
+               when LSP.Enumerations.Upper      =>
+                  Format_Options_Builder.With_Identifier_Casing (Upper);
+
+               when LSP.Enumerations.Mixed      =>
+                  Format_Options_Builder.With_Identifier_Casing (Mixed);
+            end case;
+         end if;
+
          return Format_Options_Builder.Build;
       end Get_LSP_Options;
 

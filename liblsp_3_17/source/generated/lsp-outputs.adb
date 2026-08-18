@@ -124,6 +124,10 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.SymbolKind);
 
+   procedure Write_IdentifierCasingKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.IdentifierCasingKind);
+
    procedure Write_SelectionRangeClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.SelectionRangeClientCapabilities);
@@ -471,6 +475,10 @@ package body LSP.Outputs is
    procedure Write_WatchKind
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.WatchKind);
+
+   procedure Write_KeywordCasingKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.KeywordCasingKind);
 
    procedure Write_DiagnosticSeverity
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -2138,6 +2146,24 @@ package body LSP.Outputs is
       Write_TextDocumentIdentifier (Handler, Value.textDocument);
       Handler.End_Object;
    end Write_SemanticTokensParams;
+
+   procedure Write_IdentifierCasingKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.IdentifierCasingKind) is
+   begin
+      case Value is
+         when LSP.Enumerations.Keep =>
+            Handler.String_Value ("Keep");
+         when LSP.Enumerations.Definition =>
+            Handler.String_Value ("Definition");
+         when LSP.Enumerations.Lower =>
+            Handler.String_Value ("Lower");
+         when LSP.Enumerations.Upper =>
+            Handler.String_Value ("Upper");
+         when LSP.Enumerations.Mixed =>
+            Handler.String_Value ("Mixed");
+      end case;
+   end Write_IdentifierCasingKind;
 
    procedure Write_ColorInformation_Vector
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -5385,6 +5411,20 @@ package body LSP.Outputs is
       Handler.Integer_Value (LSP.Enumerations.WatchKind'Pos (Value));
    end Write_WatchKind;
 
+   procedure Write_KeywordCasingKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.KeywordCasingKind) is
+   begin
+      case Value is
+         when LSP.Enumerations.Keep =>
+            Handler.String_Value ("Keep");
+         when LSP.Enumerations.Lower =>
+            Handler.String_Value ("Lower");
+         when LSP.Enumerations.Upper =>
+            Handler.String_Value ("Upper");
+      end case;
+   end Write_KeywordCasingKind;
+
    procedure Write_DiagnosticSeverity
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.DiagnosticSeverity) is
@@ -7627,6 +7667,15 @@ package body LSP.Outputs is
          Handler.Key_Name ("gnatFormatContinuationLineIndent");
          Handler.Integer_Value
            (Integer'Pos (Value.gnatFormatContinuationLineIndent.Value));
+      end if;
+      if Value.gnatKeywordCasing.Is_Set then
+         Handler.Key_Name ("gnatKeywordCasing");
+         Write_KeywordCasingKind (Handler, Value.gnatKeywordCasing.Value);
+      end if;
+      if Value.gnatIdentifierCasing.Is_Set then
+         Handler.Key_Name ("gnatIdentifierCasing");
+         Write_IdentifierCasingKind
+           (Handler, Value.gnatIdentifierCasing.Value);
       end if;
       Handler.End_Object;
    end Write_FormattingOptions;
