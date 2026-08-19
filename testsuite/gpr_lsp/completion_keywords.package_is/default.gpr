@@ -1,0 +1,4 @@
+project Default is
+   package Compiler is
+   end Compiler;
+end Default;

@@ -269,6 +269,37 @@ package body LSP.GPR_Completions is
          return False;
       end In_Case_Construct;
 
+      function In_Project_Header return Boolean;
+      --  Return True when the cursor still stands before the project
+      --  declaration, the only place where a project qualifier is
+      --  admissible. 'project' has no token kind of its own, so look for the
+      --  identifier itself: any occurrence before the cursor means the
+      --  project declaration is already open.
+
+      -----------------------
+      -- In_Project_Header --
+      -----------------------
+
+      function In_Project_Header return Boolean is
+         use type GPC.Token_Reference;
+         use type GPC.Token_Kind;
+         use VSS.Strings;
+         T : GPC.Token_Reference := Previous;
+      begin
+         while T /= GPC.No_Token loop
+            if T.Data.Kind = GPC.Gpr_Identifier
+              and then To_Lower (VSS.Strings.To_Virtual_String (T.Text))
+                         = "project"
+            then
+               return False;
+            end if;
+
+            T := T.Previous (True);
+         end loop;
+
+         return True;
+      end In_Project_Header;
+
       procedure Add_Body_Keywords (Simple_Only : Boolean := False);
       --  Add keywords valid in a project or package body.
       --  When Simple_Only is set, only simple_declarative_item keywords are
@@ -308,20 +339,16 @@ package body LSP.GPR_Completions is
                   null;
                when GPC.Gpr_Package =>
                   --  Inside a package body: simple_declarative_item only
-                  Add_Keyword ("for", Prefix, Response);
-                  Add_Keyword ("case", Prefix, Response);
-                  Add_Keyword ("end", Prefix, Response);
-                  Add_Keyword ("null", Prefix, Response);
+                  Add_Body_Keywords (Simple_Only => True);
                when others =>
                   Add_Body_Keywords;
             end case;
 
          when GPC.Gpr_Arrow =>
-            Add_Keyword ("for", Prefix, Response);
-            Add_Keyword ("null", Prefix, Response);
-            Add_Keyword ("case", Prefix, Response);
+            --  Inside a case item: simple_declarative_item only, plus the
+            --  'when' opening the next alternative.
+            Add_Body_Keywords (Simple_Only => True);
             Add_Keyword ("when", Prefix, Response);
-            Add_Keyword ("end", Prefix, Response);
 
          when GPC.Gpr_When =>
             Add_Keyword ("others", Prefix, Response);
@@ -334,21 +361,27 @@ package body LSP.GPR_Completions is
 
          when GPC.Gpr_Identifier =>
             --  Qualifiers library, aggregate, configuration, standard lex
-            --  as identifiers; after any of them the next keyword is
-            --  "project" (or "library" for "aggregate library project").
+            --  as identifiers; in the project header the next keyword after
+            --  any of them is "project" (or "library" for "aggregate library
+            --  project"). Elsewhere they are plain names, so a variable
+            --  called 'Library' still gets the follow-up keywords below.
             declare
                use VSS.Strings;
                Prev_Text : constant VSS.Strings.Virtual_String :=
                  To_Lower (VSS.Strings.To_Virtual_String (Previous.Text));
+               Is_Qualifier : constant Boolean :=
+                 (Prev_Text = "library"
+                  or else Prev_Text = "configuration"
+                  or else Prev_Text = "standard"
+                  or else Prev_Text = "aggregate")
+                 and then In_Project_Header;
             begin
-               if Prev_Text = "library"
-                 or else Prev_Text = "configuration"
-                 or else Prev_Text = "standard"
-               then
+               if Is_Qualifier then
                   Add_Keyword ("project", Prefix, Response);
-               elsif Prev_Text = "aggregate" then
-                  Add_Keyword ("project", Prefix, Response);
-                  Add_Keyword ("library", Prefix, Response);
+
+                  if Prev_Text = "aggregate" then
+                     Add_Keyword ("library", Prefix, Response);
+                  end if;
                else
                   Add_Keyword ("is", Prefix, Response);
                   Add_Keyword ("extends", Prefix, Response);
