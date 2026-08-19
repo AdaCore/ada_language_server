@@ -161,12 +161,12 @@
                         "insertText": " A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
                         "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
-                        "documentation": "at bar.ads (11:4)"
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (11:4)"}
                      },
                      {
                         "label": "A",
                         "kind": 5,
-                        "documentation": " A => ",
+                        "documentation": {"kind": "plaintext", "value": " A => "},
                         "sortText": "+1",
                         "insertText": " A => ",
                         "insertTextFormat": 1
@@ -174,7 +174,7 @@
                      {
                         "label": "B",
                         "kind": 5,
-                        "documentation": " B => ",
+                        "documentation": {"kind": "plaintext", "value": " B => "},
                         "sortText": "+2",
                         "insertText": " B => ",
                         "insertTextFormat": 1
@@ -186,12 +186,12 @@
                         "insertText": " ${2:B : Float})$0",
                         "insertTextFormat": 2,
                         "detail": "Bar.Hello\n\nprocedure Hello (A : Integer; B : Float)",
-                        "documentation": "at bar.ads (3:4)"
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (3:4)"}
                      },
                      {
                         "label": "B",
                         "kind": 5,
-                        "documentation": " B => ",
+                        "documentation": {"kind": "plaintext", "value": " B => "},
                         "sortText": "+4",
                         "insertText": " B => ",
                         "insertTextFormat": 1
@@ -264,12 +264,12 @@
                         "insertText": " A => ${2:Integer})$0",
                         "insertTextFormat": 2,
                         "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
-                        "documentation": "at bar.ads (11:4)"
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (11:4)"}
                      },
                      {
                         "label": "A",
                         "kind": 5,
-                        "documentation": " A => ",
+                        "documentation": {"kind": "plaintext", "value": " A => "},
                         "sortText": "+1",
                         "insertText": " A => ",
                         "insertTextFormat": 1
@@ -342,12 +342,12 @@
                         "insertText": " ${2:B : Float})$0",
                         "insertTextFormat": 2,
                         "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
-                        "documentation": "at bar.ads (11:4)"
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (11:4)"}
                      },
                      {
                         "label": "B",
                         "kind": 5,
-                        "documentation": " B => ",
+                        "documentation": {"kind": "plaintext", "value": " B => "},
                         "sortText": "+1",
                         "insertText": " B => ",
                         "insertTextFormat": 1

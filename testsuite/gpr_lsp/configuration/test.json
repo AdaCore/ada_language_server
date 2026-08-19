@@ -179,7 +179,7 @@
               },
               "prj.gpr:3:01",
               {
-                "language": "plaintext",
+                "language": "text",
                 "value": "--  gnat documentation style"
               }
             ]
@@ -253,7 +253,7 @@
               },
               "prj.gpr:3:01",
               {
-                "language": "plaintext",
+                "language": "text",
                 "value": "--  leading documentation style"
               }
             ]

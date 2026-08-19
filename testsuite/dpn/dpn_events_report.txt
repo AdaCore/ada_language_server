@@ -1,0 +1,70 @@
+
+------------------
+-- Known issues --
+------------------
+
+--------------------
+-- Unknown issues --
+--------------------
+
+[ajis]
+gbtestw                  <https://gaia.adacore.com/#/e/106280227>  FAILED    ajis qualifier=edge
+gnathub_ajis_gb_test_linux<https://gaia.adacore.com/#/e/106268646> FAILED    ajis qualifier=edge,jdk_version=11
+
+[codesonar_build]
+codesonar_ada_build      <https://gaia.adacore.com/#/e/106261888>  CRITICAL  codesonar_build qualifier=build-config=ada
+=> codesonar_ada_build      <https://gaia.adacore.com/#/e/106261972>  FAILED    cso-packages_build qualifier=build-config=ada,package=hmc-kit
+   => codesonar_ci_test.starts WONT_HAPPEN
+      => codesonar_ci_test.x86_64-linux.java_oracle_1.8.build WONT_HAPPEN
+         => codesonar_ci_test.x86_64-linux.cso-tests_31fe30b7_test.test WONT_HAPPEN
+         => codesonar_ci_test.x86_64-linux.cso-tests_90151f35_test.test WONT_HAPPEN
+         => codesonar_ci_test.x86_64-linux.cso-tests_9478763d_test.test WONT_HAPPEN
+         => codesonar_ci_test.x86_64-linux.cso-tests_0324ad0f_test.test WONT_HAPPEN
+         => codesonar_ci_test.x86_64-linux.cso-tests_c9f035b3_test.test WONT_HAPPEN
+      => codesonar_ci_test.x86_64-linux.jingtrang.build WONT_HAPPEN
+      => codesonar_ci_test.x86_64-linux.java_openjdk_25.build WONT_HAPPEN
+      => codesonar_ci_test.x86_64-linux.cso-wheels_for-test.build WONT_HAPPEN
+=> codesonar_ada_build      <https://gaia.adacore.com/#/e/106261969>  FAILED    cso-packages_build qualifier=build-config=ada,package=symbols
+=> codesonar_ada_build      <https://gaia.adacore.com/#/e/106261967>  FAILED    cso-packages_build qualifier=build-config=ada,package=fusatest
+
+[cso-tests]
+codesonar_compilers_test_windows<https://gaia.adacore.com/#/e/106261423>FAILEDcso-tests qualifier=build-config=optimized_asserts,cso-tests-compilers=proprietary-windows,test-config=medium
+
+[fixedbugs]
+x8664linuxgnatllvmtest   <https://gaia.adacore.com/#/e/106267987>  FAILED    fixedbugs qualifier=compiler=gnat-llvm
+suse16test               <https://gaia.adacore.com/#/e/106274521>  FAILED    fixedbugs qualifier=no-ms
+
+[gnat-conformance-testsuite]
+suse16test               <https://gaia.adacore.com/#/e/106276667>  FAILED    gnat-conformance-testsuite qualifier=testsuite=gnat
+
+[gnatcoll-bindings-python3_build]
+aarch64linux             <https://gaia.adacore.com/#/e/106260227>  CRITICAL  gnatcoll-bindings-python3_build 
+aarch64linux             <https://gaia.adacore.com/#/e/106260244>  CRITICAL  gnatcoll-bindings-python3_build qualifier=python=3.13
+x8664linux               <https://gaia.adacore.com/#/e/106260301>  CRITICAL  gnatcoll-bindings-python3_build qualifier=python=3.13
+x8664linux               <https://gaia.adacore.com/#/e/106260268>  CRITICAL  gnatcoll-bindings-python3_build 
+
+[gnatcov]
+gnatcov_cross_win_test   <https://gaia.adacore.com/#/e/106280363>  CRITICAL  gnatcov qualifier=ccg,src-traces
+
+[lal-refactor]
+ide_edge_lal_refactor_test_windows<https://gaia.adacore.com/#/e/106276539>FAILEDlal-refactor qualifier=edge
+ide_lal_refactor_build_windows<https://gaia.adacore.com/#/e/106272652>FAILED lal-refactor 
+
+[polyorb_test]
+x86linuxrh8              <https://gaia.adacore.com/#/e/106273966>  CRITICAL  polyorb_test 
+x86ubuntu24test          <https://gaia.adacore.com/#/e/106272822>  CRITICAL  polyorb_test 
+x86testassert            <https://gaia.adacore.com/#/e/106275049>  CRITICAL  polyorb_test qualifier=assert=gcc
+x8664linuxrh8            <https://gaia.adacore.com/#/e/106274656>  CRITICAL  polyorb_test 
+
+[spark2014]
+sparktestaarch64linux    <https://gaia.adacore.com/#/e/106271173>  FAILED    spark2014 qualifier=large
+
+[supertest]
+supertestlinux           <https://gaia.adacore.com/#/e/106265802>  FAILED    supertest qualifier=std=gnuxx17
+
+[supertest_test]
+riscv32elfwintestsupertest<https://gaia.adacore.com/#/e/106277852> CRITICAL  supertest_test qualifier=config_opt=l1N-sspN-imfc,std=c11
+riscv64elfwintestsupertest<https://gaia.adacore.com/#/e/106278037> CRITICAL  supertest_test qualifier=config_opt=l1N-sspN-imfc,std=c11
+aarch64elfwintestsupertest<https://gaia.adacore.com/#/e/106277660> CRITICAL  supertest_test qualifier=config_opt=l1128-ssp8-crypto,std=c11
+supertestwindows64       <https://gaia.adacore.com/#/e/106277019>  CRITICAL  supertest_test qualifier=std=c11
+aarch64qnxwintestsupertest<https://gaia.adacore.com/#/e/106277387> CRITICAL  supertest_test qualifier=config_opt=l1N-sspN-default,std=c11

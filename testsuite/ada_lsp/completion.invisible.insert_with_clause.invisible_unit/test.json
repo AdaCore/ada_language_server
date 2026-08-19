@@ -137,7 +137,7 @@
                         "label": "Bar (invisible)",
                         "kind": 9,
                         "detail": "Bar\n\npackage Bar",
-                        "documentation": "at bar.ads (1:1)",
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (1:1)"},
                         "sortText": "~100&00001Bar",
                         "filterText": "Bar",
                         "insertText": "Bar",

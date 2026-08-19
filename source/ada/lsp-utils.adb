@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Containers;
 with Ada.Strings.Unbounded;
 with System;
 
@@ -702,5 +703,39 @@ package body LSP.Utils is
          when GPR2.Message.Error    => (True, LSP.Enumerations.Error),
          when GPR2.Message.Lint     => (True, LSP.Enumerations.Hint),
          when GPR2.Message.End_User => (True, LSP.Enumerations.Information));
+
+   ----------------------
+   -- To_Documentation --
+   ----------------------
+
+   function To_Documentation
+     (Text    : VSS.Strings.Virtual_String;
+      Formats : LSP.Structures.MarkupKind_Vector)
+      return LSP.Structures.Virtual_String_Or_MarkupContent
+   is
+      use type Ada.Containers.Count_Type;
+      use LSP.Enumerations;
+   begin
+      if Formats.Length = 0 then
+         --  Client did not advertise any format; use a plain string
+         return (Is_Virtual_String => True, Virtual_String => Text);
+      end if;
+
+      --  Our content is plain text, so prefer PlainText when supported
+      for Kind of Formats loop
+         if Kind = PlainText then
+            return
+              (Is_Virtual_String => False,
+               MarkupContent     => (kind => PlainText, value => Text));
+         end if;
+      end loop;
+
+      --  Client only supports Markdown; plain text is valid markdown
+      return
+        (Is_Virtual_String => False,
+         MarkupContent     =>
+           (kind  => Formats.First_Element,
+            value => Text));
+   end To_Documentation;
 
 end LSP.Utils;

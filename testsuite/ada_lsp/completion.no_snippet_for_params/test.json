@@ -213,7 +213,7 @@
                         "label": "Print_Integer",
                         "kind": 3,
                         "detail": "Main.Print_Integer\n\nprocedure Print_Integer (A : integer)",
-                        "documentation": "at main.adb (7:4)"
+                        "documentation": {"kind": "plaintext", "value": "at main.adb (7:4)"}
                      }
                   ]
                }

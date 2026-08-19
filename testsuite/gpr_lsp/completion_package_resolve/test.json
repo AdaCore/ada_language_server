@@ -366,7 +366,7 @@
                "id": 11,
                "result": {
                   "label": "Builder",
-                  "documentation": "This package specifies the compilation options used when building an executable or a library for a project. Most of the options should be set in one of Compiler, Binder or Linker packages, but there are some general options that should be defined in this package.",
+                  "documentation": {"kind": "plaintext", "value": "This package specifies the compilation options used when building an executable or a library for a project. Most of the options should be set in one of Compiler, Binder or Linker packages, but there are some general options that should be defined in this package."},
                   "insertTextFormat": 1,
                   "data": ["Builder"]
                }
@@ -442,7 +442,7 @@
                "id": 13,
                "result": {
                   "label": "Ide",
-                  "documentation": "This package specifies the options used by 'gnatstudio' IDE.",
+                  "documentation": {"kind": "plaintext", "value": "This package specifies the options used by 'gnatstudio' IDE."},
                   "insertTextFormat": 1,
                   "data": ["Ide"]
                }

@@ -952,7 +952,7 @@
                      "at hello.ads (2:4)",
                      {
                         "value": "documentation for foo",
-                        "language": "plaintext"
+                        "language": "text"
                      }
                   ]
                }
@@ -1116,7 +1116,7 @@
                      "at hello.ads (3:4)",
                      {
                         "value": "documentation for foo",
-                        "language": "plaintext"
+                        "language": "text"
                      }
                   ]
                }

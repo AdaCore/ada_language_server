@@ -190,7 +190,7 @@
                      {
                         "label": "A",
                         "kind": 5,
-                        "documentation": "A => ",
+                        "documentation": {"kind": "plaintext", "value": "A => "},
                         "sortText": "+1",
                         "insertText": "A => ",
                         "insertTextFormat": 1
@@ -198,7 +198,7 @@
                      {
                         "label": "BBBBBB",
                         "kind": 5,
-                        "documentation": "BBBBBB => ",
+                        "documentation": {"kind": "plaintext", "value": "BBBBBB => "},
                         "sortText": "+2",
                         "insertText": "BBBBBB => ",
                         "insertTextFormat": 1
@@ -206,7 +206,7 @@
                      {
                         "label": "CCCC",
                         "kind": 5,
-                        "documentation": "CCCC => ",
+                        "documentation": {"kind": "plaintext", "value": "CCCC => "},
                         "sortText": "+3",
                         "insertText": "CCCC => ",
                         "insertTextFormat": 1
@@ -214,7 +214,7 @@
                      {
                         "label": "Bar",
                         "kind": 5,
-                        "documentation": "Bar => ",
+                        "documentation": {"kind": "plaintext", "value": "Bar => "},
                         "sortText": "+4",
                         "insertText": "Bar => ",
                         "insertTextFormat": 1
@@ -274,7 +274,7 @@
                   "label": "Params of Foo_Bar",
                   "kind": 15,
                   "detail": "Foo.Foo_Bar\n\ngeneric\n   A      : Integer;\n   BBBBBB : Float;\n   CCCC   : String;\n   with procedure Bar (X : Integer);\npackage Foo_Bar",
-                  "documentation": "at foo.adb (3:4)",
+                  "documentation": {"kind": "plaintext", "value": "at foo.adb (3:4)"},
                   "sortText": "+0",
                   "insertText": "A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0",
                   "insertTextFormat": 2,

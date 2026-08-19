@@ -197,7 +197,7 @@
                      {
                         "label": "Elt_Type",
                         "kind": 5,
-                        "documentation": "Elt_Type => ",
+                        "documentation": {"kind": "plaintext", "value": "Elt_Type => "},
                         "sortText": "+1",
                         "insertText": "Elt_Type => ",
                         "insertTextFormat": 1
@@ -205,7 +205,7 @@
                      {
                         "label": "Elt_Ptr",
                         "kind": 5,
-                        "documentation": "Elt_Ptr => ",
+                        "documentation": {"kind": "plaintext", "value": "Elt_Ptr => "},
                         "sortText": "+2",
                         "insertText": "Elt_Ptr => ",
                         "insertTextFormat": 1
@@ -251,7 +251,7 @@
                   "label": "Params of G",
                   "kind": 15,
                   "detail": "G\n\ngeneric\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
-                  "documentation": "at g.ads (3:1)\n\nSource:\n\n@formal Elt_Type\n@formal Elt_Ptr",
+                  "documentation": {"kind": "plaintext", "value": "at g.ads (3:1)\n\nSource:\n\n@formal Elt_Type\n@formal Elt_Ptr"},
                   "sortText": "+0",
                   "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
                   "insertTextFormat": 2,
@@ -282,7 +282,7 @@
             "params": {
                "label": "Elt_Type",
                "kind": 5,
-               "documentation": "Elt_Type => ",
+               "documentation": {"kind": "plaintext", "value": "Elt_Type => "},
                "sortText": "+1",
                "insertText": "Elt_Type => ",
                "insertTextFormat": 1
@@ -294,7 +294,7 @@
                "result": {
                   "label": "Elt_Type",
                   "kind": 5,
-                  "documentation": "Elt_Type => ",
+                  "documentation": {"kind": "plaintext", "value": "Elt_Type => "},
                   "sortText": "+1",
                   "insertText": "Elt_Type => ",
                   "insertTextFormat": 1
@@ -441,7 +441,7 @@
                      {
                         "label": "Elt_Ptr",
                         "kind": 5,
-                        "documentation": " Elt_Ptr => ",
+                        "documentation": {"kind": "plaintext", "value": " Elt_Ptr => "},
                         "sortText": "+1",
                         "insertText": " Elt_Ptr => ",
                         "insertTextFormat": 1
@@ -486,7 +486,7 @@
                   "label": "Params of G",
                   "kind": 15,
                   "detail": "G\n\ngeneric\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
-                  "documentation": "at g.ads (3:1)\n\nSource:\n\n@formal Elt_Type\n@formal Elt_Ptr",
+                  "documentation": {"kind": "plaintext", "value": "at g.ads (3:1)\n\nSource:\n\n@formal Elt_Type\n@formal Elt_Ptr"},
                   "sortText": "+0",
                   "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
                   "insertTextFormat": 2,

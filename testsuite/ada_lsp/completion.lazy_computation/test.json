@@ -222,7 +222,7 @@
                   "label": "Select_Some",
                   "kind": 3,
                   "detail": "Test.Select_Some\n\nprocedure Select_Some",
-                  "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
+                  "documentation": {"kind": "plaintext", "value": "at test.ads (3:4)\n\nThis a very useful comment."},
                   "sortText": "100&00001Select_Some",
                   "insertTextFormat": 1,
                   "data": {

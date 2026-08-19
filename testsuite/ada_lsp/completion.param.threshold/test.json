@@ -174,7 +174,7 @@
                         "insertText": "Foo (S => ${1:String})$0",
                         "insertTextFormat": 2,
                         "detail": "Pack.Foo\n\nprocedure Foo (S : String)",
-                        "documentation": "at pack.ads (4:4)"
+                        "documentation": {"kind": "plaintext", "value": "at pack.ads (4:4)"}
                      },
                      {
                         "label": "Foo",
@@ -183,7 +183,7 @@
                         "insertText": "Foo (I => ${1:Integer}, J => ${2:Integer})$0",
                         "insertTextFormat": 2,
                         "detail": "Pack.Foo\n\nprocedure Foo (I : Integer; J : Integer)",
-                        "documentation": "at pack.ads (3:4)"
+                        "documentation": {"kind": "plaintext", "value": "at pack.ads (3:4)"}
                      }
                   ]
                }

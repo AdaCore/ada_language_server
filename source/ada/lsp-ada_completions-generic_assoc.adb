@@ -20,6 +20,7 @@ with GNATCOLL.Traces;
 with Laltools.Common;
 with LSP.Ada_Documentation;
 with LSP.Enumerations;
+with LSP.Utils;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Transformers.Caseless;
@@ -282,10 +283,10 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
                         Item.documentation :=
                           (Is_Set => True,
-                           Value  => LSP.Structures.
-                             Virtual_String_Or_MarkupContent'
-                             (Is_Virtual_String => True,
-                              Virtual_String    => Doc));
+                           Value  =>
+                             LSP.Utils.To_Documentation
+                               (Doc,
+                                Self.Handler.Client.Completion_Doc_Kind));
                         Unsorted_Res.Append (Item);
 
                      end if;

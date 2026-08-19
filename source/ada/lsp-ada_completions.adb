@@ -556,8 +556,9 @@ package body LSP.Ada_Completions is
             Item.documentation :=
               (Is_Set => True,
                Value  =>
-                 LSP.Structures.Virtual_String_Or_MarkupContent'
-                   (Is_Virtual_String => True, Virtual_String => Loc_Text));
+                 LSP.Utils.To_Documentation
+                   (Loc_Text,
+                    Handler.Client.Completion_Doc_Kind));
          end;
 
       else

@@ -128,7 +128,7 @@
                       "at example_j.ads (4:1)",
                      {
                         "value": "\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57",
-                        "language": "plaintext"
+                        "language": "text"
                      }
                   ]
                }

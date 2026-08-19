@@ -174,7 +174,7 @@
                            "title": ""
                         },
                         "detail": "Foo.Calculate\n\nprocedure Calculate",
-                        "documentation": "at foo.ads (7:4)",
+                        "documentation": {"kind": "plaintext", "value": "at foo.ads (7:4)"},
                         "filterText": "Calculate",
                         "insertText": "Calculate",
                         "kind": 3,
@@ -203,7 +203,7 @@
                            "title": ""
                         },
                         "detail": "Foo.Child\n\npackage Foo.Child",
-                        "documentation": "at foo-child.ads (1:1)",
+                        "documentation": {"kind": "plaintext", "value": "at foo-child.ads (1:1)"},
                         "filterText": "Child",
                         "insertText": "Child",
                         "kind": 9,

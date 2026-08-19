@@ -1,0 +1,23 @@
+digraph G {
+rankdir="LR";
+"download.adareducer-src"
+"source_get.adareducer-src"
+"x86_64-windows64.tp-python_3.11.download_bin"
+"x86_64-windows64.adareducer.source_install.adareducer-src"
+"x86_64-windows64.tp-python_3.11.install"
+"x86_64-windows64.adareducer.build"
+"x86_64-windows64.adareducer.install"
+"x86_64-windows64.adareducer.upload_bin"
+"x86_64-windows64.adareducer.check_virus"
+"root"
+"source_get.adareducer-src" -> "download.adareducer-src"
+"x86_64-windows64.adareducer.source_install.adareducer-src" -> "source_get.adareducer-src"
+"x86_64-windows64.tp-python_3.11.install" -> "x86_64-windows64.tp-python_3.11.download_bin"
+"x86_64-windows64.adareducer.build" -> "x86_64-windows64.tp-python_3.11.install"
+"x86_64-windows64.adareducer.build" -> "x86_64-windows64.adareducer.source_install.adareducer-src"
+"x86_64-windows64.adareducer.install" -> "x86_64-windows64.adareducer.build"
+"x86_64-windows64.adareducer.upload_bin" -> "x86_64-windows64.adareducer.build"
+"x86_64-windows64.adareducer.check_virus" -> "x86_64-windows64.adareducer.upload_bin"
+"root" -> "x86_64-windows64.adareducer.install"
+"root" -> "x86_64-windows64.adareducer.check_virus"
+}

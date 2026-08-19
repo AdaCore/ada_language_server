@@ -27,9 +27,17 @@ package LSP.GPR_Completions is
      (File_Provider           : LSP.GPR_Files.File_Provider_Access;
       Value                   : LSP.Structures.CompletionParams;
       Compute_Doc_And_Details : Boolean;
+      Doc_Formats             : LSP.Structures.MarkupKind_Vector;
       Response                : in out LSP.Structures.Completion_Result);
+   --  Handle a textDocument/completion request for a GPR file.
+   --  Doc_Formats is the client's documentationFormat capability; it
+   --  controls whether documentation is sent as MarkupContent or as a
+   --  plain string (see LSP.Utils.To_Documentation).
 
    procedure Fill_Completion_Resolve_Response
-     (Response : in out LSP.Structures.CompletionItem);
+     (Doc_Formats : LSP.Structures.MarkupKind_Vector;
+      Response    : in out LSP.Structures.CompletionItem);
+   --  Handle a completionItem/resolve request for a GPR completion item.
+   --  Doc_Formats has the same meaning as in Fill_Completion_Response.
 
 end LSP.GPR_Completions;

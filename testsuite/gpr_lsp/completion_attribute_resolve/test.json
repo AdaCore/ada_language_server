@@ -158,7 +158,7 @@
                "id": 2,
                "result": {
                   "label": "Project_Files",
-                  "documentation": "List of project files aggregated by this project.",
+                  "documentation": {"kind": "plaintext", "value": "List of project files aggregated by this project."},
                   "insertTextFormat": 1,
                   "data": ["", "Project_Files"]
                }
@@ -247,7 +247,7 @@
                "id": 5,
                "result": {
                   "label": "Switches",
-                  "documentation": "Indexed by source file name or language name. Builder switches applied when building the matching executable.",
+                  "documentation": {"kind": "plaintext", "value": "Indexed by source file name or language name. Builder switches applied when building the matching executable."},
                   "insertTextFormat": 1,
                   "data": ["Builder", "Switches"]
                }

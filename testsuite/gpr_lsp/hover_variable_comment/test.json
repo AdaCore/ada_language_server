@@ -143,7 +143,7 @@
               },
               "prj.gpr:6:04",
               {
-                "language": "plaintext",
+                "language": "text",
                 "value": "-- Var GNAT style comment start\n-- Var GNAT style comment end"
               }
             ]
@@ -214,7 +214,7 @@
               },
               "prj.gpr:6:04",
               {
-                "language": "plaintext",
+                "language": "text",
                 "value": "-- Var Leading style comment start\n-- Var Leading style comment end"
               }
             ]

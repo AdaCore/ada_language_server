@@ -190,7 +190,7 @@
                      {
                         "label": "I",
                         "kind": 5,
-                        "documentation": "I => ",
+                        "documentation": {"kind": "plaintext", "value": "I => "},
                         "sortText": "+1",
                         "insertText": "I => ",
                         "insertTextFormat": 1
@@ -198,7 +198,7 @@
                      {
                         "label": "J",
                         "kind": 5,
-                        "documentation": "J => ",
+                        "documentation": {"kind": "plaintext", "value": "J => "},
                         "sortText": "+2",
                         "insertText": "J => ",
                         "insertTextFormat": 1
@@ -206,7 +206,7 @@
                      {
                         "label": "F",
                         "kind": 5,
-                        "documentation": "F => ",
+                        "documentation": {"kind": "plaintext", "value": "F => "},
                         "sortText": "+3",
                         "insertText": "F => ",
                         "insertTextFormat": 1
@@ -341,7 +341,7 @@
                      {
                         "label": "I",
                         "kind": 5,
-                        "documentation": "I => ",
+                        "documentation": {"kind": "plaintext", "value": "I => "},
                         "sortText": "+1",
                         "insertText": "I => ",
                         "insertTextFormat": 1
@@ -349,7 +349,7 @@
                      {
                         "label": "J",
                         "kind": 5,
-                        "documentation": "J => ",
+                        "documentation": {"kind": "plaintext", "value": "J => "},
                         "sortText": "+2",
                         "insertText": "J => ",
                         "insertTextFormat": 1
@@ -357,7 +357,7 @@
                      {
                         "label": "F",
                         "kind": 5,
-                        "documentation": "F => ",
+                        "documentation": {"kind": "plaintext", "value": "F => "},
                         "sortText": "+3",
                         "insertText": "F => ",
                         "insertTextFormat": 1
