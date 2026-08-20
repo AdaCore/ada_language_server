@@ -90,6 +90,11 @@ package LSP.Ada_Client_Capabilities is
      (Self : Client_Capability'Class) return Boolean;
    --  Returns textDocument.completion.completionItem.snippetSupport
 
+   function Completion_Doc_Kind
+     (Self : Client_Capability'Class) return LSP.Structures.MarkupKind_Vector;
+   --  Returns the client's documentationFormat capability for completion
+   --  items, i.e. the set of MarkupKinds the client supports.
+
    function didChangeWatchedFiles_dynamicRegistration
      (Self : Client_Capability'Class) return Boolean;
    --  Returns capabilities.workspace.didChangeWatchedFiles.dynamicRegistration

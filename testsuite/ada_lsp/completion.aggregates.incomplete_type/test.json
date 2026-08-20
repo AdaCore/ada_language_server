@@ -171,7 +171,7 @@
                         "detail": "Main.Cell\n\ntype Cell is\nrecord\n   Value : Integer;\n   Succ  : Link;\n   Pred  : Link;\nend record;",
                         "label": "Aggregate for Cell",
                         "insertTextFormat": 2,
-                        "documentation": "at main.adb (6:4)",
+                        "documentation": {"kind": "plaintext", "value": "at main.adb (6:4)"},
                         "sortText": "+0"
                      },
                      {

@@ -120,7 +120,7 @@
                      "null",
                      "at foo.adb (5:7)",
                      {
-                        "language": "plaintext",
+                        "language": "text",
                         "value": "It doesn't do anything, but test documentation extraction."
                      }
                   ]

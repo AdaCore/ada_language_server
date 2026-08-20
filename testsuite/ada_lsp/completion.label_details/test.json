@@ -140,7 +140,7 @@
                         "kind": 6,
                         "sortText": "100&00002Visible_Variable",
                         "detail": "Pkg.Visible_Variable\n\nVisible_Variable : Integer;",
-                        "documentation": "at pkg.ads (2:4)",
+                        "documentation": {"kind": "plaintext", "value": "at pkg.ads (2:4)"},
                         "labelDetails": {
                            "description": "Pkg"
                         }
@@ -152,7 +152,7 @@
                         "insertText": "Visible_Function (${1:X : Integer})$0",
                         "insertTextFormat": 2,
                         "detail": "Pkg.Visible_Function\n\nfunction Visible_Function (X : Integer) return Integer",
-                        "documentation": "at pkg.ads (4:4)",
+                        "documentation": {"kind": "plaintext", "value": "at pkg.ads (4:4)"},
                         "labelDetails": {
                            "description": "Pkg"
                         }
@@ -196,7 +196,7 @@
                         "filterText": "Invisible",
                         "insertText": "Invisible",
                         "detail": "Invisible\n\npackage Invisible",
-                        "documentation": "at invisible.ads (1:1)",
+                        "documentation": {"kind": "plaintext", "value": "at invisible.ads (1:1)"},
                         "labelDetails": {
                            "description": "Invisible"
                         },
@@ -228,7 +228,7 @@
                         "filterText": "Invisible_Function",
                         "insertText": "Invisible_Function",
                         "detail": "Invisible.Invisible_Function\n\nfunction Invisible_Function (X : Integer) return Integer",
-                        "documentation": "at invisible.ads (4:4)",
+                        "documentation": {"kind": "plaintext", "value": "at invisible.ads (4:4)"},
                         "labelDetails": {
                            "description": "Invisible"
                         }
@@ -240,7 +240,7 @@
                         "filterText": "Invisible_Variable",
                         "insertText": "Invisible_Variable",
                         "detail": "Invisible.Invisible_Variable\n\nInvisible_Variable : Integer;",
-                        "documentation": "at invisible.ads (2:4)",
+                        "documentation": {"kind": "plaintext", "value": "at invisible.ads (2:4)"},
                         "labelDetails": {
                            "description": "Invisible"
                         }

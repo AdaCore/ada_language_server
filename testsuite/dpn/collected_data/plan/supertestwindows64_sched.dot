@@ -1,0 +1,20 @@
+digraph G {
+rankdir="LR";
+"download.solidsands-configuration-src"
+"source_get.solidsands-configuration-src"
+"x86_64-windows64.supertest_c11_test.source_install.solidsands-configuration-src"
+"x86_64-windows64.gnat.download_bin"
+"x86_64-windows64.gnat.install"
+"x86_64-windows64.e3-distrib_latest.download_bin"
+"x86_64-windows64.e3-distrib_latest.install"
+"x86_64-windows64.supertest_c11_test.test"
+"root"
+"source_get.solidsands-configuration-src" -> "download.solidsands-configuration-src"
+"x86_64-windows64.supertest_c11_test.source_install.solidsands-configuration-src" -> "source_get.solidsands-configuration-src"
+"x86_64-windows64.gnat.install" -> "x86_64-windows64.gnat.download_bin"
+"x86_64-windows64.e3-distrib_latest.install" -> "x86_64-windows64.e3-distrib_latest.download_bin"
+"x86_64-windows64.supertest_c11_test.test" -> "x86_64-windows64.supertest_c11_test.source_install.solidsands-configuration-src"
+"x86_64-windows64.supertest_c11_test.test" -> "x86_64-windows64.e3-distrib_latest.install"
+"x86_64-windows64.supertest_c11_test.test" -> "x86_64-windows64.gnat.install"
+"root" -> "x86_64-windows64.supertest_c11_test.test"
+}

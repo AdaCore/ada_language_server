@@ -175,7 +175,7 @@
                   "items": [
                      {
                         "kind": 3,
-                        "documentation": "at parent-children.ads (7:4)",
+                        "documentation": {"kind": "plaintext", "value": "at parent-children.ads (7:4)"},
                         "detail": "Parent.Children.Do_Someting\n\nprocedure Do_Someting (D : Children.Child)",
                         "label": "Do_Someting"
                      }

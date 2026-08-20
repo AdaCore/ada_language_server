@@ -136,7 +136,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "detail": "Foo.Bar\n\nprocedure Bar (C : String)",
-                        "documentation": "at foo.adb (5:4)",
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (5:4)"},
                         "sortText": "+00",
                         "insertText": "C => ${1:String})$0",
                         "insertTextFormat": 2
@@ -152,7 +152,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "detail": "Foo.Bar\n\nprocedure Bar (A, B : Integer)",
-                        "documentation": "at foo.adb (4:4)",
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (4:4)"},
                         "sortText": "+02",
                         "insertText": "${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2
@@ -175,7 +175,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "detail": "Foo.Bar\n\nfunction Bar\n  (I, J, K : Integer; L : Float := 1.0) return Float",
-                        "documentation": "at foo.adb (2:4)",
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (2:4)"},
                         "sortText": "+05",
                         "insertText": "I => ${1:Integer}, J => ${2:Integer}, K => ${3:Integer}, L => ${4:Float})$0",
                         "insertTextFormat": 2

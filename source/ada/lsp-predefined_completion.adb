@@ -92,7 +92,7 @@ package body LSP.Predefined_Completion is
               (String'(Value.Get ("_origin"))));
          Item.documentation :=
            (Is_Set => True,
-            Value  => Virtual_String_Or_MarkupContent'
+            Value  =>
               (Is_Virtual_String => True,
                Virtual_String    =>
                  VSS.Strings.Conversions.To_Virtual_String

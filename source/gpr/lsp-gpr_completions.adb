@@ -47,6 +47,7 @@ package body LSP.GPR_Completions is
    procedure Fill_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Response        : in out LSP.Structures.Completion_Result;
       Reference       : LSP.GPR_Files.References.Reference;
       Prefix          : VSS.Strings.Virtual_String);
@@ -56,6 +57,7 @@ package body LSP.GPR_Completions is
      (File            : LSP.GPR_Files.File_Access;
       Current_Package : Package_Id;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result);
    --  Handle completion when cursor after "for" or "'" keyword
@@ -63,6 +65,7 @@ package body LSP.GPR_Completions is
    procedure Fill_Package_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Prefix          : VSS.Strings.Virtual_String;
       Unexisting_Only : Boolean;
       Response        : in out LSP.Structures.Completion_Result);
@@ -90,6 +93,7 @@ package body LSP.GPR_Completions is
       Current_Package : Package_Id;
       Token_Kind      : Gpr_Parser.Common.Token_Kind;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result;
       Attribute_Token : Gpr_Parser.Common.Token_Reference :=
@@ -148,6 +152,7 @@ package body LSP.GPR_Completions is
    procedure Fill_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Response        : in out LSP.Structures.Completion_Result;
       Reference       : LSP.GPR_Files.References.Reference;
       Prefix          : VSS.Strings.Virtual_String) is
@@ -166,6 +171,7 @@ package body LSP.GPR_Completions is
             Fill_Package_Completion_Response
               (File            => File,
                Doc             => Doc,
+               Doc_Formats     => Doc_Formats,
                Prefix          => Prefix,
                Unexisting_Only => False,
                Response        => Response);
@@ -184,6 +190,7 @@ package body LSP.GPR_Completions is
      (File            : LSP.GPR_Files.File_Access;
       Current_Package : Package_Id;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result) is
    begin
@@ -218,11 +225,11 @@ package body LSP.GPR_Completions is
                   if Doc then
                      Item.documentation :=
                        (Is_Set => True,
-                        Value => (Is_Virtual_String => True,
-                                  Virtual_String =>
-                                    VSS.Strings.Conversions.To_Virtual_String
-                                      (PRAD.Get_Attribute_Description
-                                         (Id))));
+                        Value =>
+                          LSP.Utils.To_Documentation
+                            (VSS.Strings.Conversions.To_Virtual_String
+                               (PRAD.Get_Attribute_Description (Id)),
+                             Doc_Formats));
                   end if;
 
                   Response.Variant_2.items.Append (Item);
@@ -239,6 +246,7 @@ package body LSP.GPR_Completions is
    procedure Fill_Package_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Prefix          : VSS.Strings.Virtual_String;
       Unexisting_Only : Boolean;
       Response        : in out LSP.Structures.Completion_Result) is
@@ -272,11 +280,11 @@ package body LSP.GPR_Completions is
                if Doc then
                   Item.documentation :=
                     (Is_Set => True,
-                     Value => (Is_Virtual_String => True,
-                               Virtual_String =>
-                                 VSS.Strings.Conversions.To_Virtual_String
-                                   (PRP.Description.Get_Package_Description
-                                      (Id))));
+                     Value =>
+                       LSP.Utils.To_Documentation
+                         (VSS.Strings.Conversions.To_Virtual_String
+                            (PRP.Description.Get_Package_Description (Id)),
+                          Doc_Formats));
                end if;
 
                Response.Variant_2.items.Append (Item);
@@ -320,6 +328,7 @@ package body LSP.GPR_Completions is
       Current_Package : Package_Id;
       Token_Kind      : GPC.Token_Kind;
       Doc             : Boolean;
+      Doc_Formats     : LSP.Structures.MarkupKind_Vector;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result;
       Attribute_Token : GPC.Token_Reference := GPC.No_Token)
@@ -438,6 +447,7 @@ package body LSP.GPR_Completions is
          Fill_Package_Completion_Response
            (File            => File,
             Doc             => Doc,
+            Doc_Formats     => Doc_Formats,
             Prefix          => Prefix,
             Unexisting_Only => False,
             Response        => Response);
@@ -460,6 +470,7 @@ package body LSP.GPR_Completions is
      (File_Provider           : LSP.GPR_Files.File_Provider_Access;
       Value                   : LSP.Structures.CompletionParams;
       Compute_Doc_And_Details : Boolean;
+      Doc_Formats             : LSP.Structures.MarkupKind_Vector;
       Response                : in out LSP.Structures.Completion_Result)
    is
       File    : constant LSP.GPR_Files.File_Access :=
@@ -514,6 +525,7 @@ package body LSP.GPR_Completions is
             Fill_Completion_Response
               (File            => File,
                Doc             => Compute_Doc_And_Details,
+               Doc_Formats     => Doc_Formats,
                Prefix          => Prefix,
                Reference       => Reference,
                Response        => Response);
@@ -547,6 +559,7 @@ package body LSP.GPR_Completions is
                  GPR_Files.References.Referenced_Package
                    (Reference),
                Doc             => Compute_Doc_And_Details,
+               Doc_Formats     => Doc_Formats,
                Prefix          => Prefix,
                Response => Response);
          end if;
@@ -599,6 +612,7 @@ package body LSP.GPR_Completions is
                     (File            => File,
                      Current_Package => File.Get_Package (Value.position),
                      Doc             => Compute_Doc_And_Details,
+                     Doc_Formats     => Doc_Formats,
                      Prefix          => Identifier_Prefix,
                      Response => Response);
 
@@ -606,6 +620,7 @@ package body LSP.GPR_Completions is
                   Fill_Package_Completion_Response
                     (File            => File,
                      Doc             => Compute_Doc_And_Details,
+                     Doc_Formats     => Doc_Formats,
                      Prefix          => Identifier_Prefix,
                      Unexisting_Only => True,
                      Response        => Response);
@@ -765,6 +780,7 @@ package body LSP.GPR_Completions is
                         Current_Package => File.Get_Package (Value.position),
                         Token_Kind      => Previous.Data.Kind,
                         Doc             => Compute_Doc_And_Details,
+                        Doc_Formats     => Doc_Formats,
                         Prefix          => Identifier_Prefix,
                         Response        => Response,
                         Attribute_Token => Attribute_Token);
@@ -779,7 +795,8 @@ package body LSP.GPR_Completions is
    end Fill_Completion_Response;
 
    procedure Fill_Completion_Resolve_Response
-     (Response : in out LSP.Structures.CompletionItem)
+     (Doc_Formats : LSP.Structures.MarkupKind_Vector;
+      Response    : in out LSP.Structures.CompletionItem)
    is
       Pack     : Package_Id;
       Attr     : Q_Optional_Attribute_Id;
@@ -808,9 +825,8 @@ package body LSP.GPR_Completions is
 
       Response.documentation :=
         (Is_Set => True,
-         Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
-           (Is_Virtual_String => True,
-            Virtual_String    => Doc_Text));
+         Value  =>
+           LSP.Utils.To_Documentation (Doc_Text, Doc_Formats));
 
    end Fill_Completion_Resolve_Response;
 

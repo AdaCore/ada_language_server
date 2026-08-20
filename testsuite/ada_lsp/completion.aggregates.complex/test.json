@@ -195,7 +195,7 @@
                         "sortText": "+00",
                         "insertText": "-6, ${2:A : Integer})$0",
                         "insertTextFormat": 2,
-                        "documentation": "at foo.adb (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (2:4)"}
                      },
                      {
                         "label": "X => -6",
@@ -203,7 +203,7 @@
                         "sortText": "+01",
                         "insertText": "X => -6",
                         "insertTextFormat": 1,
-                        "documentation": "X => "
+                        "documentation": {"kind": "plaintext", "value": "X => "}
                      },
                      {
                         "label": "A",
@@ -211,7 +211,7 @@
                         "sortText": "+02",
                         "insertText": "A => ",
                         "insertTextFormat": 1,
-                        "documentation": "A => "
+                        "documentation": {"kind": "plaintext", "value": "A => "}
                      },
                      {
                         "label": "Aggregate when X => -5 | -4",
@@ -220,7 +220,7 @@
                         "sortText": "+03",
                         "insertText": "${1:X : -5 | -4}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
-                        "documentation": "at foo.adb (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (2:4)"}
                      },
                      {
                         "label": "X",
@@ -228,7 +228,7 @@
                         "sortText": "+04",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "documentation": "X => "
+                        "documentation": {"kind": "plaintext", "value": "X => "}
                      },
                      {
                         "label": "B",
@@ -236,7 +236,7 @@
                         "sortText": "+05",
                         "insertText": "B => ",
                         "insertTextFormat": 1,
-                        "documentation": "B => "
+                        "documentation": {"kind": "plaintext", "value": "B => "}
                      },
                      {
                         "label": "Aggregate when X => -3 .. -1",
@@ -245,7 +245,7 @@
                         "sortText": "+06",
                         "insertText": "${1:X : -3 .. -1}, ${2:C : Integer})$0",
                         "insertTextFormat": 2,
-                        "documentation": "at foo.adb (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (2:4)"}
                      },
                      {
                         "label": "X",
@@ -253,7 +253,7 @@
                         "sortText": "+07",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "documentation": "X => "
+                        "documentation": {"kind": "plaintext", "value": "X => "}
                      },
                      {
                         "label": "C",
@@ -261,7 +261,7 @@
                         "sortText": "+08",
                         "insertText": "C => ",
                         "insertTextFormat": 1,
-                        "documentation": "C => "
+                        "documentation": {"kind": "plaintext", "value": "C => "}
                      },
                      {
                         "label": "Aggregate when X => Natural",
@@ -270,7 +270,7 @@
                         "sortText": "+09",
                         "insertText": "${1:X : Natural}, ${2:D : Integer})$0",
                         "insertTextFormat": 2,
-                        "documentation": "at foo.adb (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (2:4)"}
                      },
                      {
                         "label": "X",
@@ -278,7 +278,7 @@
                         "sortText": "+10",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "documentation": "X => "
+                        "documentation": {"kind": "plaintext", "value": "X => "}
                      },
                      {
                         "label": "D",
@@ -286,7 +286,7 @@
                         "sortText": "+11",
                         "insertText": "D => ",
                         "insertTextFormat": 1,
-                        "documentation": "D => "
+                        "documentation": {"kind": "plaintext", "value": "D => "}
                      },
                      {
                         "label": "Aggregate when X => others",
@@ -295,7 +295,7 @@
                         "sortText": "+12",
                         "insertText": "${1:X : others}, ${2:E : Integer})$0",
                         "insertTextFormat": 2,
-                        "documentation": "at foo.adb (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at foo.adb (2:4)"}
                      },
                      {
                         "label": "X",
@@ -303,7 +303,7 @@
                         "sortText": "+13",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "documentation": "X => "
+                        "documentation": {"kind": "plaintext", "value": "X => "}
                      },
                      {
                         "label": "E",
@@ -311,7 +311,7 @@
                         "sortText": "+14",
                         "insertText": "E => ",
                         "insertTextFormat": 1,
-                        "documentation": "E => "
+                        "documentation": {"kind": "plaintext", "value": "E => "}
                      }
                   ]
                }

@@ -54,6 +54,14 @@ package LSP.Structures.Unwrap is
        return Boolean_Optional is
          (if X.Is_Set then X.Value.snippetSupport else (Is_Set => False));
 
+   function documentationFormat
+     (X : completionItem_OfCompletionClientCapabilities_Optional)
+       return LSP.Structures.MarkupKind_Vector is
+         (if X.Is_Set then X.Value.documentationFormat
+          else LSP.Structures.MarkupKind_Vector'
+            (LSP.Structures.MarkupKind_Vectors.Empty_Vector
+             with null record));
+
    function properties
      (X : resolveSupport_OfWorkspaceSymbolClientCapabilities_Optional)
        return LSP.Structures.Virtual_String_Vector is

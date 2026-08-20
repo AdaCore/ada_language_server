@@ -136,7 +136,7 @@
                      "<HAS>",
                      {
                         "detail": "Bar\n\npackage Bar",
-                        "documentation": "at bar.ads (1:1)",
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (1:1)"},
                         "filterText": "Bar",
                         "insertText": "Bar",
                         "kind": 9,

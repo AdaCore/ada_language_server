@@ -2267,8 +2267,9 @@ package body LSP.Ada_Handlers is
             Response.documentation :=
               (Is_Set => True,
                Value  =>
-                 LSP.Structures.Virtual_String_Or_MarkupContent'
-                   (Is_Virtual_String => True, Virtual_String => Loc_Text));
+                 LSP.Utils.To_Documentation
+                   (Loc_Text,
+                    Self.Client.Completion_Doc_Kind));
          end;
       end if;
 

@@ -390,7 +390,7 @@ package body LSP.GPR_Handlers is
             Response.Value.contents.MarkedString_Vector.Append
               (LSP.Structures.MarkedString'
                  (Is_Virtual_String => False,
-                  language          => "plaintext",
+                  language          => "text",
                   value             => Documentation_Text));
          end if;
 
@@ -762,6 +762,7 @@ package body LSP.GPR_Handlers is
         (File_Provider           => Self'Unchecked_Access,
          Value                   => Value,
          Compute_Doc_And_Details => Compute_Doc_And_Details,
+         Doc_Formats             => Self.Client.Completion_Doc_Kind,
          Response                => Response);
 
       Self.Sender.On_Completion_Response (Id, Response);
@@ -788,7 +789,8 @@ package body LSP.GPR_Handlers is
       end if;
 
       LSP.GPR_Completions.Fill_Completion_Resolve_Response
-        (Response => Response);
+        (Doc_Formats => Self.Client.Completion_Doc_Kind,
+         Response    => Response);
 
       Self.Sender.On_Completion_Resolve_Response (Id, Response);
    end On_Completion_Resolve_Request;

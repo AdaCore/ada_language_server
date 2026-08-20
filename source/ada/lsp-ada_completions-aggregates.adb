@@ -19,6 +19,7 @@ with GNATdoc.Comments.Options;
 with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Format_Range_Commands;
 with LSP.Enumerations;
+with LSP.Utils;
 with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Formatters.Integers;
@@ -525,7 +526,11 @@ package body LSP.Ada_Completions.Aggregates is
          insertText       => Edit.newText,
          insertTextFormat => Self.Format,
          textEdit         => (True, (True, Edit)),
-         documentation    => (True, (True, Documentation)),
+         documentation    =>
+           (True,
+            LSP.Utils.To_Documentation
+              (Documentation,
+               Self.Handler.Client.Completion_Doc_Kind)),
          sortText         => Sort_Text_Template.Format
            (VSS.Strings.Formatters.Integers.Image (Index)),
          command          =>

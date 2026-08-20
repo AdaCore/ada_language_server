@@ -384,7 +384,7 @@
                      },
                      "at a.ads (4:4)",
                      {
-                        "language": "plaintext",
+                        "language": "text",
                         "value": "Doc for Foo\n\n@param X"
                      }
                   ]

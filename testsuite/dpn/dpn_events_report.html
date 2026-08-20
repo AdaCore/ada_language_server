@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DPN</title>
+    <style>
+        .i {
+            padding-left: 1em;
+        }
+        .e {
+            font-family: monospace;
+        }
+        .highlighted .e {
+            color:blueviolet;
+            font-weight: bold;
+            background-color: aliceblue;
+        }
+        .normal .e {
+            color: black;
+            background-color: white;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        window.onload = function() {
+            clear_highlight();
+            var divs = document.getElementsByClassName("i");
+            for (let i = 0; i < divs.length; i++) {
+               divs[i].addEventListener("click", function() {
+                   event.stopPropagation();
+                   highlight(divs[i].id);
+               });
+            }
+        };
+
+        function clear_highlight() {
+            var divs = document.getElementsByClassName("i");
+            for (let i = 0; i < divs.length; i++) {
+                divs[i].classList.remove("highlighted");
+                divs[i].classList.add("normal");
+            }
+        }
+
+        function highlight(id) {
+            clear_highlight();
+
+            // find the div of id "id"
+            var div = document.getElementById(id);
+
+            // highlight the div
+            div.classList.add("highlighted");
+            div.classList.remove("normal");
+
+            // highlight all the parent divs that have class "i"
+            while (div.parentElement.classList.contains("i")) {
+                div = div.parentElement;
+                div.classList.add("highlighted");
+                div.classList.remove("normal");
+            }
+        }
+    </script>
+
+<h2>Known issues</h2>
+<h2>Unknown issues</h2>
+<h3>ajis</h3>
+<div class="i" id="i_1">
+   <div class="e">gbtestw ajis qualifier=edge <a href="https://gaia.adacore.com/#/e/106280227" target=_>FAILED</a></div>
+</div>
+
+<div class="i" id="i_2">
+   <div class="e">gnathub_ajis_gb_test_linux ajis qualifier=edge,jdk_version=11 <a href="https://gaia.adacore.com/#/e/106268646" target=_>FAILED</a></div>
+</div>
+
+<h3>codesonar_build</h3>
+<div class="i" id="i_16">
+   <div class="e">codesonar_ada_build codesonar_build qualifier=build-config=ada <a href="https://gaia.adacore.com/#/e/106261888" target=_>CRITICAL</a></div><div class="i" id="i_13">
+   <div class="e">codesonar_ada_build cso-packages_build qualifier=build-config=ada,package=hmc-kit <a href="https://gaia.adacore.com/#/e/106261972" target=_>FAILED</a></div><div class="i" id="i_12">
+   <div class="e">codesonar_ci_test.starts WONT_HAPPEN </div><div class="i" id="i_8">
+   <div class="e">codesonar_ci_test.x86_64-linux.java_oracle_1.8.build WONT_HAPPEN </div><div class="i" id="i_3">
+   <div class="e">codesonar_ci_test.x86_64-linux.cso-tests_31fe30b7_test.test WONT_HAPPEN </div>
+</div>
+<div class="i" id="i_4">
+   <div class="e">codesonar_ci_test.x86_64-linux.cso-tests_90151f35_test.test WONT_HAPPEN </div>
+</div>
+<div class="i" id="i_5">
+   <div class="e">codesonar_ci_test.x86_64-linux.cso-tests_9478763d_test.test WONT_HAPPEN </div>
+</div>
+<div class="i" id="i_6">
+   <div class="e">codesonar_ci_test.x86_64-linux.cso-tests_0324ad0f_test.test WONT_HAPPEN </div>
+</div>
+<div class="i" id="i_7">
+   <div class="e">codesonar_ci_test.x86_64-linux.cso-tests_c9f035b3_test.test WONT_HAPPEN </div>
+</div>
+
+</div>
+<div class="i" id="i_9">
+   <div class="e">codesonar_ci_test.x86_64-linux.jingtrang.build WONT_HAPPEN </div>
+</div>
+<div class="i" id="i_10">
+   <div class="e">codesonar_ci_test.x86_64-linux.java_openjdk_25.build WONT_HAPPEN </div>
+</div>
+<div class="i" id="i_11">
+   <div class="e">codesonar_ci_test.x86_64-linux.cso-wheels_for-test.build WONT_HAPPEN </div>
+</div>
+
+</div>
+
+</div>
+<div class="i" id="i_14">
+   <div class="e">codesonar_ada_build cso-packages_build qualifier=build-config=ada,package=symbols <a href="https://gaia.adacore.com/#/e/106261969" target=_>FAILED</a></div>
+</div>
+<div class="i" id="i_15">
+   <div class="e">codesonar_ada_build cso-packages_build qualifier=build-config=ada,package=fusatest <a href="https://gaia.adacore.com/#/e/106261967" target=_>FAILED</a></div>
+</div>
+
+</div>
+
+<h3>cso-tests</h3>
+<div class="i" id="i_17">
+   <div class="e">codesonar_compilers_test_windows cso-tests qualifier=build-config=optimized_asserts,cso-tests-compilers=proprietary-windows,test-config=medium <a href="https://gaia.adacore.com/#/e/106261423" target=_>FAILED</a></div>
+</div>
+
+<h3>fixedbugs</h3>
+<div class="i" id="i_18">
+   <div class="e">x8664linuxgnatllvmtest fixedbugs qualifier=compiler=gnat-llvm <a href="https://gaia.adacore.com/#/e/106267987" target=_>FAILED</a></div>
+</div>
+
+<div class="i" id="i_19">
+   <div class="e">suse16test fixedbugs qualifier=no-ms <a href="https://gaia.adacore.com/#/e/106274521" target=_>FAILED</a></div>
+</div>
+
+<h3>gnat-conformance-testsuite</h3>
+<div class="i" id="i_20">
+   <div class="e">suse16test gnat-conformance-testsuite qualifier=testsuite=gnat <a href="https://gaia.adacore.com/#/e/106276667" target=_>FAILED</a></div>
+</div>
+
+<h3>gnatcoll-bindings-python3_build</h3>
+<div class="i" id="i_21">
+   <div class="e">aarch64linux gnatcoll-bindings-python3_build  <a href="https://gaia.adacore.com/#/e/106260227" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_22">
+   <div class="e">aarch64linux gnatcoll-bindings-python3_build qualifier=python=3.13 <a href="https://gaia.adacore.com/#/e/106260244" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_23">
+   <div class="e">x8664linux gnatcoll-bindings-python3_build qualifier=python=3.13 <a href="https://gaia.adacore.com/#/e/106260301" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_24">
+   <div class="e">x8664linux gnatcoll-bindings-python3_build  <a href="https://gaia.adacore.com/#/e/106260268" target=_>CRITICAL</a></div>
+</div>
+
+<h3>gnatcov</h3>
+<div class="i" id="i_25">
+   <div class="e">gnatcov_cross_win_test gnatcov qualifier=ccg,src-traces <a href="https://gaia.adacore.com/#/e/106280363" target=_>CRITICAL</a></div>
+</div>
+
+<h3>lal-refactor</h3>
+<div class="i" id="i_26">
+   <div class="e">ide_edge_lal_refactor_test_windows lal-refactor qualifier=edge <a href="https://gaia.adacore.com/#/e/106276539" target=_>FAILED</a></div>
+</div>
+
+<div class="i" id="i_27">
+   <div class="e">ide_lal_refactor_build_windows lal-refactor  <a href="https://gaia.adacore.com/#/e/106272652" target=_>FAILED</a></div>
+</div>
+
+<h3>polyorb_test</h3>
+<div class="i" id="i_28">
+   <div class="e">x86linuxrh8 polyorb_test  <a href="https://gaia.adacore.com/#/e/106273966" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_29">
+   <div class="e">x86ubuntu24test polyorb_test  <a href="https://gaia.adacore.com/#/e/106272822" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_30">
+   <div class="e">x86testassert polyorb_test qualifier=assert=gcc <a href="https://gaia.adacore.com/#/e/106275049" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_31">
+   <div class="e">x8664linuxrh8 polyorb_test  <a href="https://gaia.adacore.com/#/e/106274656" target=_>CRITICAL</a></div>
+</div>
+
+<h3>spark2014</h3>
+<div class="i" id="i_32">
+   <div class="e">sparktestaarch64linux spark2014 qualifier=large <a href="https://gaia.adacore.com/#/e/106271173" target=_>FAILED</a></div>
+</div>
+
+<h3>supertest</h3>
+<div class="i" id="i_33">
+   <div class="e">supertestlinux supertest qualifier=std=gnuxx17 <a href="https://gaia.adacore.com/#/e/106265802" target=_>FAILED</a></div>
+</div>
+
+<h3>supertest_test</h3>
+<div class="i" id="i_34">
+   <div class="e">riscv32elfwintestsupertest supertest_test qualifier=config_opt=l1N-sspN-imfc,std=c11 <a href="https://gaia.adacore.com/#/e/106277852" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_35">
+   <div class="e">riscv64elfwintestsupertest supertest_test qualifier=config_opt=l1N-sspN-imfc,std=c11 <a href="https://gaia.adacore.com/#/e/106278037" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_36">
+   <div class="e">aarch64elfwintestsupertest supertest_test qualifier=config_opt=l1128-ssp8-crypto,std=c11 <a href="https://gaia.adacore.com/#/e/106277660" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_37">
+   <div class="e">supertestwindows64 supertest_test qualifier=std=c11 <a href="https://gaia.adacore.com/#/e/106277019" target=_>CRITICAL</a></div>
+</div>
+
+<div class="i" id="i_38">
+   <div class="e">aarch64qnxwintestsupertest supertest_test qualifier=config_opt=l1N-sspN-default,std=c11 <a href="https://gaia.adacore.com/#/e/106277387" target=_>CRITICAL</a></div>
+</div>
+
+
+</body>
+</html>
+

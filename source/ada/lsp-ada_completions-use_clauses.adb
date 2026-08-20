@@ -105,7 +105,7 @@ package body LSP.Ada_Completions.Use_Clauses is
             detail              => <>,
             documentation       =>
               (Is_Set => True,
-               Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
+               Value  =>
                  (Is_Virtual_String => True,
                   Virtual_String    => Doc_Text)),
             deprecated          => (Is_Set => False),

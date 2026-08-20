@@ -164,6 +164,16 @@ package LSP.Utils is
       else S);
    --  Remove leading & trailing '"' (useful for string tokens)
 
+   function To_Documentation
+     (Text    : VSS.Strings.Virtual_String;
+      Formats : LSP.Structures.MarkupKind_Vector)
+      return LSP.Structures.Virtual_String_Or_MarkupContent;
+   --  Wrap Text as a completion documentation value respecting the client's
+   --  documentationFormat capability. When Formats is empty (client did not
+   --  advertise any format), returns a plain string. Otherwise returns
+   --  MarkupContent, preferring PlainText when supported since the content
+   --  is plain text, and falling back to Markdown (which accepts plain text).
+
 private
 
    function Is_Empty_Range (Value : LSP.Structures.A_Range) return Boolean is

@@ -83,6 +83,21 @@ package body LSP.Ada_Client_Capabilities is
       return (if Result.Is_Set then Result.Value else False);
    end Completion_SnippetSupport;
 
+   -------------------------
+   -- Completion_Doc_Kind --
+   -------------------------
+
+   function Completion_Doc_Kind
+     (Self : Client_Capability'Class) return LSP.Structures.MarkupKind_Vector
+   is
+      use LSP.Structures.Unwrap;
+   begin
+      return documentationFormat
+        (completionItem
+           (completion
+              (Self.Value.capabilities.textDocument)));
+   end Completion_Doc_Kind;
+
    -----------------------------------------------
    -- didChangeWatchedFiles_dynamicRegistration --
    -----------------------------------------------

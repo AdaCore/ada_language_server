@@ -211,7 +211,7 @@
                         "label": "Standard",
                         "kind": 9,
                         "detail": "Standard\n\npackage Standard",
-                        "documentation": "at __standard (3:1)",
+                        "documentation": {"kind": "plaintext", "value": "at __standard (3:1)"},
                         "sortText": "100&00001Standard"
                      }
                   ]

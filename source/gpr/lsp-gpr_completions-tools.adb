@@ -183,10 +183,10 @@ package body LSP.GPR_Completions.Tools is
             Item.documentation :=
               (Is_Set => True,
                Value  =>
-                 LSP.Structures.Virtual_String_Or_MarkupContent'
-                   (Is_Virtual_String => True,
-                    Virtual_String    =>
-                      VSS.Strings.Conversions.To_Virtual_String (Switch_Doc)));
+                 (Is_Virtual_String => True,
+                  Virtual_String    =>
+                    VSS.Strings.Conversions.To_Virtual_String
+                      (Switch_Doc)));
 
             --  If the client supports labelDetails, add the switch doc there
             if Has_Label_Details_Support then

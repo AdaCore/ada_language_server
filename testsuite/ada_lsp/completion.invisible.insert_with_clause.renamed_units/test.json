@@ -164,7 +164,7 @@
                            "title": ""
                         },
                         "detail": "Bar.Do_Something\n\nprocedure Do_Something",
-                        "documentation": "at bar.ads (3:4)",
+                        "documentation": {"kind": "plaintext", "value": "at bar.ads (3:4)"},
                         "filterText": "Do_Something",
                         "insertText": "Do_Something",
                         "kind": 3,

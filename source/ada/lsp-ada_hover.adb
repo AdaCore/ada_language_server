@@ -196,7 +196,7 @@ package body LSP.Ada_Hover is
          Response.Value.contents.MarkedString_Vector.Append
            (LSP.Structures.MarkedString'
               (Is_Virtual_String => False,
-               language          => "plaintext",
+               language          => "text",
                value             => Documentation_Text));
       end if;
 

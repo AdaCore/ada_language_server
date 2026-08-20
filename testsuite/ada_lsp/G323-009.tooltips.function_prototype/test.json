@@ -113,7 +113,7 @@
                      "at x.ads (3:4)",
                      {
                         "value": "yo\n\n@return",
-                        "language": "plaintext"
+                        "language": "text"
                      }
                   ]
                }

@@ -174,7 +174,7 @@
                            "title": ""
                         },
                         "detail": "Foo.Do_Nothing\n\nprocedure Do_Nothing",
-                        "documentation": "at foo.ads (3:4)",
+                        "documentation": {"kind": "plaintext", "value": "at foo.ads (3:4)"},
                         "filterText": "Do_Nothing",
                         "insertText": "Do_Nothing",
                         "kind": 3,
@@ -203,7 +203,7 @@
                            "title": ""
                         },
                         "detail": "Foo.Foo_Type\n\ntype Foo_Type is tagged null record;",
-                        "documentation": "at foo.ads (5:4)",
+                        "documentation": {"kind": "plaintext", "value": "at foo.ads (5:4)"},
                         "filterText": "Foo_Type",
                         "insertText": "Foo_Type",
                         "kind": 7,

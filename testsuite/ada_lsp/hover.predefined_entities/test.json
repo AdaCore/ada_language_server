@@ -216,7 +216,7 @@
                         "value": "GNAT RM"
                      },
                      {
-                        "language": "plaintext",
+                        "language": "text",
                         "value": "This aspect is equivalent to *note pragma SPARK_Mode: f9. and may be\nspecified for either or both of the specification and body of a\nsubprogram or package."
                      }
                   ]
@@ -251,7 +251,7 @@
                         "value": "Ada RM"
                      },
                      {
-                        "language": "plaintext",
+                        "language": "text",
                         "value": "Syntax:\n\npragma Convention ([Convention=>]convention_identifier,[Entity=>]local_name);"
                      }
                   ]
@@ -286,7 +286,7 @@
                         "value": "Ada RM"
                      },
                      {
-                        "language": "plaintext",
+                        "language": "text",
                         "value": "For every subtype S of a type T:\n\n\nS'Image denotes a function with the following specification:\n\n\nfunction S'Image(Arg : S'Base)\nreturn String\n\n\nS'Image calls S'Put_Image passing Arg (which will typically\nstore a sequence of character values in a text buffer) and\nthen returns the result of retrieving the contents of that\nbuffer with function Get. See 4.10."
                      }
                   ]

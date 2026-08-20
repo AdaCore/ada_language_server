@@ -179,7 +179,7 @@
                               }
                            ]
                         },
-                        "documentation": "at common_pack.ads (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at common_pack.ads (2:4)"}
                      }
                   ]
                }
@@ -220,7 +220,7 @@
                      }
                   ]
                },
-               "documentation": "at common_pack.ads (2:4)"
+               "documentation": {"kind": "plaintext", "value": "at common_pack.ads (2:4)"}
             }
          },
          "wait": [
@@ -229,7 +229,7 @@
                "result": {
                   "label": "Foo (invisible)",
                   "kind": 3,
-                  "documentation": "at common_pack.ads (2:4)",
+                  "documentation": {"kind": "plaintext", "value": "at common_pack.ads (2:4)"},
                   "sortText": "~100&00000Foo",
                   "filterText": "Foo",
                   "insertText": "Foo",
@@ -310,7 +310,7 @@
                               }
                            ]
                         },
-                        "documentation": "at common_pack.ads (2:4)"
+                        "documentation": {"kind": "plaintext", "value": "at common_pack.ads (2:4)"}
                      }
                   ]
                }
@@ -372,7 +372,7 @@
                "result": {
                   "label": "Foo (invisible)",
                   "kind": 3,
-                  "documentation": "at common_pack.ads (2:4)",
+                  "documentation": {"kind": "plaintext", "value": "at common_pack.ads (2:4)"},
                   "sortText": "~100&00000Foo",
                   "filterText": "Foo",
                   "insertText": "Foo",
@@ -396,7 +396,7 @@
                         }
                      ]
                   },
-                  "documentation": "at common_pack.ads (2:4)"
+                  "documentation": {"kind": "plaintext", "value": "at common_pack.ads (2:4)"}
                }
             }
          ]
@@ -524,7 +524,7 @@
                      }
                   ]
                },
-               "documentation": "at a-suteio.ads (55:4)"
+               "documentation": {"kind": "plaintext", "value": "at a-suteio.ads (55:4)"}
             }
          },
          "wait": [
@@ -533,7 +533,7 @@
                "result": {
                   "label": "Put_Line (invisible)",
                   "kind": 3,
-                  "documentation": "at a-suteio.ads (55:4)",                  "sortText": "~100&00000Put_Line",
+                  "documentation": {"kind": "plaintext", "value": "at a-suteio.ads (55:4)"},                  "sortText": "~100&00000Put_Line",
                   "filterText": "Put_Line",
                   "insertText": "Put_Line",
                   "command": {
