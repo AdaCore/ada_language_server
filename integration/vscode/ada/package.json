@@ -1840,6 +1840,7 @@
             ]
         },
         "configurationDefaults": {
+            "references.preferredLocation": "view",
             "[ada]": {
                 "editor.tabSize": 3,
                 "editor.detectIndentation": false,

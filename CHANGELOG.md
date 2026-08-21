@@ -6,6 +6,7 @@ section below it for the last release. -->
 
 * `null` is now highlighted as a keyword rather than as a constant, so that both words of `null record` are coloured alike
 * `null` used as a value (e.g. `Foo := null`) is now reported as a constant through semantic tokens, so that it keeps the colour of a language literal
+* Reference searches are now displayed in VS Code's `References: Results` view rather than in the peek widget, so that they can be navigated with `F4`/`Shift+F4` and retrieved from the view's history. This is done by defaulting the `references.preferredLocation` setting to `view`. See [Navigating references](./doc/vscode-ug.md#navigating-references)
 
 ## 2026.3.202607051
 

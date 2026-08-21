@@ -549,6 +549,36 @@ These shortcuts can be customized and new shortcuts can be added for other tasks
 }
 ```
 
+### Navigating references
+
+Navigating references is entirely handled by VS Code itself: the extension only
+provides the underlying language server requests. The commands and shortcuts
+below are therefore the standard ones, available for Ada and GPR files as for
+any other language.
+
+| Command                    | Shortcut                         | Description                                                                 |
+|----------------------------|----------------------------------|-----------------------------------------------------------------------------|
+| `Go to References`         | `Shift+F12`                      | Lists the references to the entity under the cursor                         |
+| `Find All References`      | `Shift+Alt+F12`                  | Same, always displayed in the `References: Results` view                    |
+| `Go to Next Reference`     | `F4`                             | Moves to the next result of the current search                              |
+| `Go to Previous Reference` | `Shift+F4`                       | Moves to the previous result of the current search                          |
+| `Show Call Hierarchy`      | `Shift+Alt+H`                    | Displays the callers of the entity under the cursor in the same view        |
+| `Show Type Hierarchy`      | `None`                           | Displays the type hierarchy of the entity under the cursor in the same view |
+| `Go Back`                  | `Ctrl+Alt+-` (`Ctrl+-` on macOS) | Returns to the previous location in the editor navigation history           |
+| `Go Forward`               | `Ctrl+Shift+-`                   | Moves forward again in the editor navigation history                        |
+
+Results are displayed in the `References: Results` view, which keeps the list of
+hits available while you walk through them with `F4` and `Shift+F4`. The view
+also remembers the searches previously run in the same window: use the
+`Show History` entry of its `...` menu to go back to an earlier search and
+resume navigating its results.
+
+The extension sets the `references.preferredLocation` setting to `view` by
+default, so that both `Go to References` and `Find All References` populate that
+view. Set it back to `peek` if you prefer the transient peek widget shown
+directly in the editor, keeping in mind that peek results are discarded as soon
+as the widget is closed and are never added to the view's history.
+
 ## macOS and Apple Silicon
 
 On macOS with Apple silicon it is possible to use either the native `aarch64` version of the GNAT compiler or the `x86_64` version running seamlessly with [Rosetta](https://support.apple.com/en-us/HT211861).
@@ -572,6 +602,17 @@ The VS Code extension has a few limitations and some differences compared to [GN
 
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
+
+* **References and call trees**: GNAT Studio's _Find All References_ and _Call
+  Trees_ views are replaced by VS Code's `References: Results`, `Call Hierarchy`
+  and `Type Hierarchy` views, described in
+  [Navigating references](#navigating-references), and by the graphs of the
+  [Code Visualizer](#code-visualizer). Two differences are worth noting: the
+  `References: Results` view displays a single search at a time, past searches
+  being reachable only through its `Show History` menu and only for the lifetime
+  of the window, whereas GNAT Studio accumulates them side by side; and the Code
+  Visualizer graphs are re-rooted on the entity of each new request instead of
+  growing as GNAT Studio's call trees do.
 
 * **Tooling support**: we currently provide support for some _SPARK_, _GNATtest_, _GNATcoverage_, _GNAT SAS_, _GNATmetric_ and _GNATemulator_ [Tasks](#tasks), but some workflows may not be supported yet.
 
