@@ -19,6 +19,7 @@ import commandExists from 'command-exists';
 import * as vscode from 'vscode';
 import { getProjectFromConfigOrALS, sparkLimitRegionArg, sparkLimitSubpArg } from './commands';
 import { DEFAULT_PROBLEM_MATCHERS, WarningMessageExecution } from './taskProviders';
+import { gprScenarioArgs } from './helpers';
 
 /**
  * Callback to provide an extra argument for a tool
@@ -297,7 +298,7 @@ export async function getTasks(): Promise<vscode.Task[]> {
             const cmd = alr.concat(
                 item.command ?? [],
                 await getProjectArgs(),
-                getScenarioArgs(),
+                gprScenarioArgs(),
                 await extraArgsFromTask,
                 getDiagnosticArgs(),
             );
@@ -333,18 +334,6 @@ export const getDiagnosticArgs = (): string[] => {
     const p_gnatef = ["'-cargs:ada'", '-gnatef'];
     return p_gnatef;
 };
-export function getScenarioArgs(): string[] {
-    const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
-    );
-    const fold = (args: string[], item: string[]): string[] => {
-        const option = '-X' + item[0] + '=' + item[1];
-        return args.concat([option]);
-    };
-
-    // for each scenarioVariables put `-Xname=value` option
-    return vars.reduce(fold, []);
-}
 //  Alire `exec` command if we have `alr` installed and `alire.toml`
 
 export async function alire(): Promise<string[]> {

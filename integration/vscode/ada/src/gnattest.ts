@@ -13,8 +13,8 @@ import {
     CoberturaFileCoverage,
     GnatcovFileCoverage,
 } from './gnatcov';
-import { getScenarioArgs } from './gnatTaskProvider';
-import { escapeRegExp, exe, setTerminalEnvironment, slugify } from './helpers';
+
+import { escapeRegExp, exe, getToolEnvironment, gprScenarioArgs, slugify } from './helpers';
 import {
     findTaskByName,
     getOrCreateTask,
@@ -713,11 +713,8 @@ async function handleRunRequestedTests(
             return path.join(tracesDir, slugify(test.id) + '.srctrace');
         }
 
-        /**
-         * Use environment provided by terminal.integrated.env.* for test execution.
-         */
-        const env = { ...process.env };
-        setTerminalEnvironment(env);
+        //  Run the tests in the environment the user's terminal would use.
+        const env = getToolEnvironment();
 
         for (const test of testsToRun) {
             if (token?.isCancellationRequested) {
@@ -887,7 +884,7 @@ async function buildTestDriverAndReportErrors(
                     ...(await getCoverageLevelArgs('instrument')),
                     '-P',
                     await getGnatTestDriverProjectPath(),
-                ].concat(getScenarioArgs()),
+                ].concat(gprScenarioArgs()),
             }),
         );
 
@@ -904,7 +901,7 @@ async function buildTestDriverAndReportErrors(
                     '-P',
                     await getGnatTestDriverProjectPath(),
                 ]
-                    .concat(getScenarioArgs())
+                    .concat(gprScenarioArgs())
                     .concat(["'-cargs:ada'", '-gnatef']),
             }),
         );

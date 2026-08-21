@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
-import { getMains, getExecutables, getProjectFile } from './helpers';
+import { getMains, getExecutables, getProjectFile, gprScenarioArgs } from './helpers';
 import { DEFAULT_PROBLEM_MATCHERS, WarningMessageExecution } from './taskProviders';
 
 /**
@@ -180,15 +180,7 @@ function getBuildTasks(projectFile: string, mainFiles: string[]): vscode.Task[] 
  * @returns a list of arguments
  */
 function getMainBuildArgs(projectFile?: string, mainFile?: string): string[] {
-    const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
-    );
-    const fold = (args: string[], item: string[]): string[] => {
-        const option = '-X' + item[0] + '=' + item[1];
-        return args.concat([option]);
-    };
-    //  for each scenarioVariables put `-Xname=value` option
-    const args = vars.reduce(fold, []).concat(
+    const args = gprScenarioArgs().concat(
         //  append projectFile is any
         projectFile ? [projectFile] : [],
     );

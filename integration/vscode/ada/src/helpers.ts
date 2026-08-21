@@ -247,6 +247,35 @@ export function setTerminalEnvironment(targetEnv: NodeJS.ProcessEnv, custom_env?
     }
 }
 
+/**
+ * @returns a copy of this process's environment with the user's
+ * `terminal.integrated.env.<os>` settings applied, i.e. the environment that a
+ * tool spawned by the extension should run in.
+ *
+ * Use this rather than `process.env` when spawning anything, so that a tool
+ * resolves and behaves the same way it would in the user's terminal.
+ */
+export function getToolEnvironment(): NodeJS.ProcessEnv {
+    const env = { ...process.env };
+    setTerminalEnvironment(env);
+    return env;
+}
+
+/**
+ * @returns the `-X<name>=<value>` switches for the scenario variables
+ * configured for the workspace, for use with GPR-based tools.
+ *
+ * Pass these to anything the extension spawns that loads the project, so that
+ * it sees the same project as the language server.
+ */
+export function gprScenarioArgs(): string[] {
+    const vars: string[][] = Object.entries(
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
+    );
+
+    return vars.map(([name, value]) => `-X${name}=${value}`);
+}
+
 export function assertSupportedEnvironments(mainChannel: winston.Logger) {
     // Get the ALS environment variable from the custom environment, or from the
     // process environment
@@ -524,8 +553,7 @@ export function envHasExec(execName: string): boolean {
 export function which(execName: string, searchEnv?: EnvTable) {
     /* If no extension provided, check platform */
     const execNameWithExtension = path.extname(execName) === '' ? execName + exe : execName;
-    const env = { ...process.env };
-    setTerminalEnvironment(env);
+    const env = getToolEnvironment();
 
     /* Search provided PATH first, if any */
     let pathVal = env.PATH;

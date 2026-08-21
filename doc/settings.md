@@ -100,6 +100,7 @@ Settings taken into account only from the Ada & SPARK VS Code extension:
 * [projectView.flatMode](#projectviewflatmode)
 * [projectView.showObjectDirectories](#projectviewshowobjectdirectories)
 * [projectView.showRuntimeFiles](#projectviewshowruntimefiles)
+* [externalAnnotations.showInEditor](#externalannotationsshowineditor)
 
 Settings understood by the Ada Language Server itself, independently from the LSP client:
 
@@ -206,6 +207,13 @@ This is a VS Code-only setting.
 
 Controls whether the Project View in VS Code displays runtime source files.
 This is a VS Code-only setting.
+
+### externalAnnotations.showInEditor
+
+Controls whether the GNATcoverage external annotations of the project are
+highlighted in the editor. The annotation files themselves come from the
+`Coverage'External_Annotations` project attribute, not from a setting. This is a
+VS Code-only setting.
 
 ### gprConfigurationFile
 

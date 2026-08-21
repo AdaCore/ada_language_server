@@ -9,7 +9,7 @@ import {
     State,
 } from 'vscode-languageclient/node';
 import { logger } from './extension';
-import { logErrorAndThrow, setTerminalEnvironment } from './helpers';
+import { getToolEnvironment, logErrorAndThrow, setTerminalEnvironment } from './helpers';
 
 export class AdaLanguageClient extends LanguageClient {
     /**
@@ -110,10 +110,7 @@ export function createClient(
 
     logger.info(`Using ALS at: ${serverExecPath}`);
 
-    // Copy this process's environment
-    const serverEnv: NodeJS.ProcessEnv = { ...process.env };
-    // Set custom environment
-    setTerminalEnvironment(serverEnv);
+    const serverEnv: NodeJS.ProcessEnv = getToolEnvironment();
 
     // Options to control the server
     const serverOptions: ServerOptions = {

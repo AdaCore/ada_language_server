@@ -44,6 +44,7 @@ import { loadCoberturaReport, loadGnatCoverageReport } from './gnattest';
 import { findMetricsXmlForSource } from './metricsUtils';
 import {
     findAdaMain,
+    gprScenarioArgs,
     getProjectFileRelPath,
     getSymbols,
     isExtensionInstalled,
@@ -1180,18 +1181,6 @@ export async function gprProjectArgs(): Promise<string[]> {
 }
 
 export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
-
-/**
- * @returns an array of -X scenario command lines arguments for use with
- * GPR-based tools.
- */
-export function gprScenarioArgs() {
-    const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
-    );
-    const scenarioArgs = vars.map(([key, value]) => `-X${key}=${value}`);
-    return scenarioArgs;
-}
 
 /**
  * @returns `"$\{config:ada.projectFile\}"` if that setting has a value, or else
