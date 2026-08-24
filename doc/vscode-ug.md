@@ -552,32 +552,74 @@ These shortcuts can be customized and new shortcuts can be added for other tasks
 ### Navigating references
 
 Navigating references is entirely handled by VS Code itself: the extension only
-provides the underlying language server requests. The commands and shortcuts
-below are therefore the standard ones, available for Ada and GPR files as for
+provides the underlying language server requests. The commands below are
+therefore the standard ones, contributed by the `Reference Search View`
+extension that is built into VS Code, and they work in Ada and GPR files as in
 any other language.
 
-| Command                    | Shortcut                         | Description                                                                 |
-|----------------------------|----------------------------------|-----------------------------------------------------------------------------|
-| `Go to References`         | `Shift+F12`                      | Lists the references to the entity under the cursor                         |
-| `Find All References`      | `Shift+Alt+F12`                  | Same, always displayed in the `References: Results` view                    |
-| `Go to Next Reference`     | `F4`                             | Moves to the next result of the current search                              |
-| `Go to Previous Reference` | `Shift+F4`                       | Moves to the previous result of the current search                          |
-| `Show Call Hierarchy`      | `Shift+Alt+H`                    | Displays the callers of the entity under the cursor in the same view        |
-| `Show Type Hierarchy`      | `None`                           | Displays the type hierarchy of the entity under the cursor in the same view |
-| `Go Back`                  | `Ctrl+Alt+-` (`Ctrl+-` on macOS) | Returns to the previous location in the editor navigation history           |
-| `Go Forward`               | `Ctrl+Shift+-`                   | Moves forward again in the editor navigation history                        |
+Results are displayed in the `References` view, which sits in the Activity Bar
+and appears as soon as a search is run.
 
-Results are displayed in the `References: Results` view, which keeps the list of
-hits available while you walk through them with `F4` and `Shift+F4`. The view
-also remembers the searches previously run in the same window: use the
-`Show History` entry of its `...` menu to go back to an earlier search and
-resume navigating its results.
+| Command                           | Shortcut                                      | Description                                                                    |
+|-----------------------------------|-----------------------------------------------|--------------------------------------------------------------------------------|
+| `References: Find All References` | `Shift+Alt+F12`, and `Shift+F12` (see below)  | Lists the references to the entity under the cursor in the `References` view    |
+| `Go to References`                | `Shift+F12` in other languages (see below)    | Shows the references to the entity under the cursor in the editor's peek widget |
+| `Go to Next Reference`            | `F4`                                          | Moves to the next result of the current search                                  |
+| `Go to Previous Reference`        | `Shift+F4`                                    | Moves to the previous result of the current search                              |
+| `References: Show History`        | `None`                                        | Runs one of the reference searches previously made in the same window again     |
+| `Calls: Show Call Hierarchy`      | `Shift+Alt+H`                                 | Displays the callers of the entity under the cursor in the same view            |
+| `Types: Show Type Hierarchy`      | `None`                                        | Displays the type hierarchy of the entity under the cursor in the same view     |
+| `Go Back`                         | `Ctrl+Alt+-` (`Ctrl+-` on macOS)              | Returns to the previous location in the editor navigation history               |
+| `Go Forward`                      | `Ctrl+Shift+-`                                | Moves forward again in the editor navigation history                            |
 
-The extension sets the `references.preferredLocation` setting to `view` by
-default, so that both `Go to References` and `Find All References` populate that
-view. Set it back to `peek` if you prefer the transient peek widget shown
-directly in the editor, keeping in mind that peek results are discarded as soon
-as the widget is closed and are never added to the view's history.
+#### Going back to a previous search
+
+The `References` view holds **one search at a time**: running a new search
+replaces its contents, just as VS Code's `Search` view does. It does however
+remember the searches made in the current window, and there are two ways back to
+them:
+
+- run `References: Show History` from the Command Palette and pick an entry from
+  the list that appears; or
+- press the `Clear` button in the view's title bar. The results are then replaced
+  by the history — under the message `No results. Try running a previous search
+  again:` — and any entry can be clicked, or its `Rerun` button pressed, to
+  return to it.
+
+Note that in both cases the search is *run again* rather than restored from a
+cache, so its results reflect the current state of the sources. Note also that
+the history is kept in memory only: it is lost when the window is closed or
+reloaded, and `References: Clear History` — offered in the view's title bar once
+the results have been cleared — discards it explicitly.
+
+#### Peek widget or view?
+
+VS Code has two presentations for reference searches: the transient `peek`
+widget displayed in the editor, whose contents are discarded as soon as it is
+closed, and the persistent `References` view described above, which is the only
+one of the two to keep a history. The extension nudges both of the usual entry
+points towards the view:
+
+- `Shift+F12` is bound to `References: Find All References` in Ada and GPR files,
+  so that the customary shortcut lands in the view rather than in the peek
+  widget. Elsewhere it keeps its standard meaning of `Go to References`.
+- the `references.preferredLocation` setting is defaulted to `view`. This
+  setting governs the reference CodeLenses and, more generally, every caller of
+  the `editor.action.showReferences` command; despite its name it has no effect
+  on the `Go to References` command, which is why the key binding above is needed
+  as well.
+
+To restore the stock VS Code behaviour, set `references.preferredLocation` back
+to `peek` in your settings, and remove the key binding with the command
+`Preferences: Open Keyboard Shortcuts (JSON)` and an entry like the following:
+
+```json
+{
+    "command": "-references-view.findReferences",
+    "key": "shift+f12",
+    "when": "editorHasReferenceProvider && editorTextFocus && (editorLangId == ada || editorLangId == gpr)"
+}
+```
 
 ## macOS and Apple Silicon
 
@@ -604,15 +646,17 @@ The VS Code extension has a few limitations and some differences compared to [GN
 formatting might no succeed on incomplete/illegal code.
 
 * **References and call trees**: GNAT Studio's _Find All References_ and _Call
-  Trees_ views are replaced by VS Code's `References: Results`, `Call Hierarchy`
-  and `Type Hierarchy` views, described in
+  Trees_ views are replaced by VS Code's single `References` view, which also
+  hosts the call and type hierarchies, described in
   [Navigating references](#navigating-references), and by the graphs of the
-  [Code Visualizer](#code-visualizer). Two differences are worth noting: the
-  `References: Results` view displays a single search at a time, past searches
-  being reachable only through its `Show History` menu and only for the lifetime
-  of the window, whereas GNAT Studio accumulates them side by side; and the Code
-  Visualizer graphs are re-rooted on the entity of each new request instead of
-  growing as GNAT Studio's call trees do.
+  [Code Visualizer](#code-visualizer). Two differences are worth noting. First,
+  the `References` view displays a single search at a time: where GNAT Studio
+  accumulates searches side by side, VS Code replaces the results on every new
+  search and merely keeps a list of the previous ones, which have to be
+  [run again](#going-back-to-a-previous-search) to be consulted; that list is
+  moreover only kept for the lifetime of the window. Second, the Code Visualizer
+  graphs are re-rooted on the entity of each new request instead of growing as
+  GNAT Studio's call trees do.
 
 * **Tooling support**: we currently provide support for some _SPARK_, _GNATtest_, _GNATcoverage_, _GNAT SAS_, _GNATmetric_ and _GNATemulator_ [Tasks](#tasks), but some workflows may not be supported yet.
 
