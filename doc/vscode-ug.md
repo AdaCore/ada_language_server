@@ -554,8 +554,14 @@ These shortcuts can be customized and new shortcuts can be added for other tasks
 Navigating references is entirely handled by VS Code itself: the extension only
 provides the underlying language server requests. The commands below are
 therefore the standard ones, contributed by the `Reference Search View`
-extension that is built into VS Code, and they work in Ada and GPR files as in
-any other language.
+extension that is built into VS Code, and they work in Ada files as in any other
+language.
+
+They are **not available in GPR files**: the GPR language server does not
+implement reference lookup nor the call and type hierarchies, so VS Code
+disables these commands in a `.gpr` editor. `Go to Definition` and
+`Go to Declaration` are supported there and remain the way to navigate a project
+file.
 
 Results are displayed in the `References` view, which sits in the Activity Bar
 and appears as soon as a search is run.
@@ -622,10 +628,10 @@ closed, and the persistent `References` view described above, which is the only
 one of the two to keep a history. Which of the two you get depends on the
 command invoked, and on nothing else:
 
-- `References: Find All References` always fills the view. In Ada and GPR files
-  the extension binds it to `Shift+F12`, so that the customary shortcut lands in
-  the view rather than in the peek widget; elsewhere `Shift+F12` keeps its
-  standard meaning of `Go to References`.
+- `References: Find All References` always fills the view. In Ada files the
+  extension binds it to `Shift+F12`, so that the customary shortcut lands in the
+  view rather than in the peek widget; elsewhere `Shift+F12` keeps its standard
+  meaning of `Go to References`.
 - `Go to References`, and `Peek > Peek References` — also reachable by holding
   `Ctrl` and clicking an entity — always open the peek widget, and leave the
   `References` view and its history untouched.
@@ -637,7 +643,7 @@ To restore the stock VS Code behaviour, remove the key binding with the command
 {
     "command": "-references-view.findReferences",
     "key": "shift+f12",
-    "when": "editorHasReferenceProvider && editorTextFocus && (editorLangId == ada || editorLangId == gpr)"
+    "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
 }
 ```
 

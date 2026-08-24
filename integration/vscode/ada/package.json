@@ -1612,7 +1612,7 @@
             {
                 "command": "references-view.findReferences",
                 "key": "shift+f12",
-                "when": "editorHasReferenceProvider && editorTextFocus && (editorLangId == ada || editorLangId == gpr)"
+                "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
             }
         ],
         "menus": {
