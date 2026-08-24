@@ -566,31 +566,57 @@ and appears as soon as a search is run.
 | `Go to References`                | `Shift+F12` in other languages (see below)    | Shows the references to the entity under the cursor in the editor's peek widget |
 | `Go to Next Reference`            | `F4`                                          | Moves to the next result of the current search                                  |
 | `Go to Previous Reference`        | `Shift+F4`                                    | Moves to the previous result of the current search                              |
-| `References: Show History`        | `None`                                        | Runs one of the reference searches previously made in the same window again     |
+| `References: Show History`        | `None` (see below)                            | Runs one of the reference searches previously made in the same window again     |
 | `Calls: Show Call Hierarchy`      | `Shift+Alt+H`                                 | Displays the callers of the entity under the cursor in the same view            |
 | `Types: Show Type Hierarchy`      | `None`                                        | Displays the type hierarchy of the entity under the cursor in the same view     |
 | `Go Back`                         | `Ctrl+Alt+-` (`Ctrl+-` on macOS)              | Returns to the previous location in the editor navigation history               |
 | `Go Forward`                      | `Ctrl+Shift+-`                                | Moves forward again in the editor navigation history                            |
+
+A word of warning about the Command Palette, which hides some of these commands
+on purpose: `Go to Next Reference` and `Go to Previous Reference` are never
+listed there and are reachable only through `F4` / `Shift+F4`, and
+`References: Show History` is listed only once a search has been run — see
+[Going back to a previous search](#going-back-to-a-previous-search) below.
 
 #### Going back to a previous search
 
 The `References` view holds **one search at a time**: running a new search
 replaces its contents, just as VS Code's `Search` view does. It does however
 remember the searches made in the current window, and there are two ways back to
-them:
+them.
 
-- run `References: Show History` from the Command Palette and pick an entry from
-  the list that appears; or
-- press the `Clear` button in the view's title bar. The results are then replaced
-  by the history — under the message `No results. Try running a previous search
-  again:` — and any entry can be clicked, or its `Rerun` button pressed, to
-  return to it.
+The first needs nothing but the view itself, and is the one to prefer because it
+is always available: press the `Clear` button in the view's title bar. The
+results are then replaced by the history — under the message `No results. Try
+running a previous search again:` — and any entry can be clicked, or its `Rerun`
+button pressed, to return to it.
 
-Note that in both cases the search is *run again* rather than restored from a
-cache, so its results reflect the current state of the sources. Note also that
-the history is kept in memory only: it is lost when the window is closed or
-reloaded, and `References: Clear History` — offered in the view's title bar once
-the results have been cleared — discards it explicitly.
+The second is the `References: Show History` command, which opens a quick pick
+titled `Select previous reference search`. Note that VS Code lists this command
+in the Command Palette **only once a reference search has been run in the
+current window**: it is contributed under the condition
+`reference-list.isActive`, which the built-in extension raises the first time it
+populates the view and never lowers again. Looked for in a freshly opened
+window, before any search, the command is therefore simply absent; run
+`Shift+F12` once and it appears, and stays for the lifetime of the window.
+
+The command has no default key binding, but the
+`Preferences: Open Keyboard Shortcuts (JSON)` editor lists it regardless of the
+condition above, so those who would rather not go through the Command Palette
+can give it one — for instance:
+
+```json
+{
+    "command": "references-view.pickFromHistory",
+    "key": "meta+y meta+h"
+}
+```
+
+In both cases the search is *run again* rather than restored from a cache, so its
+results reflect the current state of the sources. And the history is kept in
+memory only: it is lost when the window is closed or reloaded, and
+`References: Clear History` — offered in the view's title bar once the results
+have been cleared — discards it explicitly.
 
 #### Peek widget or view?
 
