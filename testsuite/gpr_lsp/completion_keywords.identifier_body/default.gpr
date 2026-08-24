@@ -1,0 +1,3 @@
+project Default is
+   Library := "static";
+end Default;

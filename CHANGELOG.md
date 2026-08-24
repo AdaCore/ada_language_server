@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* GPR files: keywords are now proposed by completion, according to the syntactic context (project qualifiers, declarations, case constructs)
 * `null` is now highlighted as a keyword rather than as a constant, so that both words of `null record` are coloured alike
 * `null` used as a value (e.g. `Foo := null`) is now reported as a constant through semantic tokens, so that it keeps the colour of a language literal
 * In Ada files, `Shift+F12` now runs `Find All References`, which displays the results in VS Code's `References` view instead of the editor's peek widget, so that they can be navigated with `F4`/`Shift+F4` and run again later from the view's history. See [Navigating references](./doc/vscode-ug.md#navigating-references)

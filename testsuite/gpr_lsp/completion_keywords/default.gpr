@@ -1,0 +1,8 @@
+project Default is
+   V : external ("MODE") := "a";
+   case V is
+      when "a" =>
+         for Source_Dirs use ();
+      when
+   end case;
+end Default;

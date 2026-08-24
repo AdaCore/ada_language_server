@@ -1,0 +1,157 @@
+[
+   {
+      "comment": [
+         "GPR keyword completion after a with clause semicolon"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}",
+            "--language-gpr"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "documentSymbolProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "gprFileDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr",
+                  "version": 0,
+                  "text": "with \"a.gpr\";\n   \nproject Default is\nend Default;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "After ; in the import partition: file-start keywords only"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 3
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "with",
+                        "kind": 14
+                     },
+                     {
+                        "label": "limited",
+                        "kind": 14
+                     },
+                     {
+                        "label": "project",
+                        "kind": 14
+                     },
+                     {
+                        "label": "abstract",
+                        "kind": 14
+                     },
+                     {
+                        "label": "standard",
+                        "kind": 14
+                     },
+                     {
+                        "label": "library",
+                        "kind": 14
+                     },
+                     {
+                        "label": "aggregate",
+                        "kind": 14
+                     },
+                     {
+                        "label": "configuration",
+                        "kind": 14
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

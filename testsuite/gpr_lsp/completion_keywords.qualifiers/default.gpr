@@ -1,0 +1,3 @@
+limited with "a.gpr";
+project Default is
+end Default;

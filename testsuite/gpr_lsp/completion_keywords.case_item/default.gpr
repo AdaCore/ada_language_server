@@ -1,0 +1,9 @@
+project Default is
+   type Mode is ("a", "b");
+   V : Mode := "a";
+   case V is
+      when "a" =>
+         for Source_Dirs use ();
+
+   end case;
+end Default;

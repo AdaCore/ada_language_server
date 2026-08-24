@@ -1,0 +1,159 @@
+[
+   {
+      "comment": [
+         "GPR keyword completion after when"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}",
+            "--language-gpr"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "documentSymbolProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "gprFileDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr",
+                  "version": 0,
+                  "text": "project Default is\n   type Mode is (\"a\", \"b\");\n   V : Mode := \"a\";\n   case V is\n      when \"a\" =>\n         null;\n      when others =>\n         null;\n   end case;\nend Default;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 11
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 21
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "After when with value removed: propose others"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "others",
+                        "kind": 14
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

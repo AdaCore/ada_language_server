@@ -1,0 +1,154 @@
+[
+   {
+      "comment": [
+         "GPR keyword completion after end - no keywords proposed"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}",
+            "--language-gpr"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "documentSymbolProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "gprFileDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr",
+                  "version": 0,
+                  "text": "project Default is\n   type Mode is (\"a\", \"b\");\n   V : Mode := \"a\";\n   case V is\n      when \"a\" =>\n         null;\n      when others =>\n         null;\n   end case;\nend Default;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 12
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "After end: no keyword completion (user types name or case)"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 8,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
