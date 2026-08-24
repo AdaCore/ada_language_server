@@ -549,6 +549,104 @@ These shortcuts can be customized and new shortcuts can be added for other tasks
 }
 ```
 
+### Navigating references
+
+Navigating references is entirely handled by VS Code itself: the extension only
+provides the underlying language server requests. The commands below are
+therefore the standard ones, contributed by the `Reference Search View`
+extension that is built into VS Code, and they work in Ada files as in any other
+language.
+
+They are **not available in GPR files**: the GPR language server does not
+implement reference lookup nor the call and type hierarchies, so VS Code
+disables these commands in a `.gpr` editor. `Go to Definition` and
+`Go to Declaration` are supported there and remain the way to navigate a project
+file.
+
+Results are displayed in the `References` view, which sits in the Activity Bar
+and appears as soon as a search is run.
+
+| Command                           | Shortcut                                      | Description                                                                    |
+|-----------------------------------|-----------------------------------------------|--------------------------------------------------------------------------------|
+| `References: Find All References` | `Shift+Alt+F12`, and `Shift+F12` (see below)  | Lists the references to the entity under the cursor in the `References` view    |
+| `Go to References`                | `Shift+F12` in other languages (see below)    | Shows the references to the entity under the cursor in the editor's peek widget |
+| `Go to Next Reference`            | `F4`                                          | Moves to the next result of the current search                                  |
+| `Go to Previous Reference`        | `Shift+F4`                                    | Moves to the previous result of the current search                              |
+| `References: Show History`        | `None` (see below)                            | Runs one of the reference searches previously made in the same window again     |
+| `Calls: Show Call Hierarchy`      | `Shift+Alt+H`                                 | Displays the callers of the entity under the cursor in the same view            |
+| `Types: Show Type Hierarchy`      | `None`                                        | Displays the type hierarchy of the entity under the cursor in the same view     |
+| `Go Back`                         | `Ctrl+Alt+-` (`Ctrl+-` on macOS)              | Returns to the previous location in the editor navigation history               |
+| `Go Forward`                      | `Ctrl+Shift+-`                                | Moves forward again in the editor navigation history                            |
+
+A word of warning about the Command Palette, which hides some of these commands
+on purpose: `Go to Next Reference` and `Go to Previous Reference` are never
+listed there and are reachable only through `F4` / `Shift+F4`, and
+`References: Show History` is listed only once a search has been run — see
+[Going back to a previous search](#going-back-to-a-previous-search) below.
+
+#### Going back to a previous search
+
+The `References` view holds **one search at a time**: running a new search
+replaces its contents, just as VS Code's `Search` view does. It does however
+remember the searches made in the current window, and there are two ways back to
+them.
+
+The first needs nothing but the view itself, and is the one to prefer because it
+is always available: press the `Clear` button in the view's title bar. The
+results are then replaced by the history — under the message `No results. Try
+running a previous search again:` — and any entry can be clicked, or its `Rerun`
+button pressed, to return to it.
+
+The second is the `References: Show History` command, which opens a quick pick
+titled `Select previous reference search`. Note that VS Code lists this command
+in the Command Palette **only once a reference search has been run in the
+current window**.
+
+The command has no default key binding, but the
+`Preferences: Open Keyboard Shortcuts (JSON)` editor lists it regardless of the
+condition above, so those who would rather not go through the Command Palette
+can give it one — for instance:
+
+```json
+{
+    "command": "references-view.pickFromHistory",
+    "key": "meta+y meta+h"
+}
+```
+
+In both cases the search is *run again* rather than restored from a cache, so its
+results reflect the current state of the sources. And the history is kept in
+memory only: it is lost when the window is closed or reloaded, and
+`References: Clear History` — offered in the view's title bar once the results
+have been cleared — discards it explicitly.
+
+#### Peek widget or view?
+
+VS Code has two presentations for reference searches: the transient `peek`
+widget displayed in the editor, whose contents are discarded as soon as it is
+closed, and the persistent `References` view described above, which is the only
+one of the two to keep a history. Which of the two you get depends on the
+command invoked, and on nothing else:
+
+- `References: Find All References` always fills the view. In Ada files the
+  extension binds it to `Shift+F12`, so that the customary shortcut lands in the
+  view rather than in the peek widget; elsewhere `Shift+F12` keeps its standard
+  meaning of `Go to References`.
+- `Go to References`, and `Peek > Peek References` — also reachable by holding
+  `Ctrl` and clicking an entity — always open the peek widget, and leave the
+  `References` view and its history untouched.
+
+To restore the stock VS Code behaviour, remove the key binding with the command
+`Preferences: Open Keyboard Shortcuts (JSON)` and an entry like the following:
+
+```json
+{
+    "command": "-references-view.findReferences",
+    "key": "shift+f12",
+    "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
+}
+```
+
 ## macOS and Apple Silicon
 
 On macOS with Apple silicon it is possible to use either the native `aarch64` version of the GNAT compiler or the `x86_64` version running seamlessly with [Rosetta](https://support.apple.com/en-us/HT211861).
@@ -572,6 +670,19 @@ The VS Code extension has a few limitations and some differences compared to [GN
 
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
+
+* **References and call trees**: GNAT Studio's _Find All References_ and _Call
+  Trees_ views are replaced by VS Code's single `References` view, which also
+  hosts the call and type hierarchies, described in
+  [Navigating references](#navigating-references), and by the graphs of the
+  [Code Visualizer](#code-visualizer). Two differences are worth noting. First,
+  the `References` view displays a single search at a time: where GNAT Studio
+  accumulates searches side by side, VS Code replaces the results on every new
+  search and merely keeps a list of the previous ones, which have to be
+  [run again](#going-back-to-a-previous-search) to be consulted; that list is
+  moreover only kept for the lifetime of the window. Second, the Code Visualizer
+  graphs are re-rooted on the entity of each new request instead of growing as
+  GNAT Studio's call trees do.
 
 * **Tooling support**: we currently provide support for some _SPARK_, _GNATtest_, _GNATcoverage_, _GNAT SAS_, _GNATmetric_ and _GNATemulator_ [Tasks](#tasks), but some workflows may not be supported yet.
 

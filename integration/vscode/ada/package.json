@@ -1608,6 +1608,11 @@
                 "command": "ada.spark.tasks.proveLine",
                 "key": "meta+y meta+l",
                 "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "references-view.findReferences",
+                "key": "shift+f12",
+                "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
             }
         ],
         "menus": {
