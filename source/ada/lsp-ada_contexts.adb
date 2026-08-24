@@ -86,7 +86,7 @@ package body LSP.Ada_Contexts is
       Decl       : Libadalang.Analysis.Basic_Decl;
       Imprecise  : in out Boolean;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
    --  When called on a tagged type primitive declaration, iterate over all the
@@ -178,7 +178,7 @@ package body LSP.Ada_Contexts is
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -294,7 +294,7 @@ package body LSP.Ada_Contexts is
       Decl       : Libadalang.Analysis.Basic_Decl;
       Imprecise  : in out Boolean;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -359,7 +359,7 @@ package body LSP.Ada_Contexts is
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean;
       Callback          : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -379,7 +379,7 @@ package body LSP.Ada_Contexts is
 
       --  Append Definition itself so that it is also renamed
       Callback
-        (Base_Id => Definition.P_Relative_Name.As_Base_Id,
+        (Name    => Definition.P_Relative_Name.As_Name,
          Kind    => Libadalang.Common.Precise,
          Cancel  => Cancel);
 
@@ -402,7 +402,7 @@ package body LSP.Ada_Contexts is
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
    is
@@ -414,7 +414,7 @@ package body LSP.Ada_Contexts is
       for Item of Definition.P_Find_All_Calls (Units, Follow_Renamings => True)
       loop
          Callback
-           (Base_Id => Libadalang.Analysis.Ref (Item).As_Base_Id,
+           (Name    => Libadalang.Analysis.Ref (Item).As_Name,
             Kind    => Libadalang.Analysis.Kind (Item),
             Cancel  => Cancel);
 

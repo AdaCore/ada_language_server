@@ -94,7 +94,7 @@ package LSP.Ada_Contexts is
       Definition : Libadalang.Analysis.Defining_Name;
       Callback   :
         not null access procedure
-          (Base_Id : Libadalang.Analysis.Base_Id;
+          (Name     : Libadalang.Analysis.Name;
            Kind    : Libadalang.Common.Ref_Result_Kind;
            Cancel  : in out Boolean));
    --  Finds all references to a given defining name in all units of the
@@ -128,7 +128,7 @@ package LSP.Ada_Contexts is
       Definition : Libadalang.Analysis.Defining_Name;
       Callback   :
         not null access procedure
-          (Base_Id : Libadalang.Analysis.Base_Id;
+          (Name    : Libadalang.Analysis.Name;
            Kind    : Libadalang.Common.Ref_Result_Kind;
            Cancel  : in out Boolean));
    --  Return all the enclosing entities that call Definition in all sources
@@ -152,7 +152,7 @@ package LSP.Ada_Contexts is
       Imprecise_Results : out Boolean;
       Callback          :
         not null access procedure
-          (Base_Id : Libadalang.Analysis.Base_Id;
+          (Name    : Libadalang.Analysis.Name;
            Kind    : Libadalang.Common.Ref_Result_Kind;
            Cancel  : in out Boolean));
    --  Get all the references to a given defining name in all units for

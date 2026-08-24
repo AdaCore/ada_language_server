@@ -193,7 +193,7 @@ package LSP.Ada_Documents is
       Context    : LSP.Ada_Contexts.Context;
       Definition : Libadalang.Analysis.Defining_Name;
       Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
+        (Name    : Libadalang.Analysis.Name;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
    --  Finds all references to a given defining name in the document's unit and
