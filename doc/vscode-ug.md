@@ -594,11 +594,7 @@ button pressed, to return to it.
 The second is the `References: Show History` command, which opens a quick pick
 titled `Select previous reference search`. Note that VS Code lists this command
 in the Command Palette **only once a reference search has been run in the
-current window**: it is contributed under the condition
-`reference-list.isActive`, which the built-in extension raises the first time it
-populates the view and never lowers again. Looked for in a freshly opened
-window, before any search, the command is therefore simply absent; run
-`Shift+F12` once and it appears, and stays for the lifetime of the window.
+current window**.
 
 The command has no default key binding, but the
 `Preferences: Open Keyboard Shortcuts (JSON)` editor lists it regardless of the
