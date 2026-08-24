@@ -623,20 +623,18 @@ have been cleared — discards it explicitly.
 VS Code has two presentations for reference searches: the transient `peek`
 widget displayed in the editor, whose contents are discarded as soon as it is
 closed, and the persistent `References` view described above, which is the only
-one of the two to keep a history. The extension nudges both of the usual entry
-points towards the view:
+one of the two to keep a history. Which of the two you get depends on the
+command invoked, and on nothing else:
 
-- `Shift+F12` is bound to `References: Find All References` in Ada and GPR files,
-  so that the customary shortcut lands in the view rather than in the peek
-  widget. Elsewhere it keeps its standard meaning of `Go to References`.
-- the `references.preferredLocation` setting is defaulted to `view`. This
-  setting governs the reference CodeLenses and, more generally, every caller of
-  the `editor.action.showReferences` command; despite its name it has no effect
-  on the `Go to References` command, which is why the key binding above is needed
-  as well.
+- `References: Find All References` always fills the view. In Ada and GPR files
+  the extension binds it to `Shift+F12`, so that the customary shortcut lands in
+  the view rather than in the peek widget; elsewhere `Shift+F12` keeps its
+  standard meaning of `Go to References`.
+- `Go to References`, and `Peek > Peek References` — also reachable by holding
+  `Ctrl` and clicking an entity — always open the peek widget, and leave the
+  `References` view and its history untouched.
 
-To restore the stock VS Code behaviour, set `references.preferredLocation` back
-to `peek` in your settings, and remove the key binding with the command
+To restore the stock VS Code behaviour, remove the key binding with the command
 `Preferences: Open Keyboard Shortcuts (JSON)` and an entry like the following:
 
 ```json
