@@ -17,8 +17,8 @@
 --  Types for notifications sent to the client.
 
 with LSP.Generic_Notifications;
-with LSP.Client_Notification_Receivers;
-use LSP.Client_Notification_Receivers;
+with LSP.Client_Notification_Receivers_3_16;
+use LSP.Client_Notification_Receivers_3_16;
 
 package LSP.Messages.Client_Notifications is
 

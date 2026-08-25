@@ -22,9 +22,9 @@ with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
 
-with LSP.Client_Notification_Receivers;
-with LSP.Clients.Request_Handlers;
-with LSP.Clients.Response_Handlers;
+with LSP.Client_Notification_Receivers_3_16;
+with LSP.Clients_3_16.Request_Handlers;
+with LSP.Clients_3_16.Response_Handlers;
 with LSP.JSON_Streams;
 with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
@@ -34,7 +34,7 @@ with LSP.Messages.Server_Responses;
 with LSP.Messages.Client_Responses;
 with LSP.Messages.Client_Requests;
 
-package body LSP.Clients is
+package body LSP.Clients_3_16 is
 
    package Decoders is
 
@@ -45,125 +45,125 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Shutdown_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Code_Action_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Completion_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Definition_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Type_Definition_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Hover_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Folding_Range_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Highlight_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_References_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Signature_Help_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Symbol_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Workspace_Execute_Command_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       procedure Workspace_Symbol_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class);
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
       --  Notifications
 
       procedure Show_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Progress
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
@@ -216,7 +216,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Initialize_Response
            (Is_Error);
@@ -235,7 +235,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Shutdown_Response (Is_Error);
       begin
@@ -253,7 +253,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.CodeAction_Response
            (Is_Error);
@@ -272,7 +272,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Completion_Response
            (Is_Error);
@@ -291,7 +291,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Location_Response (Is_Error);
       begin
@@ -309,7 +309,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Location_Response (Is_Error);
       begin
@@ -327,7 +327,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Hover_Response (Is_Error);
       begin
@@ -344,7 +344,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.FoldingRange_Response
            (Is_Error);
@@ -363,7 +363,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Highlight_Response
            (Is_Error);
@@ -382,7 +382,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Location_Response (Is_Error);
       begin
@@ -400,7 +400,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses
            .SignatureHelp_Response (Is_Error);
@@ -419,7 +419,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Symbol_Response (Is_Error);
       begin
@@ -436,7 +436,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses .ExecuteCommand_Response
            (Is_Error);
@@ -455,7 +455,7 @@ package body LSP.Clients is
          Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
-           LSP.Clients.Response_Handlers.Response_Handler'Class)
+           LSP.Clients_3_16.Response_Handlers.Response_Handler'Class)
       is
          Response : LSP.Messages.Server_Responses.Symbol_Response (Is_Error);
       begin
@@ -469,7 +469,7 @@ package body LSP.Clients is
 
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String)
@@ -487,7 +487,7 @@ package body LSP.Clients is
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String)
@@ -506,7 +506,7 @@ package body LSP.Clients is
 
       procedure Show_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String)
@@ -524,14 +524,14 @@ package body LSP.Clients is
 
       procedure Progress
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access LSP.Client_Notification_Receivers
+         Handler : access LSP.Client_Notification_Receivers_3_16
          .Client_Notification_Receiver'Class;
          Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String) is
          pragma Unreferenced (Client);
       begin
          case Handler.Get_Progress_Type (Token) is
-            when LSP.Client_Notification_Receivers.ProgressParams =>
+            when LSP.Client_Notification_Receivers_3_16.ProgressParams =>
                declare
                   Message : Progress_Notification;
                begin
@@ -539,7 +539,7 @@ package body LSP.Clients is
                   Handler.On_Progress (Message.params);
                end;
 
-            when LSP.Client_Notification_Receivers.SymbolInformation =>
+            when LSP.Client_Notification_Receivers_3_16.SymbolInformation =>
                declare
                   Message : SymbolInformation_Vectors_Notification;
                begin
@@ -962,7 +962,7 @@ package body LSP.Clients is
 
    procedure Set_Notification_Handler
      (Self  : in out Client'Class;
-      Value : access Client_Notification_Receivers
+      Value : access Client_Notification_Receivers_3_16
       .Client_Notification_Receiver'Class) is
    begin
       Self.Notification := Value;
@@ -974,7 +974,7 @@ package body LSP.Clients is
 
    procedure Set_Request_Handler
      (Self  : in out Client'Class;
-      Value : access LSP.Clients.Request_Handlers.Request_Handler'Class) is
+      Value : access LSP.Clients_3_16.Request_Handlers.Request_Handler'Class) is
    begin
       Self.Request_Handler := Value;
    end Set_Request_Handler;
@@ -985,7 +985,7 @@ package body LSP.Clients is
 
    procedure Set_Response_Handler
      (Self  : in out Client'Class;
-      Value : access LSP.Clients.Response_Handlers.Response_Handler'Class) is
+      Value : access LSP.Clients_3_16.Response_Handlers.Response_Handler'Class) is
    begin
       Self.Response_Handler := Value;
    end Set_Response_Handler;
@@ -1459,4 +1459,4 @@ package body LSP.Clients is
          Message);
    end Workspace_Symbol_Request;
 
-end LSP.Clients;
+end LSP.Clients_3_16;

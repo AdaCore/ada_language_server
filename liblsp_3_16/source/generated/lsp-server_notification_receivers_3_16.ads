@@ -2,7 +2,7 @@
 
 limited with LSP.Messages;
 
-package LSP.Server_Notification_Receivers is
+package LSP.Server_Notification_Receivers_3_16 is
 
    type Server_Notification_Receiver is limited interface;
    type Server_Notification_Receiver_Access is
@@ -67,4 +67,4 @@ package LSP.Server_Notification_Receivers is
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.DidCloseTextDocumentParams) is abstract;
 
-end LSP.Server_Notification_Receivers;
+end LSP.Server_Notification_Receivers_3_16;

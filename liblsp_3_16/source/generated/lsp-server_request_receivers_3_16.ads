@@ -2,7 +2,7 @@
 
 limited with LSP.Messages.Server_Requests;
 
-package LSP.Server_Request_Receivers is
+package LSP.Server_Request_Receivers_3_16 is
 
    type Server_Request_Receiver is limited interface;
    type Server_Request_Receiver_Access is
@@ -228,4 +228,4 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.GLS_Project_File_Request)
         is abstract;
 
-end LSP.Server_Request_Receivers;
+end LSP.Server_Request_Receivers_3_16;

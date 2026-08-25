@@ -3,8 +3,8 @@
 with Ada.Tags;
 with LSP.Generic_Requests;
 with LSP.JSON_Streams;
-with LSP.Server_Request_Receivers;
-use LSP.Server_Request_Receivers;
+with LSP.Server_Request_Receivers_3_16;
+use LSP.Server_Request_Receivers_3_16;
 
 package LSP.Messages.Server_Requests is
 

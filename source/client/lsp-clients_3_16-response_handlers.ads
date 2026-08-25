@@ -18,7 +18,7 @@
 with LSP.Types;
 with LSP.Messages.Server_Responses;
 
-package LSP.Clients.Response_Handlers is
+package LSP.Clients_3_16.Response_Handlers is
 
    type Response_Handler is limited interface;
 
@@ -92,4 +92,4 @@ package LSP.Clients.Response_Handlers is
      Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Symbol_Response) is null;
 
-end LSP.Clients.Response_Handlers;
+end LSP.Clients_3_16.Response_Handlers;

@@ -21,7 +21,7 @@ with LSP.Types;
 with LSP.Messages;
 with VSS.Strings;
 
-package LSP.Client_Notification_Receivers is
+package LSP.Client_Notification_Receivers_3_16 is
 
    type Progress_Value_Kind is (ProgressParams, SymbolInformation);
 
@@ -61,4 +61,4 @@ package LSP.Client_Notification_Receivers is
       Params : LSP.Messages.Progress_SymbolInformation_Vector) is abstract;
    --  Process a $/progress notification that contains SymbolInformation_Vector
 
-end LSP.Client_Notification_Receivers;
+end LSP.Client_Notification_Receivers_3_16;

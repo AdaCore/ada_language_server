@@ -11,8 +11,8 @@ LSP_Messages_Generic_Header = """--  Automatically generated, do not edit.
 with Ada.Tags;
 with LSP.Generic_{kind}s;
 with LSP.JSON_Streams;
-with LSP.Server_{kind}_Receivers;
-use LSP.Server_{kind}_Receivers;
+with LSP.Server_{kind}_Receivers_3_16;
+use LSP.Server_{kind}_Receivers_3_16;
 
 package LSP.Messages.Server_{kind}s is
 
@@ -229,14 +229,14 @@ package LSP.Server_Request_{handler}s is
 """
 
 LSP_Server_Handlers_Footer = """
-end LSP.Server_{kind}_{handler}s;
+end LSP.Server_{kind}_{handler}s_3_16;
 """
 
 LSP_Server_Recievers_Header = """--  Automatically generated, do not edit.
 
 limited with LSP.Messages{extra_with};
 
-package LSP.Server_{kind}_{handler}s is
+package LSP.Server_{kind}_{handler}s_3_16 is
 
    type Server_{kind}_{handler} is limited interface;
    type Server_{kind}_{handler}_Access is
@@ -661,14 +661,14 @@ def write_server_receivers():
         REQUESTS,
         "Request",
         "Receiver",
-        join(gen_dir, "lsp-server_request_receivers.ads"),
+        join(gen_dir, "lsp-server_request_receivers_3_16.ads"),
         True,
     )
     write_package(
         NOTIFICATIONS,
         "Notification",
         "Receiver",
-        join(gen_dir, "lsp-server_notification_receivers.ads"),
+        join(gen_dir, "lsp-server_notification_receivers_3_16.ads"),
         False,
     )
 

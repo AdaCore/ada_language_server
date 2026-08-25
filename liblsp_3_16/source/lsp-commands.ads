@@ -26,10 +26,10 @@ with Ada.Tags;
 
 with VSS.String_Vectors;
 
-with LSP.Errors;
+with LSP.Errors_3_16;
 with LSP.JSON_Streams;
-limited with LSP.Client_Message_Receivers;
-limited with LSP.Server_Notification_Receivers;
+limited with LSP.Client_Message_Receivers_3_16;
+limited with LSP.Server_Notification_Receivers_3_16;
 with GNATCOLL.Refcount;
 
 package LSP.Commands is
@@ -44,10 +44,10 @@ package LSP.Commands is
    procedure Execute
      (Self    : Command;
       Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
+        LSP.Server_Notification_Receivers_3_16.Server_Notification_Receiver'Class;
       Client  : not null access
-        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError) is abstract;
+        LSP.Client_Message_Receivers_3_16.Client_Message_Receiver'Class;
+      Error  : in out LSP.Errors_3_16.Optional_ResponseError) is abstract;
    --  Execute given command and return Error is something went wrong.
    --  Use Client object to send requests and notifications to the client.
    --  Commands are executed on the server side only.

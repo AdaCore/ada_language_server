@@ -34,7 +34,7 @@ with VSS.String_Vectors;
 with VSS.Strings;
 
 with LSP.Commands;
-with LSP.Errors;
+with LSP.Errors_3_16;
 with LSP.Generic_Optional;
 with LSP.Generic_Sets;
 with LSP.Generic_Vectors;
@@ -243,12 +243,12 @@ package LSP.Messages is
    --	export const lspReservedErrorRangeEnd: integer = -32800;
    --}
    --```
-   subtype ErrorCodes is LSP.Errors.ErrorCodes;
-   MethodNotFound : constant ErrorCodes := LSP.Errors.MethodNotFound;
+   subtype ErrorCodes is LSP.Errors_3_16.ErrorCodes;
+   MethodNotFound : constant ErrorCodes := LSP.Errors_3_16.MethodNotFound;
 
-   subtype ResponseError is LSP.Errors.ResponseError;
+   subtype ResponseError is LSP.Errors_3_16.ResponseError;
 
-   subtype Optional_ResponseError is LSP.Errors.Optional_ResponseError;
+   subtype Optional_ResponseError is LSP.Errors_3_16.Optional_ResponseError;
 
    type ResponseMessage (Is_Error : Boolean) is new Message with record
       id: LSP_Number_Or_String := (others => <>);  --  or null?
