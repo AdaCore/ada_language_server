@@ -580,7 +580,7 @@
                 },
                 {
                   "name": "case A.B'C",
-                  "kind": 4,
+                  "kind": 19,
                   "range": {
                     "start": {
                       "line": 8,
@@ -604,7 +604,7 @@
                   "children": [
                     {
                       "name": "when \"D\"|\"E\"",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 9,
@@ -628,7 +628,7 @@
                     },
                     {
                       "name": "when others",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 10,
@@ -726,7 +726,7 @@
                 },
                 {
                   "name": "case A",
-                  "kind": 4,
+                  "kind": 19,
                   "range": {
                     "start": {
                       "line": 2,
@@ -750,7 +750,7 @@
                   "children": [
                     {
                       "name": "when \"a\"",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 3,
@@ -800,7 +800,7 @@
                     },
                     {
                       "name": "when others",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 5,
@@ -848,7 +848,7 @@
                         },
                         {
                           "name": "case A",
-                          "kind": 4,
+                          "kind": 19,
                           "range": {
                             "start": {
                               "line": 7,
@@ -872,7 +872,7 @@
                           "children": [
                             {
                               "name": "when \"a\"",
-                              "kind": 4,
+                              "kind": 19,
                               "range": {
                                 "start": {
                                   "line": 8,
@@ -922,7 +922,7 @@
                             },
                             {
                               "name": "when others",
-                              "kind": 4,
+                              "kind": 19,
                               "range": {
                                 "start": {
                                   "line": 10,
@@ -1026,7 +1026,7 @@
                 },
                 {
                   "name": "case G",
-                  "kind": 4,
+                  "kind": 19,
                   "range": {
                     "start": {
                       "line": 16,
@@ -1050,7 +1050,7 @@
                   "children": [
                     {
                       "name": "when \"\"",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 17,
@@ -1150,7 +1150,7 @@
                     },
                     {
                       "name": "case H",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 22,
@@ -1174,7 +1174,7 @@
                       "children": [
                         {
                           "name": "when \"\"",
-                          "kind": 4,
+                          "kind": 19,
                           "range": {
                             "start": {
                               "line": 23,
@@ -1222,7 +1222,7 @@
                             },
                             {
                               "name": "case J",
-                              "kind": 4,
+                              "kind": 19,
                               "range": {
                                 "start": {
                                   "line": 25,
@@ -1400,7 +1400,7 @@
                 },
                 {
                   "name": "case M",
-                  "kind": 4,
+                  "kind": 19,
                   "range": {
                     "start": {
                       "line": 35,
@@ -1424,7 +1424,7 @@
                   "children": [
                     {
                       "name": "when \"\"",
-                      "kind": 4,
+                      "kind": 19,
                       "range": {
                         "start": {
                           "line": 36,

@@ -230,9 +230,9 @@ package body LSP.GPR_Files.Symbols is
          when K_Package =>
             return LSP.Enumerations.A_Package;
          when K_Case =>
-            return LSP.Enumerations.A_Package;
+            return LSP.Enumerations.Object;
          when K_When =>
-            return LSP.Enumerations.A_Package;
+            return LSP.Enumerations.Object;
       end case;
    end To_Symbol_Kind;
 
