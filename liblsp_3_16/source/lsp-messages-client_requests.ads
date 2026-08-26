@@ -17,7 +17,7 @@
 --  Types for requests sent to the client.
 
 with LSP.Generic_Requests;
-with LSP.Client_Request_Receivers; use LSP.Client_Request_Receivers;
+with LSP.Client_Request_Receivers_3_16; use LSP.Client_Request_Receivers_3_16;
 
 package LSP.Messages.Client_Requests is
 

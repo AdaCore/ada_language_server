@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2026, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,15 +15,47 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp";
-with "lsp_common";
-with "lsp_raw_client_glib";
+with Ada.Streams;
 
-project LSP_Client_Glib is
+with VSS.Strings;
 
-   for Source_Dirs use ("../source/client");
-   for Object_Dir use "../.obj/client_glib";
+with LSP.Generic_Optional;
+with LSP.Types; use LSP.Types;
 
-   package Compiler renames LSP_Common.Compiler;
+package LSP.Errors_3_16 is
 
-end LSP_Client_Glib;
+   type ErrorCodes is
+     (ParseError,
+      InvalidRequest,
+      MethodNotFound,
+      InvalidParams,
+      InternalError,
+      serverErrorStart,
+      serverErrorEnd,
+      ServerNotInitialized,
+      UnknownErrorCode,
+      RequestCancelled,
+      ContentModified,
+      ServerCancelled,
+      RequestFailed);
+
+   type ResponseError is record
+      code    : ErrorCodes;
+      message : VSS.Strings.Virtual_String;
+      data    : LSP.Types.LSP_Any;
+   end record;
+
+   procedure Read_ResponseError
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ResponseError);
+   for ResponseError'Read use Read_ResponseError;
+
+   procedure Write_ResponseError
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ResponseError);
+   for ResponseError'Write use Write_ResponseError;
+
+   package Optional_ResponseErrors is new LSP.Generic_Optional (ResponseError);
+   type Optional_ResponseError is new Optional_ResponseErrors.Optional_Type;
+
+end LSP.Errors_3_16;

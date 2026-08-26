@@ -17,15 +17,12 @@
 
 with "lsp_3_17";
 with "lsp_common";
-with "spawn_glib";
+with "lsp_raw_client_glib";
 
 project LSP_Client_Glib_3_17 is
 
-   for Source_Dirs use ("../source/client_3_17", "../source/client");
-   for Object_Dir use "../.obj/client_glib";
-   for Excluded_Source_Files use
-     ("lsp-clients-request_handlers.ads",
-      "lsp-clients-response_handlers.ads");
+   for Source_Dirs use ("../source/client_3_17");
+   for Object_Dir use "../.obj/client_glib_3_17";
 
    package Compiler renames LSP_Common.Compiler;
 

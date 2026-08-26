@@ -23,18 +23,18 @@ with Ada.Strings.Unbounded.Hash;
 with VSS.Strings;
 
 with LSP.Messages;
-with LSP.Server_Notification_Receivers;
+with LSP.Server_Notification_Receivers_3_16;
 with LSP.Raw_Clients;
 with LSP.Types; use LSP.Types;
 
-limited with LSP.Clients.Request_Handlers;
-limited with LSP.Clients.Response_Handlers;
-limited with LSP.Client_Notification_Receivers;
+limited with LSP.Clients_3_16.Request_Handlers;
+limited with LSP.Clients_3_16.Response_Handlers;
+limited with LSP.Client_Notification_Receivers_3_16;
 
-package LSP.Clients is
+package LSP.Clients_3_16 is
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and Server_Notification_Receivers.Server_Notification_Receiver
+     and Server_Notification_Receivers_3_16.Server_Notification_Receiver
    with private;
    --  Client object to send/recieve request and notification to/from
    --  the LSP server
@@ -96,17 +96,17 @@ package LSP.Clients is
 
    procedure Set_Response_Handler
      (Self  : in out Client'Class;
-      Value : access LSP.Clients.Response_Handlers.Response_Handler'Class);
+      Value : access LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
    --  Set response handler
 
    procedure Set_Request_Handler
      (Self  : in out Client'Class;
-      Value : access LSP.Clients.Request_Handlers.Request_Handler'Class);
+      Value : access LSP.Clients_3_16.Request_Handlers.Request_Handler'Class);
    --  Set request handler
 
    procedure Set_Notification_Handler
      (Self  : in out Client'Class;
-      Value : access Client_Notification_Receivers
+      Value : access Client_Notification_Receivers_3_16
         .Client_Notification_Receiver'Class);
    --  Set notification handler
 
@@ -207,7 +207,7 @@ private
      (Stream   : access Ada.Streams.Root_Stream_Type'Class;
       Request  : LSP.Types.LSP_Number_Or_String;
       Is_Error : Boolean;
-      Handler  : access LSP.Clients.Response_Handlers.Response_Handler'Class);
+      Handler  : access LSP.Clients_3_16.Response_Handlers.Response_Handler'Class);
 
    package Request_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Types.LSP_Number_Or_String,
@@ -217,7 +217,7 @@ private
 
    type Notification_Decoder is access procedure
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-      Handler : access LSP.Client_Notification_Receivers
+      Handler : access LSP.Client_Notification_Receivers_3_16
       .Client_Notification_Receiver'Class;
       Client  : LSP.Raw_Clients.Raw_Client'Class;
       Token   : LSP.Types.LSP_Number_Or_String);
@@ -229,17 +229,17 @@ private
       Equivalent_Keys => Ada.Strings.Unbounded."=");
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and Server_Notification_Receivers.Server_Notification_Receiver
+     and Server_Notification_Receivers_3_16.Server_Notification_Receiver
    with record
       Request_Id       : LSP.Types.LSP_Number := 0;  --  Id of prev request
       Request_Map      : Request_Maps.Map;  --  issued requests
       Notif_Decoders   : Notification_Maps.Map;  --  notification decoders
       Response_Handler : access
-        LSP.Clients.Response_Handlers.Response_Handler'Class;
+        LSP.Clients_3_16.Response_Handlers.Response_Handler'Class;
       Request_Handler  : access
-        LSP.Clients.Request_Handlers.Request_Handler'Class;
+        LSP.Clients_3_16.Request_Handlers.Request_Handler'Class;
       Notification     : access
-        LSP.Client_Notification_Receivers.Client_Notification_Receiver'Class;
+        LSP.Client_Notification_Receivers_3_16.Client_Notification_Receiver'Class;
       Error_Message    : VSS.Strings.Virtual_String;
    end record;
 
@@ -268,4 +268,4 @@ private
       Request : LSP.Types.LSP_Number_Or_String;
       Value   : in out LSP.Messages.ResponseMessage'Class);
 
-end LSP.Clients;
+end LSP.Clients_3_16;

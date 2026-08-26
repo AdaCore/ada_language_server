@@ -16,15 +16,12 @@
 ------------------------------------------------------------------------------
 
 with "lsp_3_17";
-with "spawn";
+with "lsp_raw_client";
 
 project LSP_Client_3_17 is
 
-   for Source_Dirs use ("../source/client_3_17", "../source/client");
-   for Object_Dir use "../.obj/client";
-   for Excluded_Source_Files use
-     ("lsp-clients-request_handlers.ads",
-      "lsp-clients-response_handlers.ads");
+   for Source_Dirs use ("../source/client_3_17");
+   for Object_Dir use "../.obj/client_3_17";
 
    package Compiler renames Lsp_3_17.Compiler;
 

@@ -3,8 +3,8 @@
 with Ada.Tags;
 with LSP.Generic_Notifications;
 with LSP.JSON_Streams;
-with LSP.Server_Notification_Receivers;
-use LSP.Server_Notification_Receivers;
+with LSP.Server_Notification_Receivers_3_16;
+use LSP.Server_Notification_Receivers_3_16;
 
 package LSP.Messages.Server_Notifications is
 

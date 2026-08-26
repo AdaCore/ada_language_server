@@ -19,7 +19,7 @@
 
 limited with LSP.Messages.Client_Requests;
 
-package LSP.Client_Request_Receivers is
+package LSP.Client_Request_Receivers_3_16 is
 
    type Client_Request_Receiver is limited interface;
    --  Receiver of request on LSP client side
@@ -63,4 +63,4 @@ package LSP.Client_Request_Receivers is
       Message : LSP.Messages.Client_Requests.ShowDocument_Request)
         is abstract;
 
-end LSP.Client_Request_Receivers;
+end LSP.Client_Request_Receivers_3_16;

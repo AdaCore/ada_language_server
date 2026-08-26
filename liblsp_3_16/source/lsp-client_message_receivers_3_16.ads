@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2026, AdaCore                     --
+--                        Copyright (C) 2020, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,16 +14,17 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  Interface to process request sent to the client.
 
-with "lsp";
-with "lsp_common";
-with "lsp_raw_client_glib";
+with LSP.Client_Request_Receivers_3_16;
+with LSP.Client_Notification_Receivers_3_16;
 
-project LSP_Client_Glib is
+package LSP.Client_Message_Receivers_3_16 is
 
-   for Source_Dirs use ("../source/client");
-   for Object_Dir use "../.obj/client_glib";
+   type Client_Message_Receiver is limited interface
+     and LSP.Client_Request_Receivers_3_16.Client_Request_Receiver
+     and LSP.Client_Notification_Receivers_3_16.Client_Notification_Receiver;
+   --  An interface to send requests and notification to the client
 
-   package Compiler renames LSP_Common.Compiler;
-
-end LSP_Client_Glib;
+end LSP.Client_Message_Receivers_3_16;

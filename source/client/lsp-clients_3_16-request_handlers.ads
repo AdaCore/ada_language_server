@@ -17,7 +17,7 @@
 
 with LSP.Types;
 
-package LSP.Clients.Request_Handlers is
+package LSP.Clients_3_16.Request_Handlers is
 
    type Request_Handler is limited interface;
 
@@ -62,4 +62,4 @@ package LSP.Clients.Request_Handlers is
       Params  : LSP.Messages.UnregistrationParams) is null;
    --  The client/unregisterCapability request
 
-end LSP.Clients.Request_Handlers;
+end LSP.Clients_3_16.Request_Handlers;

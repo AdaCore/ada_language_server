@@ -19,7 +19,7 @@ with Interfaces;
 
 with LSP.JSON_Streams;
 
-package body LSP.Errors is
+package body LSP.Errors_3_16 is
    use type Interfaces.Integer_64;
 
    Error_Map : constant array (ErrorCodes) of Interfaces.Integer_64
@@ -113,4 +113,4 @@ package body LSP.Errors is
       JS.End_Object;
    end Write_ResponseError;
 
-end LSP.Errors;
+end LSP.Errors_3_16;
