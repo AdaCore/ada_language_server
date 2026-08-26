@@ -370,7 +370,7 @@
             },
             {
               "name": "case A.B'C",
-              "kind": 4,
+              "kind": 19,
               "location": {
                 "uri": "$URI{prj2.gpr}",
                 "range": {
@@ -387,7 +387,7 @@
             },
             {
               "name": "when \"D\"|\"E\"",
-              "kind": 4,
+              "kind": 19,
               "location": {
                 "uri": "$URI{prj2.gpr}",
                 "range": {
@@ -404,7 +404,7 @@
             },
             {
               "name": "when others",
-              "kind": 4,
+              "kind": 19,
               "location": {
                 "uri": "$URI{prj2.gpr}",
                 "range": {
