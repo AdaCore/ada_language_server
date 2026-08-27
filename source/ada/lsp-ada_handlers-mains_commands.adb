@@ -100,7 +100,9 @@ package body LSP.Ada_Handlers.Mains_Commands is
       --  subtree to get their list of mains.
       --  This is needed to handle aggregate projects: we want to
       --  combine the mains of each aggregated project in this case.
-      if Handler.Project_Tree.Is_Defined then
+      if Handler.Project_Tree.Is_Defined
+        and then Handler.Project_Tree.Root_Project.Is_Defined
+      then
          Views := Handler.Project_Tree.Namespace_Root_Projects;
          Main_Paths := Get_Main_Paths (Views);
       end if;
