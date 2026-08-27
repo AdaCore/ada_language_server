@@ -1,0 +1,131 @@
+[
+   {
+      "comment": [
+         "Test for the 'als-scenario-variables-information' command.",
+         "Verifies that the response lists both the typed and untyped ",
+         "external variables declared in the project tree, and reports ",
+         "the resolved 'value' for MODE (set via ada.scenarioVariables) ",
+         "while FOO (never set) has none."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-scenario-variables-information"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {
+                        "MODE": "Release"
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw1",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-scenario-variables-information",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw1",
+               "result": {
+                  "variables": [
+                     "<HAS>",
+                     {
+                        "name": "MODE",
+                        "typed": true,
+                        "conflicting": false,
+                        "possible-values": ["Debug", "Release"],
+                        "value": "Release"
+                     },
+                     {
+                        "name": "FOO",
+                        "typed": false,
+                        "conflicting": false,
+                        "possible-values": [],
+                        "value": "<ABSENT>"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

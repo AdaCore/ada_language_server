@@ -25,6 +25,7 @@ import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ProjectViewDragAndDropController, ProjectViewProvider } from './projectViewProvider';
+import { ScenarioViewProvider } from './scenarioViewProvider';
 import { autoReloadProject, registerCommands } from './commands';
 import { CMD_RELOAD_PROJECT } from './constants';
 import {
@@ -221,6 +222,15 @@ async function activateExtension(context: vscode.ExtensionContext) {
     });
 
     /**
+     * Create the Scenario View.
+     */
+    const scenarioViewProvider = new ScenarioViewProvider();
+    adaExtState.scenarioViewProvider = scenarioViewProvider;
+    adaExtState.scenarioTreeView = vscode.window.createTreeView('scenarioView', {
+        treeDataProvider: scenarioViewProvider,
+    });
+
+    /**
      * Register commands first so that commands such as displaying the extension
      * Output become available even if the language servers fail to start.
      */
@@ -229,8 +239,10 @@ async function activateExtension(context: vscode.ExtensionContext) {
     // Start the ALS clients
     await adaExtState.start();
 
-    // Refresh the Project View to show the root project if one is already loaded.
+    // Refresh the Project View and Scenario View to show the root project's
+    // information if one is already loaded.
     void adaExtState.refreshProjectView();
+    void adaExtState.refreshScenarioView();
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 

@@ -1583,6 +1583,18 @@
                 "category": "Ada"
             },
             {
+                "command": "ada.scenarioView.setVariable",
+                "title": "Edit Value…",
+                "category": "Ada",
+                "icon": "$(pencil)"
+            },
+            {
+                "command": "ada.scenarioView.resetVariable",
+                "title": "Reset to Default",
+                "category": "Ada",
+                "icon": "$(discard)"
+            },
+            {
                 "command": "ada.issueReporter",
                 "category": "Ada",
                 "title": "Report Issue"
@@ -1851,6 +1863,21 @@
                     "command": "ada.projectView.revealInExplorer",
                     "when": "view == projectView && (viewItem == sourceFile || viewItem == gprFile)",
                     "group": "4_file_ops@1"
+                },
+                {
+                    "command": "ada.scenarioView.setVariable",
+                    "when": "view == scenarioView",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ada.scenarioView.setVariable",
+                    "when": "view == scenarioView",
+                    "group": "inline"
+                },
+                {
+                    "command": "ada.scenarioView.resetVariable",
+                    "when": "view == scenarioView && (viewItem == scenarioVariableTypedSet || viewItem == scenarioVariableUntypedSet)",
+                    "group": "navigation"
                 }
             ]
         },
@@ -1966,6 +1993,12 @@
                     "id": "projectView",
                     "name": "Project View",
                     "icon": "$(project)"
+                },
+                {
+                    "id": "scenarioView",
+                    "name": "Scenario View",
+                    "icon": "$(list-selection)",
+                    "when": "ADA_PROJECT_CONTEXT"
                 },
                 {
                     "id": "gnatcovAnnotations",

@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* Add a `Scenario` view to the Explorer sidebar, letting users see and change the values of a GPR project's scenario (external) variables without hand-editing the `ada.scenarioVariables` setting
 * CodeLenses for opening the documentation associated to a given project package are now available in GPR files
 * GPR files: keywords are now proposed by completion, according to the syntactic context (project qualifiers, declarations, case constructs)
 * `null` is now highlighted as a keyword rather than as a constant, so that both words of `null record` are coloured alike

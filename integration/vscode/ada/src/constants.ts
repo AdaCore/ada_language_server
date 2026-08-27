@@ -162,6 +162,24 @@ export const CMD_PROJECT_VIEW_VISUALIZE_GPR = 'ada.projectView.visualizeGPR';
 export const CMD_TOOL_DOCUMENTATION = 'ada.project.openToolDocumentation';
 
 /**
+ * Identifier for the command that retrieves scenario(external) variables information
+ * from the ALS, for use by the Scenario View.
+ */
+export const CMD_SCENARIO_VARIABLES_INFORMATION = 'als-scenario-variables-information';
+
+/**
+ * Identifier for the command that lets the user set the value of a scenario variable
+ * selected in the Scenario View.
+ */
+export const CMD_SCENARIO_VIEW_SET_VARIABLE = 'ada.scenarioView.setVariable';
+
+/**
+ * Identifier for the command that resets a scenario variable selected in the Scenario View
+ * back to its project default, by removing it from the `ada.scenarioVariables` setting.
+ */
+export const CMD_SCENARIO_VIEW_RESET_VARIABLE = 'ada.scenarioView.resetVariable';
+
+/**
  * Identifier for the command that restarts all the language servers spawned by the extension
  * (Ada and GPR).
  */

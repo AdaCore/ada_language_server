@@ -37,6 +37,9 @@ import {
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_PROJECT_VIEW_VISUALIZE_FILES,
     CMD_PROJECT_VIEW_VISUALIZE_GPR,
+    CMD_SCENARIO_VARIABLES_INFORMATION,
+    CMD_SCENARIO_VIEW_SET_VARIABLE,
+    CMD_SCENARIO_VIEW_RESET_VARIABLE,
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
@@ -72,6 +75,11 @@ import {
 import { Hierarchy } from './visualizerTypes';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 import { ProjectViewItem } from './projectViewProvider';
+import {
+    Raw_ScenarioVariablesResponse,
+    ScenarioViewItem,
+    parseScenarioVariablesResponse,
+} from './scenarioViewProvider';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(
@@ -188,6 +196,13 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_GPR, (item: ProjectViewItem) =>
             startVisualize(context, Hierarchy.GPR, item.uri),
         ),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_SCENARIO_VIEW_SET_VARIABLE, setScenarioVariable),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_SCENARIO_VIEW_RESET_VARIABLE, resetScenarioVariable),
     );
 
     // This is a hidden command that gets called in the default debug
@@ -360,6 +375,109 @@ async function setProjectViewFilter() {
         vscode.commands.executeCommand('setContext', 'projectViewFilterActive', !!filter);
         adaExtState.projectViewProvider.setFilter(filter);
     }
+}
+
+/**
+ * Chains scenario-variable updates so they run one at a time. Without this,
+ * two edits started close together (or a picker left open while another
+ * variable is edited) could each read the settings object before either had
+ * written it back, and the second write would silently clobber the first.
+ */
+let scenarioVariableUpdateChain: Promise<void> = Promise.resolve();
+
+/**
+ * Updates `ada.scenarioVariables` for one variable, starting from every
+ * variable's currently resolved value (fetched fresh from the ALS) rather
+ * than from this setting alone: a variable can be resolved from
+ * `.als.json` instead, and ALS ignores `.als.json` entirely once
+ * `ada.scenarioVariables` is set to anything, so writing just the changed
+ * variable would silently drop the others. Runs are serialized through
+ * `scenarioVariableUpdateChain` so concurrent edits merge instead of
+ * racing.
+ *
+ * @param name - The scenario variable's name
+ * @param value - The new value, or `undefined` to remove it (reverting to
+ * the project default, if nothing else pins it)
+ */
+async function updateScenarioVariable(name: string, value: string | undefined): Promise<void> {
+    const run = scenarioVariableUpdateChain
+        .catch(() => undefined)
+        .then(async () => {
+            const raw = await vscode.commands.executeCommand<Raw_ScenarioVariablesResponse | null>(
+                CMD_SCENARIO_VARIABLES_INFORMATION,
+            );
+            const resolved = raw ? parseScenarioVariablesResponse(raw) : [];
+
+            const vars: Record<string, string> = {};
+            for (const v of resolved) {
+                if (v.value !== undefined) {
+                    vars[v.name] = v.value;
+                }
+            }
+
+            if (value === undefined) {
+                delete vars[name];
+            } else {
+                vars[name] = value;
+            }
+
+            const config = vscode.workspace.getConfiguration('ada');
+            if (Object.keys(vars).length === 0) {
+                // Nothing left to pin: clear the setting entirely rather than
+                // writing an empty object, which VS Code would still report as
+                // "set" and which would keep suppressing the .als.json fallback.
+                await config.update(
+                    'scenarioVariables',
+                    undefined,
+                    vscode.ConfigurationTarget.Workspace,
+                );
+            } else {
+                await config.update(
+                    'scenarioVariables',
+                    vars,
+                    vscode.ConfigurationTarget.Workspace,
+                );
+            }
+        });
+
+    scenarioVariableUpdateChain = run;
+    return run;
+}
+
+/**
+ * Command handler that lets the user set the value of a scenario variable
+ * selected in the Scenario View: a quick-pick constrained to its legal
+ * values for a typed variable, or a free-text input box for an untyped one.
+ */
+async function setScenarioVariable(item: ScenarioViewItem) {
+    const info = item.info;
+
+    let value: string | undefined;
+    if (info.typed) {
+        value = await vscode.window.showQuickPick(info.possibleValues, {
+            placeHolder: info.conflicting
+                ? `Select a value for ${info.name} (Warning: conflicting type declarations)`
+                : `Select a value for ${info.name}`,
+        });
+    } else {
+        value = await vscode.window.showInputBox({
+            prompt: `Enter a value for ${info.name}`,
+            value: info.value ?? '',
+        });
+    }
+
+    if (value !== undefined) {
+        await updateScenarioVariable(info.name, value);
+    }
+}
+
+/**
+ * Command handler that resets a scenario variable selected in the Scenario
+ * View back to its project default, by removing it from the
+ * `ada.scenarioVariables` setting.
+ */
+async function resetScenarioVariable(item: ScenarioViewItem) {
+    await updateScenarioVariable(item.info.name, undefined);
 }
 
 /**
@@ -754,8 +872,9 @@ async function restartLanguageServers() {
         'Language servers have been restarted, clearing cache and tasks',
     );
 
-    // Refresh the Project View
+    // Refresh the Project View and Scenario View
     void adaExtState.refreshProjectView();
+    void adaExtState.refreshScenarioView();
 }
 
 /**

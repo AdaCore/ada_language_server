@@ -100,6 +100,7 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const result = await next(command, args);
             await adaExtState.refreshProjectView();
+            await adaExtState.refreshScenarioView();
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return result;
         }
