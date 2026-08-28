@@ -8,6 +8,7 @@ import {
     ExecuteCommandRequest,
 } from 'vscode-languageclient/node';
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
+import { GprCodeLensProvider } from './GprCodeLensProvider';
 import { AdaLanguageClient, createClient } from './clients';
 import {
     CMD_EXT_ANNOTATIONS_CREATE,
@@ -90,7 +91,8 @@ export class ExtensionState {
 
     private taskDisposables: Disposable[];
 
-    public readonly codelensProvider = new AdaCodeLensProvider();
+    public readonly adaCodelensProvider = new AdaCodeLensProvider();
+    public readonly gprCodeLensProvider = new GprCodeLensProvider();
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
@@ -185,7 +187,10 @@ export class ExtensionState {
 
         this.registerTaskDisposables();
         this.context.subscriptions.push(
-            vscode.languages.registerCodeLensProvider('ada', this.codelensProvider),
+            vscode.languages.registerCodeLensProvider('ada', this.adaCodelensProvider),
+        );
+        this.context.subscriptions.push(
+            vscode.languages.registerCodeLensProvider('gpr', this.gprCodeLensProvider),
         );
         this.updateStatusBarVisibility(undefined);
 
@@ -1187,7 +1192,7 @@ async function updateMetricsDiagnostics(document: vscode.TextDocument): Promise<
 async function updateMetricsIfNeeded(e: vscode.TaskProcessEndEvent) {
     const task = e.execution.task;
     if (isGNATmetricTask(task)) {
-        adaExtState.codelensProvider.refresh();
+        adaExtState.adaCodelensProvider.refresh();
         // Refresh metrics diagnostics for all open Ada documents
         for (const doc of vscode.workspace.textDocuments) {
             await updateMetricsDiagnostics(doc);

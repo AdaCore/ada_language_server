@@ -139,8 +139,10 @@ package body LSP.Ada_Handlers.Project_Attributes_Commands is
       Is_List_Attribute       : Boolean;
       Is_Known                : Boolean;
       Should_Aggregate_Values : constant Boolean :=
-        Handler.Project_Tree.Root_Project.Kind in Aggregate_Kind
-        and then (for some Attr of Aggregatable_Attributes => Attr = Attr_Id);
+        (Handler.Project_Tree.Root_Project.Is_Defined
+         and then Handler.Project_Tree.Root_Project.Kind in Aggregate_Kind
+         and then
+           (for some Attr of Aggregatable_Attributes => Attr = Attr_Id));
       Values                  : VSS.String_Vectors.Virtual_String_Vector := [];
       Already_Returned_Values : Virtual_String_Sets.Set := [];
    begin

@@ -27,6 +27,7 @@ import {
     CMD_SPARK_LIMIT_REGION_ARG,
     CMD_SPARK_LIMIT_SUBP_ARG,
     CMD_SPARK_PROVE_SUBP,
+    CMD_TOOL_DOCUMENTATION,
     VSCODE_UG_LIVE_DOC_URL,
     CMD_EDIT_PROJECT_FILE,
     CMD_SET_PROJECT_VIEW_FILTER,
@@ -234,6 +235,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
             CMD_BUILD_AND_DEBUG_GNATEMULATOR,
             buildAndDebugSpecifiedMainWithGNATemulator,
         ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_TOOL_DOCUMENTATION, grpToolDocumentation),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs),
@@ -1165,6 +1169,23 @@ async function buildAndDebugSpecifiedMainWithGNATemulator(main: vscode.Uri): Pro
 }
 
 /**
+ * Open the documentation at url
+ */
+export async function grpToolDocumentation(url: string): Promise<void> {
+    if (url) {
+        let uri: vscode.Uri;
+        if (/^https?:\/\//i.test(url)) {
+            // This is a web link
+            uri = vscode.Uri.parse(url);
+        } else {
+            // Convert a local file into a web link
+            uri = vscode.Uri.file(url);
+        }
+        await vscode.env.openExternal(uri);
+    }
+}
+
+/**
  * @returns an array of -P and -X project and scenario command lines arguments
  * for use with GPR-based tools.
  *
@@ -1448,7 +1469,7 @@ async function deleteMetricsForFile(fileUri: vscode.Uri) {
         try {
             unlinkSync(metricsXml);
             adaExtState.metricDiagnostics.delete(fileUri);
-            adaExtState.codelensProvider.refresh();
+            adaExtState.adaCodelensProvider.refresh();
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to delete metrics file: ${(error as Error).message}`,
