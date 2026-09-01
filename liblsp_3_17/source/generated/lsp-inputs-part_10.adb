@@ -24,13 +24,16 @@ package body LSP.Inputs.Part_10 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.SymbolInformation_Vector renames Value;
-         Value : LSP.Structures.SymbolInformation;
+         Set : LSP.Structures.SymbolInformation_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_SymbolInformation (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.SymbolInformation;
+            begin
+               Read_SymbolInformation (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -414,19 +417,22 @@ package body LSP.Inputs.Part_10 is
          Handler.Read_Next;
 
          declare
-            Set   :
+            Set :
               LSP.Structures
                 .textContent_Ofcells_OfNotebookDocumentChangeEvent renames
               Value;
-            Value :
-              LSP.Structures
-                .textContent_Ofcells_OfNotebookDocumentChangeEvent_Item;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_textContent_Ofcells_OfNotebookDocumentChangeEvent_Item
-                 (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value :
+                    LSP.Structures
+                      .textContent_Ofcells_OfNotebookDocumentChangeEvent_Item;
+               begin
+                  Read_textContent_Ofcells_OfNotebookDocumentChangeEvent_Item
+                    (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -568,13 +574,16 @@ package body LSP.Inputs.Part_10 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.TypeHierarchyItem_Vector renames Value;
-         Value : LSP.Structures.TypeHierarchyItem;
+         Set : LSP.Structures.TypeHierarchyItem_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_TypeHierarchyItem (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.TypeHierarchyItem;
+            begin
+               Read_TypeHierarchyItem (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

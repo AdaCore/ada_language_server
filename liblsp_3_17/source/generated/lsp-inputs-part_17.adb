@@ -24,13 +24,16 @@ package body LSP.Inputs.Part_17 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.WorkspaceFolder_Vector renames Value;
-         Value : LSP.Structures.WorkspaceFolder;
+         Set : LSP.Structures.WorkspaceFolder_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_WorkspaceFolder (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.WorkspaceFolder;
+            begin
+               Read_WorkspaceFolder (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -113,8 +116,12 @@ package body LSP.Inputs.Part_17 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
             while not Handler.Is_End_Array loop
-               Read_Location (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Location;
+               begin
+                  Read_Location (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
             Handler.Read_Next;
 
@@ -352,7 +359,11 @@ package body LSP.Inputs.Part_17 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
          end if;
-         if Handler.Is_Start_Object then
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             while Handler.Is_Key_Name loop
                declare
@@ -643,13 +654,16 @@ package body LSP.Inputs.Part_17 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.MessageActionItem_Vector renames Value;
-            Value : LSP.Structures.MessageActionItem;
+            Set : LSP.Structures.MessageActionItem_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_MessageActionItem (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.MessageActionItem;
+               begin
+                  Read_MessageActionItem (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

@@ -21,7 +21,11 @@ package body LSP.Inputs.Part_4 is
         (["uri",
          "range",
          "alsKind",
-         "hidden"]);
+         "hidden",
+         "originSelectionRange",
+         "targetUri",
+         "targetRange",
+         "targetSelectionRange"]);
 
    end Declaration_Result_Scope;
 
@@ -39,15 +43,19 @@ package body LSP.Inputs.Part_4 is
            VSS.JSON.Pull_Readers.Buffered.JSON_Buffered_Pull_Reader (Parent);
       begin
          Handler.Mark;
-         if Handler.Is_Null_Value then
+         if Handler.Is_Start_Array then
+            Handler.Read_Next;
+         end if;
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Null_Value then
             Value :=
               (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
-            Value :=
-              (Kind   => LSP.Structures.Variant_2,
-               others => <>);
             while Handler.Is_Key_Name loop
                declare
                   Key   : constant VSS.Strings.Virtual_String :=
@@ -75,6 +83,26 @@ package body LSP.Inputs.Part_4 is
                      when 4 =>  --  hidden
                         Value :=
                           (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 5 =>  --  originSelectionRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 6 =>  --  targetUri
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 7 =>  --  targetRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 8 =>  --  targetSelectionRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -297,13 +325,16 @@ package body LSP.Inputs.Part_4 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CodeActionKind_Set renames Value;
-         Value : LSP.Enumerations.CodeActionKind;
+         Set : LSP.Structures.CodeActionKind_Set renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CodeActionKind (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Enumerations.CodeActionKind;
+            begin
+               Read_CodeActionKind (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -318,13 +349,16 @@ package body LSP.Inputs.Part_4 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CallHierarchyItem_Vector renames Value;
-         Value : LSP.Structures.CallHierarchyItem;
+         Set : LSP.Structures.CallHierarchyItem_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CallHierarchyItem (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.CallHierarchyItem;
+            begin
+               Read_CallHierarchyItem (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -717,13 +751,16 @@ package body LSP.Inputs.Part_4 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.Unregistration_Vector renames Value;
-            Value : LSP.Structures.Unregistration;
+            Set : LSP.Structures.Unregistration_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_Unregistration (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Unregistration;
+               begin
+                  Read_Unregistration (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -773,13 +810,16 @@ package body LSP.Inputs.Part_4 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DeclarationLink_Vector renames Value;
-         Value : LSP.Structures.DeclarationLink;
+         Set : LSP.Structures.DeclarationLink_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DeclarationLink (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DeclarationLink;
+            begin
+               Read_DeclarationLink (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

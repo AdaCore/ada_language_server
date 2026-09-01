@@ -24,14 +24,17 @@ package body LSP.Inputs.Part_19 is
       Handler.Read_Next;
 
       declare
-         Set   :
+         Set :
            LSP.Structures.TextDocumentContentChangeEvent_Vector renames Value;
-         Value : LSP.Structures.TextDocumentContentChangeEvent;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_TextDocumentContentChangeEvent (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.TextDocumentContentChangeEvent;
+            begin
+               Read_TextDocumentContentChangeEvent (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -56,13 +59,16 @@ package body LSP.Inputs.Part_19 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.TextDocumentIdentifier_Vector renames Value;
-         Value : LSP.Structures.TextDocumentIdentifier;
+         Set : LSP.Structures.TextDocumentIdentifier_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_TextDocumentIdentifier (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.TextDocumentIdentifier;
+            begin
+               Read_TextDocumentIdentifier (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -77,13 +83,16 @@ package body LSP.Inputs.Part_19 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CompletionItem_Vector renames Value;
-         Value : LSP.Structures.CompletionItem;
+         Set : LSP.Structures.CompletionItem_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CompletionItem (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.CompletionItem;
+            begin
+               Read_CompletionItem (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -473,13 +482,16 @@ package body LSP.Inputs.Part_19 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CallHierarchyIncomingCall_Vector renames Value;
-         Value : LSP.Structures.CallHierarchyIncomingCall;
+         Set : LSP.Structures.CallHierarchyIncomingCall_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CallHierarchyIncomingCall (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.CallHierarchyIncomingCall;
+            begin
+               Read_CallHierarchyIncomingCall (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -494,13 +506,16 @@ package body LSP.Inputs.Part_19 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.TextEdit_Vector renames Value;
-         Value : LSP.Structures.TextEdit;
+         Set : LSP.Structures.TextEdit_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_TextEdit (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.TextEdit;
+            begin
+               Read_TextEdit (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

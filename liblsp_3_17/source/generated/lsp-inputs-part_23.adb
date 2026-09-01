@@ -154,7 +154,11 @@ package body LSP.Inputs.Part_23 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
          end if;
-         if Handler.Is_Start_Object then
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             while Handler.Is_Key_Name loop
                declare
@@ -244,13 +248,16 @@ package body LSP.Inputs.Part_23 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DefinitionLink_Vector renames Value;
-         Value : LSP.Structures.DefinitionLink;
+         Set : LSP.Structures.DefinitionLink_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DefinitionLink (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DefinitionLink;
+            begin
+               Read_DefinitionLink (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -423,13 +430,16 @@ package body LSP.Inputs.Part_23 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.Position_Vector renames Value;
-            Value : LSP.Structures.Position;
+            Set : LSP.Structures.Position_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_Position (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Position;
+               begin
+                  Read_Position (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -856,7 +866,11 @@ package body LSP.Inputs.Part_23 is
         (["uri",
          "range",
          "alsKind",
-         "hidden"]);
+         "hidden",
+         "originSelectionRange",
+         "targetUri",
+         "targetRange",
+         "targetSelectionRange"]);
 
    end Definition_Result_Scope;
 
@@ -874,15 +888,19 @@ package body LSP.Inputs.Part_23 is
            VSS.JSON.Pull_Readers.Buffered.JSON_Buffered_Pull_Reader (Parent);
       begin
          Handler.Mark;
-         if Handler.Is_Null_Value then
+         if Handler.Is_Start_Array then
+            Handler.Read_Next;
+         end if;
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Null_Value then
             Value :=
               (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
-            Value :=
-              (Kind   => LSP.Structures.Variant_2,
-               others => <>);
             while Handler.Is_Key_Name loop
                declare
                   Key   : constant VSS.Strings.Virtual_String :=
@@ -910,6 +928,26 @@ package body LSP.Inputs.Part_23 is
                      when 4 =>  --  hidden
                         Value :=
                           (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 5 =>  --  originSelectionRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 6 =>  --  targetUri
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 7 =>  --  targetRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 8 =>  --  targetSelectionRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>

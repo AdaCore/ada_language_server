@@ -24,13 +24,16 @@ package body LSP.Inputs.Part_29 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DocumentLink_Vector renames Value;
-         Value : LSP.Structures.DocumentLink;
+         Set : LSP.Structures.DocumentLink_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DocumentLink (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DocumentLink;
+            begin
+               Read_DocumentLink (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -45,13 +48,16 @@ package body LSP.Inputs.Part_29 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Range_Vector renames Value;
-         Value : LSP.Structures.A_Range;
+         Set : LSP.Structures.Range_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_A_Range (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.A_Range;
+            begin
+               Read_A_Range (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -366,13 +372,16 @@ package body LSP.Inputs.Part_29 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.FileRename_Vector renames Value;
-            Value : LSP.Structures.FileRename;
+            Set : LSP.Structures.FileRename_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_FileRename (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.FileRename;
+               begin
+                  Read_FileRename (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -409,13 +418,16 @@ package body LSP.Inputs.Part_29 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.SelectionRange_Vector renames Value;
-         Value : LSP.Structures.SelectionRange;
+         Set : LSP.Structures.SelectionRange_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_SelectionRange (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.SelectionRange;
+            begin
+               Read_SelectionRange (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

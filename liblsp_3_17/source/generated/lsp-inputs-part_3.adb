@@ -24,13 +24,16 @@ package body LSP.Inputs.Part_3 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CallHierarchyOutgoingCall_Vector renames Value;
-         Value : LSP.Structures.CallHierarchyOutgoingCall;
+         Set : LSP.Structures.CallHierarchyOutgoingCall_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CallHierarchyOutgoingCall (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.CallHierarchyOutgoingCall;
+            begin
+               Read_CallHierarchyOutgoingCall (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -45,13 +48,16 @@ package body LSP.Inputs.Part_3 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.ColorInformation_Vector renames Value;
-         Value : LSP.Structures.ColorInformation;
+         Set : LSP.Structures.ColorInformation_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_ColorInformation (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.ColorInformation;
+            begin
+               Read_ColorInformation (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -199,14 +205,17 @@ package body LSP.Inputs.Part_3 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Natural_Vector renames Value;
-         Value : Natural;
+         Set : LSP.Structures.Natural_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Value := Integer (Handler.Number_Value.Integer_Value);
-            Handler.Read_Next;
-            Set.Append (Value);
+            declare
+               Value : Natural;
+            begin
+               Value := Integer (Handler.Number_Value.Integer_Value);
+               Handler.Read_Next;
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -481,14 +490,17 @@ package body LSP.Inputs.Part_3 is
          Handler.Read_Next;
 
          declare
-            Set   :
+            Set :
               LSP.Structures.DiagnosticRelatedInformation_Vector renames Value;
-            Value : LSP.Structures.DiagnosticRelatedInformation;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_DiagnosticRelatedInformation (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.DiagnosticRelatedInformation;
+               begin
+                  Read_DiagnosticRelatedInformation (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

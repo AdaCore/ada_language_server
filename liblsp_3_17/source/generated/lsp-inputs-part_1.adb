@@ -72,13 +72,16 @@ package body LSP.Inputs.Part_1 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.SignatureInformation_Vector renames Value;
-            Value : LSP.Structures.SignatureInformation;
+            Set : LSP.Structures.SignatureInformation_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_SignatureInformation (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.SignatureInformation;
+               begin
+                  Read_SignatureInformation (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -347,13 +350,16 @@ package body LSP.Inputs.Part_1 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.WorkspaceSymbol_Vector renames Value;
-         Value : LSP.Structures.WorkspaceSymbol;
+         Set : LSP.Structures.WorkspaceSymbol_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_WorkspaceSymbol (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.WorkspaceSymbol;
+            begin
+               Read_WorkspaceSymbol (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -594,15 +600,18 @@ package body LSP.Inputs.Part_1 is
       Handler.Read_Next;
 
       declare
-         Set   :
+         Set :
            LSP.Structures.WorkspaceDocumentDiagnosticReport_Vector renames
            Value;
-         Value : LSP.Structures.WorkspaceDocumentDiagnosticReport;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_WorkspaceDocumentDiagnosticReport (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.WorkspaceDocumentDiagnosticReport;
+            begin
+               Read_WorkspaceDocumentDiagnosticReport (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

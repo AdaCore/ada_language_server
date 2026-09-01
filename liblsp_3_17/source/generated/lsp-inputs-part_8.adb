@@ -38,13 +38,16 @@ package body LSP.Inputs.Part_8 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.FileOperationFilter_Vector renames Value;
-            Value : LSP.Structures.FileOperationFilter;
+            Set : LSP.Structures.FileOperationFilter_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_FileOperationFilter (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.FileOperationFilter;
+               begin
+                  Read_FileOperationFilter (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -219,14 +222,17 @@ package body LSP.Inputs.Part_8 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Boolean_Vector renames Value;
-         Value : Standard.Boolean;
+         Set : LSP.Structures.Boolean_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Value := Handler.Boolean_Value;
-            Handler.Read_Next;
-            Set.Append (Value);
+            declare
+               Value : Standard.Boolean;
+            begin
+               Value := Handler.Boolean_Value;
+               Handler.Read_Next;
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

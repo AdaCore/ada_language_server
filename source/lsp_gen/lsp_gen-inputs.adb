@@ -186,6 +186,21 @@ package body LSP_Gen.Inputs is
       List  : LSP_Gen.Entities.AType_Vector)
       return VSS.String_Vectors.Virtual_String_Vector;
 
+   function Resolve_Alias
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      Tipe  : LSP_Gen.Entities.AType) return LSP_Gen.Entities.AType;
+   --  If Tipe is a reference to a type alias (possibly a chain of type
+   --  aliases), return the type it ultimately denotes (e.g. the `Definition`
+   --  reference resolves to its `Location | Location[]` array type).
+   --  Otherwise return Tipe unchanged.
+
+   function Is_Vector
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      Tipe  : LSP_Gen.Entities.AType) return Boolean;
+   --  Like Is_Vector above, but also recognizes a reference to a type alias
+   --  that denotes an array (e.g. `Definition`, a named alias for
+   --  `Location[]`).
+
    function Find_First
      (List : VSS.String_Vectors.Virtual_String_Vector;
       Item : VSS.Strings.Virtual_String) return Natural;
@@ -196,6 +211,59 @@ package body LSP_Gen.Inputs is
 
    function Is_Vector (Tipe : LSP_Gen.Entities.AType) return Boolean is
      (Tipe.Union.Kind = an_array);
+
+   -------------------
+   -- Resolve_Alias --
+   -------------------
+
+   function Resolve_Alias
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      Tipe  : LSP_Gen.Entities.AType) return LSP_Gen.Entities.AType is
+   begin
+      if Tipe.Union.Kind = reference then
+         declare
+            Ref : constant LSP_Gen.Meta_Models.Top_Type :=
+              Model.Get (Tipe.Union.reference.name);
+         begin
+            case Ref.Kind is
+               when LSP_Gen.Meta_Models.Type_Alias =>
+                  return Resolve_Alias (Model, Ref.Type_Alias.a_type);
+               when others =>
+                  null;
+            end case;
+         end;
+
+      elsif Tipe.Union.Kind = a_or then
+         --  A type alias like `Definition = Location | Location[]` is
+         --  itself an `or` type that collapses to a single array type
+         --  (a lone item reads back as a 1-element vector, see
+         --  Read_Definition); resolve it the same way Get_Or_Mapping does
+         --  so such an alias is recognized as a vector by its callers.
+         declare
+            Map : constant LSP_Gen.Mappings.Or_Mapping :=
+              LSP_Gen.Mappings.Get_Or_Mapping (Model, Tipe.Union.a_or.items);
+         begin
+            case Map.Kind is
+               when LSP_Gen.Mappings.Type_Or_Array
+                  | LSP_Gen.Mappings.Array_Or_Null =>
+                  return Resolve_Alias (Model, Map.Array_Type);
+               when others =>
+                  null;
+            end case;
+         end;
+      end if;
+
+      return Tipe;
+   end Resolve_Alias;
+
+   ---------------
+   -- Is_Vector --
+   ---------------
+
+   function Is_Vector
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      Tipe  : LSP_Gen.Entities.AType) return Boolean is
+       (Is_Vector (Resolve_Alias (Model, Tipe)));
 
    function Is_LSP_Any (Tipe : LSP_Gen.Entities.AType) return Boolean is
      (Tipe.Union.Kind = reference and then
@@ -399,7 +467,9 @@ package body LSP_Gen.Inputs is
                         Over   : LSP_Gen.String_Sets.Set;
                         Prop   : String_Vector_Array (1 .. List.Length);
                      begin
-                        if Is_Vector (List (1)) and Is_Vector (List (2)) then
+                        if Is_Vector (Model, List (1))
+                          and Is_Vector (Model, List (2))
+                        then
                            Split_Vector_Properties
                              (Model, Tipe.Union.a_or.items, Prop, Over);
                         else
@@ -562,9 +632,10 @@ package body LSP_Gen.Inputs is
       Overlap : out LSP_Gen.String_Sets.Set) is
    begin
       for J in Result'Range loop
-         if Is_Vector (List (J)) then
+         if Is_Vector (Model, List (J)) then
             Result (J) := All_Properties
-              (Model, List (J).Union.an_array.element.Value);
+              (Model,
+               Resolve_Alias (Model, List (J)).Union.an_array.element.Value);
          else
             Result (J) := All_Properties (Model, List (J));
          end if;
@@ -1044,11 +1115,20 @@ package body LSP_Gen.Inputs is
       Put_Line ("begin");
       Put_Line ("Handler.Mark;");
 
-      if Is_Vector (List (1)) and Is_Vector (List (2)) then
+      if Is_Vector (Model, List (1)) and Is_Vector (Model, List (2)) then
          Split_Vector_Properties (Model, List, Prop, Over);
          Put_Line ("if Handler.Is_Start_Array then");
          Put_Line ("Handler.Read_Next;");
          Put_Line ("end if;");
+
+         --  An empty JSON array gives no element to sniff the variant
+         --  from; any vector variant reads back the same empty vector,
+         --  so just pick the first one.
+         Put_Line ("if Handler.Is_End_Array then");
+         Put ("Value := (Kind => LSP.Structures.");
+         Put (Model.Get_Variant (List (1), 1));
+         Put_Line (", others => <>);");
+         Put ("els");
       else
          Split_Properties (Model, List, Prop, Over);
       end if;
@@ -1761,9 +1841,6 @@ package body LSP_Gen.Inputs is
                Put ("Set : LSP.Structures.");
                Put (Name);
                Put_Line (" renames Value;");
-               Put ("Value : ");
-               Put (Done (Tipe.Union.an_array.element.Value).Full_Name);
-               Put_Line (";");
                Put_Line ("begin");
 
                if Name.Ends_With ("_Set")
@@ -1774,6 +1851,10 @@ package body LSP_Gen.Inputs is
                then
                   Put_Line ("Set := (others => False);");
                   Put_Line ("   while not Handler.Is_End_Array loop");
+                  Put_Line ("      declare");
+                  Put ("         Value : ");
+                  Put (Done (Tipe.Union.an_array.element.Value).Full_Name);
+                  Put_Line (";");
                   Put_Line ("      begin");
                   Write_Call (Done, Tipe.Union.an_array.element.Value, "");
                   Put_Line ("         Set (Value) := True;");
@@ -1784,8 +1865,14 @@ package body LSP_Gen.Inputs is
                else
                   Put_Line ("Set.Clear;");
                   Put_Line ("   while not Handler.Is_End_Array loop");
+                  Put_Line ("      declare");
+                  Put ("         Value : ");
+                  Put (Done (Tipe.Union.an_array.element.Value).Full_Name);
+                  Put_Line (";");
+                  Put_Line ("      begin");
                   Write_Call (Done, Tipe.Union.an_array.element.Value, "");
                   Put_Line ("      Set.Append (Value);");
+                  Put_Line ("      end;");
                end if;
 
                Put_Line ("   end loop;");
@@ -1818,11 +1905,19 @@ package body LSP_Gen.Inputs is
                         Put_Line ("if Handler.Is_Start_Array then");
                         Put_Line ("Handler.Read_Next;");
                         Put_Line ("   while not Handler.Is_End_Array loop");
+                        Put_Line ("      declare");
+                        Put ("         Value : ");
+                        Put
+                          (Done (Map.Array_Type.Union.an_array.element.Value)
+                           .Full_Name);
+                        Put_Line (";");
+                        Put_Line ("      begin");
                         Write_Call
                           (Done,
                            Map.Array_Type.Union.an_array.element.Value,
                            "");
                         Put_Line ("      Set.Append (Value);");
+                        Put_Line ("      end;");
                         Put_Line ("   end loop;");
                         Put_Line ("Handler.Read_Next;");
                         New_Line;

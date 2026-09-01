@@ -148,13 +148,16 @@ package body LSP.Inputs.Part_28 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.FileEvent_Vector renames Value;
-            Value : LSP.Structures.FileEvent;
+            Set : LSP.Structures.FileEvent_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_FileEvent (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.FileEvent;
+               begin
+                  Read_FileEvent (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -191,13 +194,16 @@ package body LSP.Inputs.Part_28 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.MarkupKind_Vector renames Value;
-         Value : LSP.Enumerations.MarkupKind;
+         Set : LSP.Structures.MarkupKind_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_MarkupKind (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Enumerations.MarkupKind;
+            begin
+               Read_MarkupKind (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -596,13 +602,16 @@ package body LSP.Inputs.Part_28 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.PreviousResultId_Vector renames Value;
-            Value : LSP.Structures.PreviousResultId;
+            Set : LSP.Structures.PreviousResultId_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_PreviousResultId (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.PreviousResultId;
+               begin
+                  Read_PreviousResultId (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -654,13 +663,16 @@ package body LSP.Inputs.Part_28 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.InlayHint_Vector renames Value;
-         Value : LSP.Structures.InlayHint;
+         Set : LSP.Structures.InlayHint_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_InlayHint (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.InlayHint;
+            begin
+               Read_InlayHint (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -719,11 +731,12 @@ package body LSP.Inputs.Part_28 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CompletionItemTag_Set renames Value;
-         Value : LSP.Enumerations.CompletionItemTag;
+         Set : LSP.Structures.CompletionItemTag_Set renames Value;
       begin
          Set := (others => False);
          while not Handler.Is_End_Array loop
+            declare
+               Value : LSP.Enumerations.CompletionItemTag;
             begin
                Read_CompletionItemTag (Handler, Value);
                Set (Value) := True;

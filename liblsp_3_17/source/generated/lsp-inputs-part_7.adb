@@ -1912,13 +1912,16 @@ package body LSP.Inputs.Part_7 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.FileSystemWatcher_Vector renames Value;
-            Value : LSP.Structures.FileSystemWatcher;
+            Set : LSP.Structures.FileSystemWatcher_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_FileSystemWatcher (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.FileSystemWatcher;
+               begin
+                  Read_FileSystemWatcher (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -2170,11 +2173,12 @@ package body LSP.Inputs.Part_7 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.SymbolKind_Set renames Value;
-         Value : LSP.Enumerations.SymbolKind;
+         Set : LSP.Structures.SymbolKind_Set renames Value;
       begin
          Set := (others => False);
          while not Handler.Is_End_Array loop
+            declare
+               Value : LSP.Enumerations.SymbolKind;
             begin
                Read_SymbolKind (Handler, Value);
                Set (Value) := True;

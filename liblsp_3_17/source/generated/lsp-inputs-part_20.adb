@@ -46,7 +46,11 @@ package body LSP.Inputs.Part_20 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
          end if;
-         if Handler.Is_Start_Object then
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             while Handler.Is_Key_Name loop
                declare
@@ -208,11 +212,12 @@ package body LSP.Inputs.Part_20 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.ResourceOperationKind_Set renames Value;
-            Value : LSP.Enumerations.ResourceOperationKind;
+            Set : LSP.Structures.ResourceOperationKind_Set renames Value;
          begin
             Set := (others => False);
             while not Handler.Is_End_Array loop
+               declare
+                  Value : LSP.Enumerations.ResourceOperationKind;
                begin
                   Read_ResourceOperationKind (Handler, Value);
                   Set (Value) := True;
@@ -614,13 +619,16 @@ package body LSP.Inputs.Part_20 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.MarkedString_Vector renames Value;
-            Value : LSP.Structures.MarkedString;
+            Set : LSP.Structures.MarkedString_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_MarkedString (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.MarkedString;
+               begin
+                  Read_MarkedString (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

@@ -287,7 +287,8 @@ package body LSP.Clients is
       Reader : aliased VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
       Stream : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => Reader'Unchecked_Access);
-      Id     : LSP.Structures.Integer_Or_Virtual_String;
+      Id     : LSP.Structures.Integer_Or_Virtual_String :=
+        (Is_Integer => False, Virtual_String => <>);
       Method : LSP.Structures.Virtual_String_Optional;
       Token  : LSP.Structures.Integer_Or_Virtual_String :=
         (Is_Integer => False, Virtual_String => <>);
