@@ -244,13 +244,16 @@ package body LSP.Inputs.Part_23 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DefinitionLink_Vector renames Value;
-         Value : LSP.Structures.DefinitionLink;
+         Set : LSP.Structures.DefinitionLink_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DefinitionLink (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DefinitionLink;
+            begin
+               Read_DefinitionLink (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -423,13 +426,16 @@ package body LSP.Inputs.Part_23 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.Position_Vector renames Value;
-            Value : LSP.Structures.Position;
+            Set : LSP.Structures.Position_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_Position (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Position;
+               begin
+                  Read_Position (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

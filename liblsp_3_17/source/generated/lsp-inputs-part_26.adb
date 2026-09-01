@@ -98,13 +98,16 @@ package body LSP.Inputs.Part_26 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.ConfigurationItem_Vector renames Value;
-            Value : LSP.Structures.ConfigurationItem;
+            Set : LSP.Structures.ConfigurationItem_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_ConfigurationItem (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.ConfigurationItem;
+               begin
+                  Read_ConfigurationItem (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

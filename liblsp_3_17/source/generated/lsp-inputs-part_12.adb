@@ -133,10 +133,14 @@ package body LSP.Inputs.Part_12 is
             if Handler.Is_Start_Array then
                Handler.Read_Next;
                while not Handler.Is_End_Array loop
-                  Value.Clear;
-                  Value.Append (Handler.String_Value);
-                  Handler.Read_Next;
-                  Set.Append (Value);
+                  declare
+                     Value : LSP.Structures.Virtual_String;
+                  begin
+                     Value.Clear;
+                     Value.Append (Handler.String_Value);
+                     Handler.Read_Next;
+                     Set.Append (Value);
+                  end;
                end loop;
                Handler.Read_Next;
 
@@ -424,15 +428,18 @@ package body LSP.Inputs.Part_12 is
          Handler.Read_Next;
 
          declare
-            Set   :
+            Set :
               LSP.Structures.TextEdit_Or_AnnotatedTextEdit_Vector renames
               Value;
-            Value : LSP.Structures.TextEdit_Or_AnnotatedTextEdit;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_TextEdit_Or_AnnotatedTextEdit (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.TextEdit_Or_AnnotatedTextEdit;
+               begin
+                  Read_TextEdit_Or_AnnotatedTextEdit (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

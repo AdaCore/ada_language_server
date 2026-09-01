@@ -32,13 +32,16 @@ package body LSP.Inputs.Part_13 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.NotebookCell_Vector renames Value;
-         Value : LSP.Structures.NotebookCell;
+         Set : LSP.Structures.NotebookCell_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_NotebookCell (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.NotebookCell;
+            begin
+               Read_NotebookCell (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -60,11 +63,12 @@ package body LSP.Inputs.Part_13 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.SymbolTag_Set renames Value;
-         Value : LSP.Enumerations.SymbolTag;
+         Set : LSP.Structures.SymbolTag_Set renames Value;
       begin
          Set := (others => False);
          while not Handler.Is_End_Array loop
+            declare
+               Value : LSP.Enumerations.SymbolTag;
             begin
                Read_SymbolTag (Handler, Value);
                Set (Value) := True;
@@ -115,13 +119,16 @@ package body LSP.Inputs.Part_13 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.PositionEncodingKind_Set renames Value;
-            Value : LSP.Enumerations.PositionEncodingKind;
+            Set : LSP.Structures.PositionEncodingKind_Set renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_PositionEncodingKind (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Enumerations.PositionEncodingKind;
+               begin
+                  Read_PositionEncodingKind (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -702,12 +709,15 @@ package body LSP.Inputs.Part_13 is
 
          declare
             Set : LSP.Structures.documentChanges_OfWorkspaceEdit renames Value;
-            Value : LSP.Structures.documentChanges_OfWorkspaceEdit_Item;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_documentChanges_OfWorkspaceEdit_Item (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.documentChanges_OfWorkspaceEdit_Item;
+               begin
+                  Read_documentChanges_OfWorkspaceEdit_Item (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -1013,13 +1023,16 @@ package body LSP.Inputs.Part_13 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DocumentHighlight_Vector renames Value;
-         Value : LSP.Structures.DocumentHighlight;
+         Set : LSP.Structures.DocumentHighlight_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DocumentHighlight (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DocumentHighlight;
+            begin
+               Read_DocumentHighlight (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

@@ -36,13 +36,16 @@ package body LSP.Inputs.Part_11 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Command_Or_CodeAction_Vector renames Value;
-         Value : LSP.Structures.Command_Or_CodeAction;
+         Set : LSP.Structures.Command_Or_CodeAction_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_Command_Or_CodeAction (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.Command_Or_CodeAction;
+            begin
+               Read_Command_Or_CodeAction (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -217,13 +220,16 @@ package body LSP.Inputs.Part_11 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DocumentSymbol_Vector renames Value;
-         Value : LSP.Structures.DocumentSymbol;
+         Set : LSP.Structures.DocumentSymbol_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DocumentSymbol (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DocumentSymbol;
+            begin
+               Read_DocumentSymbol (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -675,13 +681,16 @@ package body LSP.Inputs.Part_11 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Moniker_Vector renames Value;
-         Value : LSP.Structures.Moniker;
+         Set : LSP.Structures.Moniker_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_Moniker (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.Moniker;
+            begin
+               Read_Moniker (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

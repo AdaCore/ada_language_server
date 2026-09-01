@@ -217,19 +217,22 @@ package body LSP.Inputs.Part_6 is
          Handler.Read_Next;
 
          declare
-            Set   :
+            Set :
               LSP.Structures
                 .notebookSelector_OfNotebookDocumentSyncOptions renames
               Value;
-            Value :
-              LSP.Structures
-                .notebookSelector_OfNotebookDocumentSyncOptions_Item;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_notebookSelector_OfNotebookDocumentSyncOptions_Item
-                 (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value :
+                    LSP.Structures
+                      .notebookSelector_OfNotebookDocumentSyncOptions_Item;
+               begin
+                  Read_notebookSelector_OfNotebookDocumentSyncOptions_Item
+                    (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -245,19 +248,22 @@ package body LSP.Inputs.Part_6 is
          Handler.Read_Next;
 
          declare
-            Set   :
+            Set :
               LSP.Structures
                 .cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item renames
               Value;
-            Value :
-              LSP.Structures
-                .cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item_Item;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item_Item
-                 (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value :
+                    LSP.Structures
+                      .cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item_Item;
+               begin
+                  Read_cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item_Item
+                    (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -655,13 +661,16 @@ package body LSP.Inputs.Part_6 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.FileDelete_Vector renames Value;
-            Value : LSP.Structures.FileDelete;
+            Set : LSP.Structures.FileDelete_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_FileDelete (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.FileDelete;
+               begin
+                  Read_FileDelete (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

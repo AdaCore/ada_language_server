@@ -1761,9 +1761,6 @@ package body LSP_Gen.Inputs is
                Put ("Set : LSP.Structures.");
                Put (Name);
                Put_Line (" renames Value;");
-               Put ("Value : ");
-               Put (Done (Tipe.Union.an_array.element.Value).Full_Name);
-               Put_Line (";");
                Put_Line ("begin");
 
                if Name.Ends_With ("_Set")
@@ -1774,6 +1771,10 @@ package body LSP_Gen.Inputs is
                then
                   Put_Line ("Set := (others => False);");
                   Put_Line ("   while not Handler.Is_End_Array loop");
+                  Put_Line ("      declare");
+                  Put ("         Value : ");
+                  Put (Done (Tipe.Union.an_array.element.Value).Full_Name);
+                  Put_Line (";");
                   Put_Line ("      begin");
                   Write_Call (Done, Tipe.Union.an_array.element.Value, "");
                   Put_Line ("         Set (Value) := True;");
@@ -1784,8 +1785,14 @@ package body LSP_Gen.Inputs is
                else
                   Put_Line ("Set.Clear;");
                   Put_Line ("   while not Handler.Is_End_Array loop");
+                  Put_Line ("      declare");
+                  Put ("         Value : ");
+                  Put (Done (Tipe.Union.an_array.element.Value).Full_Name);
+                  Put_Line (";");
+                  Put_Line ("      begin");
                   Write_Call (Done, Tipe.Union.an_array.element.Value, "");
                   Put_Line ("      Set.Append (Value);");
+                  Put_Line ("      end;");
                end if;
 
                Put_Line ("   end loop;");
@@ -1818,11 +1825,19 @@ package body LSP_Gen.Inputs is
                         Put_Line ("if Handler.Is_Start_Array then");
                         Put_Line ("Handler.Read_Next;");
                         Put_Line ("   while not Handler.Is_End_Array loop");
+                        Put_Line ("      declare");
+                        Put ("         Value : ");
+                        Put
+                          (Done (Map.Array_Type.Union.an_array.element.Value)
+                           .Full_Name);
+                        Put_Line (";");
+                        Put_Line ("      begin");
                         Write_Call
                           (Done,
                            Map.Array_Type.Union.an_array.element.Value,
                            "");
                         Put_Line ("      Set.Append (Value);");
+                        Put_Line ("      end;");
                         Put_Line ("   end loop;");
                         Put_Line ("Handler.Read_Next;");
                         New_Line;

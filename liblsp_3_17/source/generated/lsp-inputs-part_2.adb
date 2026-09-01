@@ -425,13 +425,16 @@ package body LSP.Inputs.Part_2 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.InlineValue_Vector renames Value;
-         Value : LSP.Structures.InlineValue;
+         Set : LSP.Structures.InlineValue_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_InlineValue (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.InlineValue;
+            begin
+               Read_InlineValue (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

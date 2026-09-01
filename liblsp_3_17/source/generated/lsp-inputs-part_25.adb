@@ -106,15 +106,18 @@ package body LSP.Inputs.Part_25 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Virtual_String_Vector renames Value;
-         Value : LSP.Structures.Virtual_String;
+         Set : LSP.Structures.Virtual_String_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Value.Clear;
-            Value.Append (Handler.String_Value);
-            Handler.Read_Next;
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.Virtual_String;
+            begin
+               Value.Clear;
+               Value.Append (Handler.String_Value);
+               Handler.Read_Next;
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -210,13 +213,16 @@ package body LSP.Inputs.Part_25 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.FileCreate_Vector renames Value;
-            Value : LSP.Structures.FileCreate;
+            Set : LSP.Structures.FileCreate_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_FileCreate (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.FileCreate;
+               begin
+                  Read_FileCreate (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -253,13 +259,16 @@ package body LSP.Inputs.Part_25 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.ColorPresentation_Vector renames Value;
-         Value : LSP.Structures.ColorPresentation;
+         Set : LSP.Structures.ColorPresentation_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_ColorPresentation (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.ColorPresentation;
+            begin
+               Read_ColorPresentation (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -423,11 +432,12 @@ package body LSP.Inputs.Part_25 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.TokenFormat_Set renames Value;
-            Value : LSP.Enumerations.TokenFormat;
+            Set : LSP.Structures.TokenFormat_Set renames Value;
          begin
             Set := (others => False);
             while not Handler.Is_End_Array loop
+               declare
+                  Value : LSP.Enumerations.TokenFormat;
                begin
                   Read_TokenFormat (Handler, Value);
                   Set (Value) := True;
@@ -522,13 +532,16 @@ package body LSP.Inputs.Part_25 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.Registration_Vector renames Value;
-            Value : LSP.Structures.Registration;
+            Set : LSP.Structures.Registration_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_Registration (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Registration;
+               begin
+                  Read_Registration (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 

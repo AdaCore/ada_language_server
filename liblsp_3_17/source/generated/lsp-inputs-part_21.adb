@@ -310,13 +310,16 @@ package body LSP.Inputs.Part_21 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.TextDocumentItem_Vector renames Value;
-         Value : LSP.Structures.TextDocumentItem;
+         Set : LSP.Structures.TextDocumentItem_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_TextDocumentItem (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.TextDocumentItem;
+            begin
+               Read_TextDocumentItem (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

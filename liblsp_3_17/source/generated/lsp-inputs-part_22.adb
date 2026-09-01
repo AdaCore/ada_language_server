@@ -28,8 +28,12 @@ package body LSP.Inputs.Part_22 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
             while not Handler.Is_End_Array loop
-               Read_Location (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Location;
+               begin
+                  Read_Location (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
             Handler.Read_Next;
 
@@ -426,11 +430,12 @@ package body LSP.Inputs.Part_22 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.AlsReferenceKind_Set renames Value;
-         Value : LSP.Enumerations.AlsReferenceKind;
+         Set : LSP.Structures.AlsReferenceKind_Set renames Value;
       begin
          Set := (others => False);
          while not Handler.Is_End_Array loop
+            declare
+               Value : LSP.Enumerations.AlsReferenceKind;
             begin
                Read_AlsReferenceKind (Handler, Value);
                Set (Value) := True;

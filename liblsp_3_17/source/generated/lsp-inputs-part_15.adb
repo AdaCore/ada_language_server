@@ -199,11 +199,12 @@ package body LSP.Inputs.Part_15 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.CompletionItemKind_Set renames Value;
-            Value : LSP.Enumerations.CompletionItemKind;
+            Set : LSP.Structures.CompletionItemKind_Set renames Value;
          begin
             Set := (others => False);
             while not Handler.Is_End_Array loop
+               declare
+                  Value : LSP.Enumerations.CompletionItemKind;
                begin
                   Read_CompletionItemKind (Handler, Value);
                   Set (Value) := True;
@@ -364,11 +365,12 @@ package body LSP.Inputs.Part_15 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.InsertTextMode_Set renames Value;
-            Value : LSP.Enumerations.InsertTextMode;
+            Set : LSP.Structures.InsertTextMode_Set renames Value;
          begin
             Set := (others => False);
             while not Handler.Is_End_Array loop
+               declare
+                  Value : LSP.Enumerations.InsertTextMode;
                begin
                   Read_InsertTextMode (Handler, Value);
                   Set (Value) := True;
@@ -603,13 +605,16 @@ package body LSP.Inputs.Part_15 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.Location_Vector renames Value;
-         Value : LSP.Structures.Location;
+         Set : LSP.Structures.Location_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_Location (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.Location;
+            begin
+               Read_Location (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

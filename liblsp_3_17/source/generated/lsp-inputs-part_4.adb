@@ -297,13 +297,16 @@ package body LSP.Inputs.Part_4 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CodeActionKind_Set renames Value;
-         Value : LSP.Enumerations.CodeActionKind;
+         Set : LSP.Structures.CodeActionKind_Set renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CodeActionKind (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Enumerations.CodeActionKind;
+            begin
+               Read_CodeActionKind (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -318,13 +321,16 @@ package body LSP.Inputs.Part_4 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.CallHierarchyItem_Vector renames Value;
-         Value : LSP.Structures.CallHierarchyItem;
+         Set : LSP.Structures.CallHierarchyItem_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_CallHierarchyItem (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.CallHierarchyItem;
+            begin
+               Read_CallHierarchyItem (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -717,13 +723,16 @@ package body LSP.Inputs.Part_4 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.Unregistration_Vector renames Value;
-            Value : LSP.Structures.Unregistration;
+            Set : LSP.Structures.Unregistration_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_Unregistration (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.Unregistration;
+               begin
+                  Read_Unregistration (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -773,13 +782,16 @@ package body LSP.Inputs.Part_4 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DeclarationLink_Vector renames Value;
-         Value : LSP.Structures.DeclarationLink;
+         Set : LSP.Structures.DeclarationLink_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_DeclarationLink (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.DeclarationLink;
+            begin
+               Read_DeclarationLink (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 

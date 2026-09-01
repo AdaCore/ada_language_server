@@ -51,13 +51,16 @@ package body LSP.Inputs.Part_14 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.ParameterInformation_Vector renames Value;
-            Value : LSP.Structures.ParameterInformation;
+            Set : LSP.Structures.ParameterInformation_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_ParameterInformation (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.ParameterInformation;
+               begin
+                  Read_ParameterInformation (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -476,13 +479,16 @@ package body LSP.Inputs.Part_14 is
          Handler.Read_Next;
 
          declare
-            Set   : LSP.Structures.InlayHintLabelPart_Vector renames Value;
-            Value : LSP.Structures.InlayHintLabelPart;
+            Set : LSP.Structures.InlayHintLabelPart_Vector renames Value;
          begin
             Set.Clear;
             while not Handler.Is_End_Array loop
-               Read_InlayHintLabelPart (Handler, Value);
-               Set.Append (Value);
+               declare
+                  Value : LSP.Structures.InlayHintLabelPart;
+               begin
+                  Read_InlayHintLabelPart (Handler, Value);
+                  Set.Append (Value);
+               end;
             end loop;
          end;
 
@@ -616,11 +622,12 @@ package body LSP.Inputs.Part_14 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.DiagnosticTag_Set renames Value;
-         Value : LSP.Enumerations.DiagnosticTag;
+         Set : LSP.Structures.DiagnosticTag_Set renames Value;
       begin
          Set := (others => False);
          while not Handler.Is_End_Array loop
+            declare
+               Value : LSP.Enumerations.DiagnosticTag;
             begin
                Read_DiagnosticTag (Handler, Value);
                Set (Value) := True;
@@ -652,13 +659,16 @@ package body LSP.Inputs.Part_14 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.SemanticTokensEdit_Vector renames Value;
-         Value : LSP.Structures.SemanticTokensEdit;
+         Set : LSP.Structures.SemanticTokensEdit_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_SemanticTokensEdit (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.SemanticTokensEdit;
+            begin
+               Read_SemanticTokensEdit (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
@@ -673,13 +683,16 @@ package body LSP.Inputs.Part_14 is
       Handler.Read_Next;
 
       declare
-         Set   : LSP.Structures.FoldingRange_Vector renames Value;
-         Value : LSP.Structures.FoldingRange;
+         Set : LSP.Structures.FoldingRange_Vector renames Value;
       begin
          Set.Clear;
          while not Handler.Is_End_Array loop
-            Read_FoldingRange (Handler, Value);
-            Set.Append (Value);
+            declare
+               Value : LSP.Structures.FoldingRange;
+            begin
+               Read_FoldingRange (Handler, Value);
+               Set.Append (Value);
+            end;
          end loop;
       end;
 
