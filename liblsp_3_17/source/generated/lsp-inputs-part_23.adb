@@ -866,7 +866,11 @@ package body LSP.Inputs.Part_23 is
         (["uri",
          "range",
          "alsKind",
-         "hidden"]);
+         "hidden",
+         "originSelectionRange",
+         "targetUri",
+         "targetRange",
+         "targetSelectionRange"]);
 
    end Definition_Result_Scope;
 
@@ -884,15 +888,19 @@ package body LSP.Inputs.Part_23 is
            VSS.JSON.Pull_Readers.Buffered.JSON_Buffered_Pull_Reader (Parent);
       begin
          Handler.Mark;
-         if Handler.Is_Null_Value then
+         if Handler.Is_Start_Array then
+            Handler.Read_Next;
+         end if;
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Null_Value then
             Value :=
               (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
-            Value :=
-              (Kind   => LSP.Structures.Variant_2,
-               others => <>);
             while Handler.Is_Key_Name loop
                declare
                   Key   : constant VSS.Strings.Virtual_String :=
@@ -920,6 +928,26 @@ package body LSP.Inputs.Part_23 is
                      when 4 =>  --  hidden
                         Value :=
                           (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 5 =>  --  originSelectionRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 6 =>  --  targetUri
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 7 =>  --  targetRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 8 =>  --  targetSelectionRange
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
