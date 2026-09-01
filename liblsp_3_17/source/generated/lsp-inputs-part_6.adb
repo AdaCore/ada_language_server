@@ -427,7 +427,11 @@ package body LSP.Inputs.Part_6 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
          end if;
-         if Handler.Is_Null_Value then
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Null_Value then
             Value :=
               (Kind   => LSP.Structures.Variant_3,
                others => <>);

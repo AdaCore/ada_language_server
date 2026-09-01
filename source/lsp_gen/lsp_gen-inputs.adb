@@ -1049,6 +1049,15 @@ package body LSP_Gen.Inputs is
          Put_Line ("if Handler.Is_Start_Array then");
          Put_Line ("Handler.Read_Next;");
          Put_Line ("end if;");
+
+         --  An empty JSON array gives no element to sniff the variant
+         --  from; any vector variant reads back the same empty vector,
+         --  so just pick the first one.
+         Put_Line ("if Handler.Is_End_Array then");
+         Put ("Value := (Kind => LSP.Structures.");
+         Put (Model.Get_Variant (List (1), 1));
+         Put_Line (", others => <>);");
+         Put ("els");
       else
          Split_Properties (Model, List, Prop, Over);
       end if;

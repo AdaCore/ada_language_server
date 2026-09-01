@@ -359,7 +359,11 @@ package body LSP.Inputs.Part_17 is
          if Handler.Is_Start_Array then
             Handler.Read_Next;
          end if;
-         if Handler.Is_Start_Object then
+         if Handler.Is_End_Array then
+            Value :=
+              (Kind   => LSP.Structures.Variant_1,
+               others => <>);
+         elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             while Handler.Is_Key_Name loop
                declare
