@@ -20,9 +20,49 @@ package body LSP.Input_Tools is
 
    procedure Look_For_MarkupContent_Or_MarkedString_Vector
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.MarkupContent_Or_MarkedString_Vector) is
+      Value   : out LSP.Structures.MarkupContent_Or_MarkedString_Vector)
+   is
+      use type VSS.Strings.Virtual_String;
    begin
-      raise Program_Error with "Unimplemented";
+      if Handler.Is_Start_Object then
+         Handler.Read_Next;
+
+         while Handler.Is_Key_Name loop
+            declare
+               Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
+            begin
+               if Key = "kind" then
+                  Value := (Is_MarkupContent => True, others => <>);
+                  return;
+               elsif Key = "language" then
+                  Value := (Is_MarkupContent => False, others => <>);
+                  Value.MarkedString_Vector.Append
+                    (LSP.Structures.MarkedString'
+                       (Is_Virtual_String => False, others => <>));
+                  return;
+               else
+                  Handler.Read_Next;
+                  Handler.Skip_Current_Value;
+               end if;
+            end;
+         end loop;
+
+         --  No recognized key found in the object; default to MarkupContent,
+         --  matching the behavior of Read_MarkupContent on an object without
+         --  any of its known fields.
+         Value := (Is_MarkupContent => True, others => <>);
+
+      else
+         --  A JSON string is a single MarkedString; a JSON array is a
+         --  MarkedString[]. Either way this isn't a MarkupContent.
+         Value := (Is_MarkupContent => False, others => <>);
+
+         if not Handler.Is_Start_Array then
+            Value.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => True, others => <>));
+         end if;
+      end if;
    end Look_For_MarkupContent_Or_MarkedString_Vector;
 
    -----------------
