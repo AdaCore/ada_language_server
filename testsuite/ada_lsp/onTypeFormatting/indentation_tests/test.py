@@ -144,6 +144,15 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
             Position(2, 7),
             "     ",
         ),
+        # A comment between the dot and the selector of a dotted name used to
+        # leave the fallback indenter's line counter behind, so every line
+        # after such a construct was indented as if it were the previous one.
+        IndentationTestCase(
+            "Indentation after a dotted name holding a comment after the dot",
+            "after_dot_comment.adb",
+            Position(5, 13),
+            "   ",
+        ),
         IndentationTestCase(
             "Indentation after a generic formal declaration",
             "after_generic_formal_decl.ads",

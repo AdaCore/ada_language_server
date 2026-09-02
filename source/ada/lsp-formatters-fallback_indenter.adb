@@ -1483,11 +1483,12 @@ package body LSP.Formatters.Fallback_Indenter is
       -----------------------
 
       function End_Of_Identifier (P : Natural) return Natural is
-         Tmp       : Natural := P;
-         Prev      : Natural := P - 1;
-         Start     : Natural;
-         New_Lines : Natural;
-         Last_Dot  : Natural;
+         Tmp          : Natural := P;
+         Prev         : Natural := P - 1;
+         Start        : Natural;
+         New_Lines    : Natural;
+         Lines_To_Dot : Natural;
+         Last_Dot     : Natural;
 
       begin
          --  Do not try to go past '.' and line breaks when reformatting,
@@ -1515,6 +1516,12 @@ package body LSP.Formatters.Fallback_Indenter is
 
             Last_Dot := Tmp;
 
+            --  Remember how many line breaks were skipped to reach the dot:
+            --  if we end up stopping on it, these are the only ones that
+            --  have been definitely consumed.
+
+            Lines_To_Dot := New_Lines;
+
             while Tmp < Buffer_Last loop
                Tmp := Tmp + 1;
 
@@ -1541,6 +1548,17 @@ package body LSP.Formatters.Fallback_Indenter is
             elsif not Is_Entity_Letter
                         (UTF8_Get_Char (Buffer (Tmp .. Buffer_Last)))
             then
+               --  The selector is not an identifier (e.g. a comment follows
+               --  the dot), so we stop on the dot itself. Account for the
+               --  line breaks skipped before it, otherwise Line_Count stays
+               --  behind the actual position for the rest of the parsing,
+               --  and Do_Indent then stores the indentation of the current
+               --  line at the wrong index in Result. The line breaks located
+               --  after the dot are left alone: scanning resumes there, so
+               --  they get counted again by Next_Word.
+
+               Line_Count := Line_Count + Lines_To_Dot;
+
                return Last_Dot;
             else
                Start := Tmp;
