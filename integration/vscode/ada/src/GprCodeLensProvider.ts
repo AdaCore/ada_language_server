@@ -19,7 +19,8 @@ export class GprCodeLensProvider implements vscode.CodeLensProvider {
         PROVE: 'https://docs.adacore.com/spark2014-docs/html/ug/en/appendix/project_attributes.html',
         ANALYZER:
             'https://docs.adacore.com/live/wave/gnatsas/html/user_guide/project_setup.html#configuring-the-analysis',
-        COVERAGE: 'https://docs.adacore.com/gnatdas-docs/html/gnatcov/getting_started.html',
+        COVERAGE:
+            'https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/getting_started.html',
     };
 
     private localDocs: Record<string, string> = {};
@@ -91,7 +92,7 @@ export class GprCodeLensProvider implements vscode.CodeLensProvider {
                 if (local) {
                     codeLenses.push(
                         new vscode.CodeLens(new vscode.Range(line, 0, line, 0), {
-                            title: `$(link-external) Open Local ${packageName} Documentation`,
+                            title: `$(link-external) Open ${packageName} Documentation (local)`,
                             command: CMD_TOOL_DOCUMENTATION,
                             arguments: [local],
                         }),
@@ -99,7 +100,7 @@ export class GprCodeLensProvider implements vscode.CodeLensProvider {
                 } else if (url) {
                     codeLenses.push(
                         new vscode.CodeLens(new vscode.Range(line, 0, line, 0), {
-                            title: `$(link-external) Open Online ${packageName} Documentation`,
+                            title: `$(link-external) Open ${packageName} Documentation (online)`,
                             command: CMD_TOOL_DOCUMENTATION,
                             arguments: [url],
                         }),
