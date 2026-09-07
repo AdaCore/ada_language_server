@@ -11,6 +11,15 @@ import { ProjectViewItemKind, ProjectViewProvider } from '../../src/projectViewP
 import { activate } from '../utils';
 
 suite('Project View', function () {
+    // Extension activation and the first Project View refresh both wait on
+    // the ALS having loaded the project, which can exceed the default mocha
+    // timeout used in CI. Leave timeouts disabled if they already are
+    // (timeout() === 0), which is the default when running locally.
+    const inheritedTimeout = this.timeout();
+    if (inheritedTimeout !== 0) {
+        this.timeout(Math.max(inheritedTimeout, 15000));
+    }
+
     this.beforeAll(async () => {
         await activate();
         await adaExtState.refreshProjectView();
