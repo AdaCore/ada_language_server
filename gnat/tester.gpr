@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
+with "lsp_client_3_17";
 with "gnatcoll";
 with "vss_os.gpr";
 
@@ -25,7 +25,7 @@ project Tester is
    for Object_Dir use "../.obj/tester";
    for Main use ("tester-run.adb");
 
-   package Compiler renames LSP_Client.Compiler;
+   package Compiler renames LSP_Client_3_17.Compiler;
 
    package Binder is
       for Switches ("ada") use ("-Es");
