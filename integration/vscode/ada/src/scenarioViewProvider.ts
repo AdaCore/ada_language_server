@@ -44,6 +44,10 @@ export interface Raw_ScenarioVariablesResponse {
 export interface ScenarioVariableInfo {
     name: string;
     typed: boolean;
+    /** A conflict means that the same external variable is declared with
+     * different types across the project tree; GPR2 cannot give us a
+     * single authoritative type
+     */
     conflicting: boolean;
     /** Legal values for a typed variable; empty for an untyped one. */
     possibleValues: string[];
@@ -72,7 +76,7 @@ export function parseScenarioVariablesResponse(
 /**
  * Label shown as a variable's value when it has no currently resolved
  * value. GPR2 does not currently expose the literal default value text of
- * a scenario variable, so it cannot be displayed here.
+ * a scenario (external) variable, so it cannot be displayed here.
  */
 export const SCENARIO_VARIABLE_DEFAULT_LABEL = 'Default';
 
@@ -90,6 +94,10 @@ export class ScenarioViewItem extends vscode.TreeItem {
         this.description = isSet ? currentValue : SCENARIO_VARIABLE_DEFAULT_LABEL;
         this.id = `scenario-var-${info.name}`;
 
+        // A conflict means that the same external variable is declared with
+        // different types across the project tree; GPR2 cannot give us a
+        // single authoritative type, so we surface it both as a warning icon
+        // and as an explanatory tooltip message.
         this.iconPath = info.conflicting
             ? new vscode.ThemeIcon(
                   'warning',
@@ -114,29 +122,34 @@ export class ScenarioViewItem extends vscode.TreeItem {
         };
     }
 
-    private buildTooltip(isSet: boolean, currentValue: string | undefined): string {
-        const lines: string[] = [this.info.name];
+    private buildTooltip(isSet: boolean, currentValue: string | undefined): vscode.MarkdownString {
+        const md = new vscode.MarkdownString();
+        md.appendMarkdown(`**Name:** \`${this.info.name}\`\n\n`);
 
         if (this.info.typed) {
-            lines.push(`Possible values: ${this.info.possibleValues.join(', ')}`);
+            md.appendMarkdown(
+                `**Possible values:** \`${this.info.possibleValues.join(', ')}\`\n\n`,
+            );
         } else {
-            lines.push('Untyped variable: any value is accepted');
+            md.appendMarkdown('**Type:** untyped variable; any value is accepted\n\n');
         }
 
-        lines.push(
+        md.appendMarkdown(
             isSet
-                ? `Current value: ${currentValue ?? ''}`
-                : `Current value: ${SCENARIO_VARIABLE_DEFAULT_LABEL}` +
-                      ` (the project's default is used)`,
+                ? `**Current value:** \`${currentValue ?? ''}\`\n\n`
+                : `**Current value:** \`${SCENARIO_VARIABLE_DEFAULT_LABEL}\`` +
+                      ` (the project's default is used)\n\n`,
         );
 
         if (this.info.conflicting) {
-            lines.push(
-                'Warning: this variable is declared with conflicting types across the project tree',
+            md.appendMarkdown(
+                '**Warning:** this variable is declared with conflicting types ' +
+                    'across the project tree; different project declarations ' +
+                    'disagree on its type.',
             );
         }
 
-        return lines.join('\n');
+        return md;
     }
 }
 

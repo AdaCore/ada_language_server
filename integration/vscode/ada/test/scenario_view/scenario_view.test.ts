@@ -132,6 +132,12 @@ suite('Scenario View', function () {
         assert.strictEqual(mode.description, 'Default');
         assert.strictEqual(mode.contextValue, 'scenarioVariableTypedUnset');
 
+        const tooltip = mode.tooltip;
+        assert.ok(tooltip instanceof vscode.MarkdownString);
+        assert.match(tooltip.value, /\*\*Name:\*\* `MODE`/);
+        assert.match(tooltip.value, /\*\*Possible values:\*\* `Debug, Release`/);
+        assert.match(tooltip.value, /\*\*Current value:\*\* `Default`/);
+
         // FILE_VAR is set by .als.json only. It must show that value rather
         // than being reported as unset.
         const fileVar = await findScenarioItem('FILE_VAR');
