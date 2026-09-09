@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* CodeLenses for opening the documentation associated to a given project package are now available in GPR files
 * GPR files: keywords are now proposed by completion, according to the syntactic context (project qualifiers, declarations, case constructs)
 * `null` is now highlighted as a keyword rather than as a constant, so that both words of `null record` are coloured alike
 * `null` used as a value (e.g. `Foo := null`) is now reported as a constant through semantic tokens, so that it keeps the colour of a language literal
