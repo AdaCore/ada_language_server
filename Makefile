@@ -118,18 +118,14 @@ else
 endif
 	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS) $(GPRBUILD_CARGS)
-	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
+	$(GPRBUILD) -P gnat/lsp_client_3_17.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH_PLATFORM)
 	cp -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
 endif
 
 generate:
-	python scripts/generate.py
 	make -C source/lsp_gen
-
-generate_io:
-	python scripts/io_gen.py
 
 coverage-instrument:
 ifneq ($(COVERAGE),)
@@ -144,7 +140,7 @@ install:
 	gprinstall -f -P gnat/lsp_server.gpr -p -r --mode=usage \
 		--prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 	gprinstall -f -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
-	gprinstall -f -P gnat/lsp_client.gpr -p -r	\
+	gprinstall -f -P gnat/lsp_client_3_17.gpr -p -r	\
 		--mode=dev				\
 		--prefix=$(DESTDIR)			\
 		$(LIBRARY_FLAGS)
@@ -154,7 +150,6 @@ ifneq ($(COVERAGE),)
 endif
 
 clean:
-	-$(GPRCLEAN) -P gnat/lsp.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/lsp_3_17.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
