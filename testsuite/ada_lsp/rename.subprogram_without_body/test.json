@@ -1,0 +1,129 @@
+[
+   {
+      "comment": ["This test checks renaming a subprogram that has no body at",
+                  "all. See eng/ide/ada_language_server#1855."]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "renameProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package P is\n   function Foo return Integer;\n\n   X : constant Integer := Foo;\nend P;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "method": "textDocument/rename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p.ads}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 13
+               },
+               "newName": "Bar"
+            }
+         },
+         "wait": [
+            {
+               "id": "1",
+               "result": {
+                  "changes": {
+                     "$URI{p.ads}": [
+                        {
+                           "range": {
+                              "start": { "line": 1, "character": 12 },
+                              "end": { "line": 1, "character": 15 }
+                           },
+                           "newText": "Bar"
+                        },
+                        {
+                           "range": {
+                              "start": { "line": 3, "character": 27 },
+                              "end": { "line": 3, "character": 30 }
+                           },
+                           "newText": "Bar"
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
