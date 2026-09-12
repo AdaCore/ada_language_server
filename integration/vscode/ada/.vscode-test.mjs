@@ -53,6 +53,7 @@ const testsuites = [
     'aggregate_projects',
     'custom_naming',
     'e3-testsuite',
+    'alire-toml',
 ];
 
 export default defineConfig(
