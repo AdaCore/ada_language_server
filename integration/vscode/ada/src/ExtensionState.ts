@@ -60,6 +60,7 @@ import {
 } from './taskProviders';
 import { isGNATmetricTask } from '../test/utils';
 import { findMetricsXmlForSource, parseMetricsXml, getMetricsThresholds } from './metricsUtils';
+import { AlireCompletionProvider, AlireTomlSelector } from './alireProviders';
 
 /**
  * Return type of the 'als-source-dirs' LSP request.
@@ -93,6 +94,7 @@ export class ExtensionState {
 
     public readonly adaCodelensProvider = new AdaCodeLensProvider();
     public readonly gprCodeLensProvider = new GprCodeLensProvider();
+    public readonly alireCompletionProvider = new AlireCompletionProvider();
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
@@ -191,6 +193,13 @@ export class ExtensionState {
         );
         this.context.subscriptions.push(
             vscode.languages.registerCodeLensProvider('gpr', this.gprCodeLensProvider),
+        );
+        this.context.subscriptions.push(
+            vscode.languages.registerCompletionItemProvider(
+                AlireTomlSelector,
+                this.alireCompletionProvider,
+                AlireCompletionProvider.SnippetTrigger, // for snippets
+            ),
         );
         this.updateStatusBarVisibility(undefined);
 

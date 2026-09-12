@@ -99,6 +99,10 @@
                 "extensions": [
                     ".als.json"
                 ]
+            },
+            {
+                "id": "toml",
+                "filenamePatterns": ["**/alire.toml"]
             }
         ],
         "grammars": [

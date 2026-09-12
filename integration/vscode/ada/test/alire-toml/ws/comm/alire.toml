@@ -1,0 +1,14 @@
+name = "my_simple_test_crate"
+version = "0.1"
+description = "I have so few properties"
+ 
+authors = ["Me"]
+maintainers = ["Me <available@theinternet.com>"]
+maintainers-logins = ["the_me"]
+licenses = "BSD-3-Clause"
+website = "https://www.adacore.com"
+tags = ["stuff"]
+
+# No completions expected below this line
+[depends-on] 
+gnat = ">=13"
