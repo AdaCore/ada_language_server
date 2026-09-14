@@ -217,7 +217,7 @@ package LSP.Ada_Job_Contexts is
 
    procedure Append_Location
      (Self    : in out Ada_Job_Context;
-      Context : LSP.Ada_Context_Sets.Context_Access;
+      Context : in out LSP.Ada_Contexts.Context;
       Result  : in out LSP.Structures.Location_Vector;
       Filter  : in out LSP.Locations.File_Span_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;

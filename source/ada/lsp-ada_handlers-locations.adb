@@ -75,7 +75,7 @@ package body LSP.Ada_Handlers.Locations is
 
    procedure Append_Location
      (Self    : in out Message_Handler;
-      Context : LSP.Ada_Context_Sets.Context_Access;
+      Context : in out LSP.Ada_Contexts.Context;
       Result  : in out LSP.Structures.Location_Vector;
       Filter  : in out LSP.Locations.File_Span_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;
@@ -84,7 +84,7 @@ package body LSP.Ada_Handlers.Locations is
       if not LSP.Utils.Is_Synthetic (Node) then
          declare
             Value : constant LSP.Structures.Location :=
-              To_LSP_Location (Self, Context.all, Node, Kinds);
+              To_LSP_Location (Self, Context, Node, Kinds);
          begin
             if not Filter.Contains (Value) then
                Result.Append (Value);

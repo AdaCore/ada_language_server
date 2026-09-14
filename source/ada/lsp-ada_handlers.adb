@@ -198,7 +198,7 @@ package body LSP.Ada_Handlers is
    overriding
    procedure Append_Location
      (Self    : in out Message_Handler;
-      Context : LSP.Ada_Context_Sets.Context_Access;
+      Context : in out LSP.Ada_Contexts.Context;
       Result  : in out LSP.Structures.Location_Vector;
       Filter  : in out LSP.Locations.File_Span_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;
@@ -2859,14 +2859,16 @@ package body LSP.Ada_Handlers is
            then Value.alsDisplayMethodAncestryOnNavigation.Value
            else Self.Configuration.Display_Method_Ancestry_Policy);
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      procedure Resolve_In_Context (Context : in out LSP.Ada_Contexts.Context);
       --  Utility function to gather results on one context
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+      procedure Resolve_In_Context
+        (Context : in out LSP.Ada_Contexts.Context)
+      is
 
          use all type LSP
                         .Enumerations
@@ -2875,7 +2877,7 @@ package body LSP.Ada_Handlers is
          use Libadalang.Common;
 
          Name_Node : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (Context, Value));
 
          procedure Update_Response
            (Bodies : Laltools.Common.Bodies_List.List;
@@ -2891,7 +2893,7 @@ package body LSP.Ada_Handlers is
             Kinds  : AlsReferenceKind_Array) is
          begin
             for E of Bodies loop
-               Self.Append_Location (C, Vector, Filter, E, Kinds);
+               Self.Append_Location (Context, Vector, Filter, E, Kinds);
             end loop;
          end Update_Response;
 
@@ -2910,7 +2912,7 @@ package body LSP.Ada_Handlers is
            Resolve_Name
              (Self      => Self,
               Id        => Id,
-              Context   => C.all,
+              Context   => Context,
               Name_Node => Name_Node,
               Imprecise => Imprecise);
 
@@ -2933,7 +2935,9 @@ package body LSP.Ada_Handlers is
            or else (Display_Method_Policy = Usage_And_Abstract_Only
                     and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
          then
-            for Subp of C.Find_All_Base_Declarations (Decl, Imprecise) loop
+            for Subp of
+              Context.Find_All_Base_Declarations (Decl, Imprecise)
+            loop
                Update_Response
                  (Laltools.Common.List_Bodies_Of
                     (Subp.P_Defining_Name, Trace, Ignore),
@@ -2941,7 +2945,7 @@ package body LSP.Ada_Handlers is
             end loop;
 
             --  And finally the bodies of child implementations
-            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+            for Subp of Context.Find_All_Overrides (Decl, Imprecise) loop
                Update_Response
                  (Laltools.Common.List_Bodies_Of
                     (Subp.P_Defining_Name, Trace, Ignore),
@@ -2958,8 +2962,8 @@ package body LSP.Ada_Handlers is
       --       Value.alsDisplayMethodAncestryOnNavigation.Value;
       --  end if;
 
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Resolve_In_Context (C);
+      for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (Context.all);
 
          exit when Self.Is_Canceled.all;
       end loop;
@@ -3896,16 +3900,18 @@ package body LSP.Ada_Handlers is
       Filter    : LSP.Locations.File_Span_Sets.Set;
       Imprecise : Boolean := False;
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      procedure Resolve_In_Context (Context : in out LSP.Ada_Contexts.Context);
       --  Utility function to gather results on one context
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+      procedure Resolve_In_Context
+        (Context : in out LSP.Ada_Contexts.Context)
+      is
          Name_Node : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (Context, Value));
 
          Definition : Libadalang.Analysis.Defining_Name;
          Type_Decl  : Libadalang.Analysis.Base_Type_Decl;
@@ -3929,7 +3935,7 @@ package body LSP.Ada_Handlers is
                     Resolve_Name
                       (Self      => Self,
                        Id        => Id,
-                       Context   => C.all,
+                       Context   => Context,
                        Name_Node => Type_Expr.P_Type_Name,
                        Imprecise => Imprecise);
                end if;
@@ -3948,13 +3954,13 @@ package body LSP.Ada_Handlers is
          end if;
 
          if not Definition.Is_Null then
-            Self.Append_Location (C, Vector, Filter, Definition);
+            Self.Append_Location (Context, Vector, Filter, Definition);
          end if;
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Resolve_In_Context (C);
+      for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (Context.all);
 
          exit when Self.Is_Canceled.all;
       end loop;
