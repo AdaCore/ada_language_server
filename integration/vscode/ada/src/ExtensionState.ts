@@ -442,6 +442,17 @@ export class ExtensionState {
                 .map((a) => a.severity)
                 .reduce((a, b) => (a < b ? a : b));
 
+            // Check if we have successfully loaded the project through Alire and adapt
+            // the status bar item's text contents if it's the case, to mention that
+            // Alire was used for project-loading. This is independent of the severity
+            // of the diagnostics: even if project-loading has issued warnings or errors
+            // (e.g. GPR2 warning about directories being created on a fresh checkout),
+            // the project may still have been located and loaded through Alire.
+            alireProjectLoaded = alsDiagnostics.some(
+                (diagnostic) =>
+                    diagnostic.source == PROJECT_DIAGS_SOURCE && diagnostic.message.includes('Alire'),
+            );
+
             switch (statusBarSeverity) {
                 case vscode.DiagnosticSeverity.Error:
                     this.statusBar.tooltip.appendMarkdown(
@@ -471,23 +482,17 @@ export class ExtensionState {
                     this.statusBar.backgroundColor = undefined;
                     this.statusBar.color = undefined;
 
-                    // Check if we have successfully loaded the project through Alire
-                    // and adapt the status bar item's text contents if it's the case, to
-                    // mention that Alire was used for project-loading.
-                    alireProjectLoaded = alsDiagnostics.some(
-                        (diagnostic) =>
-                            diagnostic.source == PROJECT_DIAGS_SOURCE &&
-                            diagnostic.message.includes('Alire'),
-                    );
-
                     if (alireProjectLoaded) {
-                        this.statusBar.text += ' (Alire)';
                         this.statusBar.tooltip.appendMarkdown(
                             'Project was loaded successfully through Alire',
                         );
                     } else {
                         this.statusBar.tooltip.appendMarkdown('Project was loaded successfully.');
                     }
+            }
+
+            if (alireProjectLoaded) {
+                this.statusBar.text += ' (Alire)';
             }
         } else {
             // We don't have any project-related diagnostics, just clear any color/background color
