@@ -94,8 +94,17 @@ package body LSP.Ada_Project_Loading is
             return VSS.Strings.To_Virtual_String
               ("The project file has errors and could not be loaded.");
          when Valid_Project_With_Warning =>
-            return VSS.Strings.To_Virtual_String
-              ("The project file was loaded but contains warnings.");
+            case Project.Project_Type is
+               when Alire_Project =>
+                  return
+                    VSS.Strings.To_Virtual_String
+                      ("The project has been found and loaded through"
+                       & " Alire, but contains warnings.");
+
+               when others =>
+                  return VSS.Strings.To_Virtual_String
+                    ("The project file was loaded but contains warnings.");
+            end case;
       end case;
    end Load_Status_Message;
 
