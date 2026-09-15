@@ -493,7 +493,7 @@
                         ],
                         "default": null,
                         "markdownDescription": "This setting controls whether formatting should only indents the selected lines without any formatting (`indentOnly`), format only the selected lines (`narrow`) or format the selected lines as well as any surrounding code required to produce a correct result (`full`)."
-                     }
+                    }
                 }
             },
             {
@@ -1661,6 +1661,16 @@
                 },
                 {
                     "command": "ada.projectView.visualizeGPR",
+                    "when": "false"
+                },
+                {
+                    "comment": "These commands require a Scenario View tree item as their argument.",
+                    "command": "ada.scenarioView.setVariable",
+                    "when": "false"
+                },
+                {
+                    "comment": "This command requires a Scenario View tree item as its argument.",
+                    "command": "ada.scenarioView.resetVariable",
                     "when": "false"
                 },
                 {
