@@ -78,7 +78,7 @@ export function parseScenarioVariablesResponse(
  * value. GPR2 does not currently expose the literal default value text of
  * a scenario (external) variable, so it cannot be displayed here.
  */
-export const SCENARIO_VARIABLE_DEFAULT_LABEL = 'Default';
+export const SCENARIO_VARIABLE_DEFAULT_LABEL = '(default)';
 
 /**
  * A tree item for the Scenario View, representing a single scenario
