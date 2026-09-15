@@ -29,7 +29,7 @@ with LSP.Ada_Id_Iterators;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.References;
 with LSP.Structures;
 
@@ -52,7 +52,7 @@ package body LSP.Ada_References is
    record
       Is_Enum    : Boolean := False;
       Response   : LSP.Structures.Location_Vector_Or_Null;
-      Filter     : LSP.Locations.File_Span_Sets.Set;
+      Filter     : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Contexts   : LSP.Ada_Context_Sets.Context_Lists.List;
       Context    : LSP.Ada_Context_Sets.Context_Access;
       Iterator   : Iterator_Access;

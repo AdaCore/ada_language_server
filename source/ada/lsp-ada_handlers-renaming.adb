@@ -28,7 +28,6 @@ with LAL_Refactor.Safe_Rename;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Locations;
-with LSP.Locations;
 with LSP.Utils;
 
 package body LSP.Ada_Handlers.Renaming is
@@ -39,6 +38,15 @@ package body LSP.Ada_Handlers.Renaming is
 
    function Hash (X : File_Edit) return Ada.Containers.Hash_Type is
       use type Ada.Containers.Hash_Type;
+
+      Prime : constant := 271;
+
+      function Hash
+        (Value : LSP.Structures.A_Range) return Ada.Containers.Hash_Type is
+          (Prime * Ada.Containers.Hash_Type'Mod (Value.start.line)
+           + Ada.Containers.Hash_Type'Mod (Value.start.character)
+           + Prime * Ada.Containers.Hash_Type'Mod (Value.an_end.line)
+           + Ada.Containers.Hash_Type'Mod (Value.an_end.character));
 
       Result : Ada.Containers.Hash_Type :=
         LSP.Structures.documentChanges_OfWorkspaceEdit_Item_Variant'Pos
@@ -54,14 +62,13 @@ package body LSP.Ada_Handlers.Renaming is
                      Result := @ + Ada.Containers.Hash_Type'Mod
                        (Item.TextEdit.newText.Hash);
 
-                     Result := @ + LSP.Locations.Hash (Item.TextEdit.a_range);
+                     Result := @ + Hash (Item.TextEdit.a_range);
 
                   when False =>
                      Result := @ + Ada.Containers.Hash_Type'Mod
                        (Item.AnnotatedTextEdit.newText.Hash);
 
-                     Result := @ +
-                       LSP.Locations.Hash (Item.AnnotatedTextEdit.a_range);
+                     Result := @ + Hash (Item.AnnotatedTextEdit.a_range);
                end case;
             end loop;
 
@@ -200,8 +207,6 @@ package body LSP.Ada_Handlers.Renaming is
       -----------------------
 
       procedure Process_Comments (File_Name : String) is
-         use LAL_Refactor;
-
          Unit : constant Analysis_Unit := C.Get_AU
            (GNATCOLL.VFS.Create_From_UTF8 (File_Name));
 

@@ -200,7 +200,7 @@ package body LSP.Ada_Handlers is
      (Self    : in out Message_Handler;
       Context : in out LSP.Ada_Contexts.Context;
       Result  : in out LSP.Structures.Location_Vector;
-      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Filter  : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;
       Kinds   : AlsReferenceKind_Array := LSP.Constants.Empty)
    renames LSP.Ada_Handlers.Locations.Append_Location;
@@ -208,7 +208,7 @@ package body LSP.Ada_Handlers is
    overriding procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Filter : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Unit   : Libadalang.Analysis.Analysis_Unit;
       Token  : Libadalang.Common.Token_Reference)
         renames LSP.Ada_Handlers.Locations.Append_Location;
@@ -2851,7 +2851,7 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
 
       Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter : LSP.Locations.File_Span_Sets.Set;
+      Filter : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
 
       Display_Method_Policy :
         constant LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
@@ -2997,7 +2997,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : LSP.Locations.File_Span_Sets.Set;
+      Filter : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3199,7 +3199,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : LSP.Locations.File_Span_Sets.Set;
+      Filter : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3897,7 +3897,7 @@ package body LSP.Ada_Handlers is
 
       Response  : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector    : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter    : LSP.Locations.File_Span_Sets.Set;
+      Filter    : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Imprecise : Boolean := False;
 
       procedure Resolve_In_Context (Context : in out LSP.Ada_Contexts.Context);

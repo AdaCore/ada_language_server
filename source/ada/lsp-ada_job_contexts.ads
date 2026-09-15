@@ -41,7 +41,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
 with LSP.Ada_Highlighters;
 with LSP.Constants;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Structures;
 
 package LSP.Ada_Job_Contexts is
@@ -219,7 +219,7 @@ package LSP.Ada_Job_Contexts is
      (Self    : in out Ada_Job_Context;
       Context : in out LSP.Ada_Contexts.Context;
       Result  : in out LSP.Structures.Location_Vector;
-      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Filter  : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;
       Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
    is abstract;
@@ -229,7 +229,7 @@ package LSP.Ada_Job_Contexts is
    procedure Append_Location
      (Self   : in out Ada_Job_Context;
       Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Filter : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Unit   : Libadalang.Analysis.Analysis_Unit;
       Token  : Libadalang.Common.Token_Reference)
    is abstract;

@@ -29,7 +29,7 @@ with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.Definition;
 with LSP.Structures;
 
@@ -49,7 +49,7 @@ package body LSP.Ada_Definition is
      (Priority => LSP.Server_Jobs.High)
    with record
       Response : LSP.Structures.Location_Vector;
-      Filter   : LSP.Locations.File_Span_Sets.Set;
+      Filter   : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Contexts : LSP.Ada_Context_Sets.Context_Lists.List;
    end record;
 

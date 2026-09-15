@@ -70,7 +70,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Incoming_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyIncomingCall_Vector;
-      Filter      : in out LSP.Locations.File_Span_Sets.Set;
+      Filter      : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Context     : LSP.Ada_Contexts.Context;
       Definition  : Libadalang.Analysis.Defining_Name)
    is
@@ -91,8 +91,8 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          Refs  : Laltools.Common.References_Sets.Set)
       is
          Call : LSP.Structures.CallHierarchyIncomingCall;
-         Span : constant LSP.Structures.Location :=
-           Locations.To_LSP_Location (Self, Node);
+         Span : constant LSP.File_Source_Locations.File_Source_Location :=
+           LSP.File_Source_Locations.To_File_Source_Location (Node);
       begin
          if not Filter.Contains (Span) then
             declare
@@ -207,7 +207,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Outgoing_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyOutgoingCall_Vector;
-      Filter      : in out LSP.Locations.File_Span_Sets.Set;
+      Filter      : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Definition  : Libadalang.Analysis.Defining_Name)
    is
       use Laltools.Common.References_By_Subprogram;
@@ -235,8 +235,8 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          Refs  : Laltools.Common.References_Sets.Set)
       is
          Call : LSP.Structures.CallHierarchyOutgoingCall;
-         Span : constant LSP.Structures.Location :=
-           Locations.To_LSP_Location (Self, Node);
+         Span : constant LSP.File_Source_Locations.File_Source_Location :=
+           LSP.File_Source_Locations.To_File_Source_Location (Node);
       begin
          if not Filter.Contains (Span) then
             declare

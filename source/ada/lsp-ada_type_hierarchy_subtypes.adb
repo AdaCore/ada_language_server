@@ -26,11 +26,10 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.Subtypes;
 with LSP.Structures;
 with LSP.Utils;
-with LSP.Constants;
 
 package body LSP.Ada_Type_Hierarchy_Subtypes is
 
@@ -48,7 +47,7 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
      (Priority => LSP.Server_Jobs.Low) with
    record
       Response : LSP.Structures.TypeHierarchyItem_Vector_Or_Null;
-      Filter   : LSP.Locations.File_Span_Sets.Set;
+      Filter   : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Context  : LSP.Ada_Context_Sets.Context_Access;
       Iterator : Iterator_Access;
       Cursor   : LSP.Ada_File_Sets.File_Sets.Cursor;
@@ -136,7 +135,7 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
       Unit    : Libadalang.Analysis.Analysis_Unit;
       URI     : LSP.Structures.DocumentUri;
       A_Range : LSP.Structures.A_Range;
-      Span    : LSP.Structures.Location;
+      Span    : LSP.File_Source_Locations.File_Source_Location;
       Item    : LSP.Structures.TypeHierarchyItem;
       Name    : Libadalang.Analysis.Defining_Name;
    begin
@@ -156,11 +155,7 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
                URI     := LSP.Utils.To_URI (Name.P_Basic_Decl);
                A_Range := Self.Parent.Context.To_LSP_Range (Name.P_Basic_Decl);
 
-               Span :=
-                 (uri     => URI,
-                  a_range => A_Range,
-                  alsKind => LSP.Constants.Empty,
-                  hidden  => (Is_Set => False));
+               Span := LSP.File_Source_Locations.To_File_Source_Location (Name);
 
                if not Self.Filter.Contains (Span)
                  and Is_Derived_From (Tipe, Self.Decl.P_Canonical_Part)

@@ -42,7 +42,7 @@ package body LSP.Ada_Handlers.Locations is
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Filter : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Unit   : Libadalang.Analysis.Analysis_Unit;
       Token  : Libadalang.Common.Token_Reference)
    is
@@ -60,10 +60,13 @@ package body LSP.Ada_Handlers.Locations is
                a_range => Locations.To_LSP_Range (Self, Unit, Token),
                alsKind => LSP.Constants.Empty,
                hidden  => (Is_Set => False));
+
+            Span : constant LSP.File_Source_Locations.File_Source_Location :=
+              LSP.File_Source_Locations.To_File_Source_Location (Unit, Token);
          begin
-            if not Filter.Contains (Value) then
+            if not Filter.Contains (Span) then
                Result.Append (Value);
-               Filter.Insert (Value);
+               Filter.Insert (Span);
             end if;
          end;
       end if;
@@ -77,18 +80,21 @@ package body LSP.Ada_Handlers.Locations is
      (Self    : in out Message_Handler;
       Context : in out LSP.Ada_Contexts.Context;
       Result  : in out LSP.Structures.Location_Vector;
-      Filter  : in out LSP.Locations.File_Span_Sets.Set;
+      Filter  : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;
-      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+   is
    begin
       if not LSP.Utils.Is_Synthetic (Node) then
          declare
             Value : constant LSP.Structures.Location :=
               To_LSP_Location (Self, Context, Node, Kinds);
+            Span : constant LSP.File_Source_Locations.File_Source_Location :=
+              LSP.File_Source_Locations.To_File_Source_Location (Node);
          begin
-            if not Filter.Contains (Value) then
+            if not Filter.Contains (Span) then
                Result.Append (Value);
-               Filter.Insert (Value);
+               Filter.Insert (Span);
             end if;
          end;
       end if;
