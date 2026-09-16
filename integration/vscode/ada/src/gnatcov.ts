@@ -432,12 +432,26 @@ class ForeignPathResolver {
 
     /**
      * @param token    - cancellation token forwarded to workspace searches
-     * @param exclude  - optional glob pattern for paths to exclude from
-     *                   workspace searches (e.g. `**\/*gnatcov-instr\/**\/*`)
+     * @param exclude  - glob pattern for paths to exclude from workspace
+     *                   searches
+     *
+     * GNATcov generates instrumented versions of the sources with the same
+     * basenames. We want to avoid associating coverage data with the
+     * instrumented sources, so by default we exclude any paths containing the
+     * special directory `*gnatcov-instr`. Ideally it would have been nice to
+     * exclude precisely `<obj-dir>/<prj-name>-gnatcov-instr` but that would
+     * need to be computed for each project in the closure. As we don't have
+     * access to that information, we ignore all paths containing a
+     * `*gnatcov-instr` component.
+     *
+     * Note that a previous version excluded the entire object dir which did
+     * not work well on projects that use '.' as the object dir. In that case
+     * excluding the object dir would exclude the entire workspace and prevent
+     * finding any files.
      */
     constructor(
         private readonly token: vscode.CancellationToken,
-        private readonly exclude?: string,
+        private readonly exclude: string = '**/*gnatcov-instr/**',
     ) {}
 
     /**
@@ -859,23 +873,7 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                 message: `${done} / ${totalFiles} source files`,
             });
 
-            /**
-             * GNATcov generates instrumented versions of the sources with
-             * the same basenames. We want to avoid associating coverage data
-             * with the instrumented sources, so we exclude any paths
-             * containing the special directory `*gnatcov-instr`. Ideally it
-             * would have been nice to exclude precisely
-             * `<obj-dir>/<prj-name>-gnatcov-instr` but that would need to be
-             * computed for each project in the closure. As we don't have
-             * access to that information, we ignore all paths containing a
-             * `*gnatcov-instr` component.
-             *
-             * Note that a previous version excluded the entire object dir
-             * which did not work well on projects that use '.' as the object
-             * dir. In that case excluding the object dir would exclude the
-             * entire workspace and prevent finding any files.
-             */
-            const resolver = new ForeignPathResolver(token, `**/*gnatcov-instr/**`);
+            const resolver = new ForeignPathResolver(token);
 
             const fileCovs = (
                 await parallelize(
