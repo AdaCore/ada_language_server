@@ -40,6 +40,7 @@ with Langkit_Support.Text;
 
 with URIs;
 with LSP.Ada_Id_Iterators;
+with LSP.Utils;
 
 package body LSP.Ada_Contexts is
 
@@ -1029,30 +1030,70 @@ package body LSP.Ada_Contexts is
            Default   => Default);
    end Project_Attribute_Value;
 
+   function Is_From_Extended_Project
+     (Self : in out LSP.Ada_Contexts.Context'Class;
+      Tree : GPR2.Project.Tree.Object;
+      File : String)
+      return Boolean;
+
+   function To_LSP_Location
+     (Self  : in out LSP.Ada_Contexts.Context;
+      File  : String;
+      Span  : LSP.Structures.A_Range;
+      Kinds : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location is
+   begin
+      return
+        (uri     => LSP.Utils.To_URI (File),
+         a_range => Span,
+         alsKind => Kinds,
+         hidden  =>
+           (if Self.Is_From_Extended_Project (Self.Tree, File) then (True, True)
+            else (Is_Set => False)));
+   end To_LSP_Location;
+
    ------------------------------
    -- Is_From_Extended_Project --
    ------------------------------
 
    function Is_From_Extended_Project
-     (Self : Context;
+     (Self : in out LSP.Ada_Contexts.Context'Class;
+      Tree : GPR2.Project.Tree.Object;
       File : String)
-      return GNATCOLL.Tribooleans.Triboolean is
+      return Boolean
+   is
+      Result : Boolean;
+      Found  : Boolean;
    begin
-      return Self.Source_Files.Is_From_Extended_Project
-        (GNATCOLL.VFS.Create_From_UTF8 (File));
+      Self.Source_Files.Is_From_Extended_Project
+        (File, Found, Result => Result);
+
+      if Found then
+         return Result;
+      elsif not Tree.Is_Defined
+        or else not Tree.Root_Project.Is_Defined
+        or else not Tree.Root_Project.Is_Extending
+      then
+         --  No project or not extending another project
+         return False;
+      end if;
+
+      Result := True;
+
+      for Item of Tree.Root_Project.Sources loop
+         if Item.Is_Defined
+           and then Item.Path_Name.Is_Defined
+           and then Item.Path_Name.Has_Value
+           and then Item.Path_Name.String_Value = File
+         then
+            --  Found in the project's own files
+            Result := False;
+         end if;
+      end loop;
+
+      Self.Source_Files.Set_From_Extended_Project (File, Result);
+
+      return Result;
    end Is_From_Extended_Project;
-
-   -------------------------------
-   -- Set_From_Extended_Project --
-   -------------------------------
-
-   procedure Set_From_Extended_Project
-     (Self  : in out Context;
-      File  : String;
-      Value : Boolean) is
-   begin
-      Self.Source_Files.Set_From_Extended_Project
-        (GNATCOLL.VFS.Create_From_UTF8 (File), Value);
-   end Set_From_Extended_Project;
 
 end LSP.Ada_Contexts;

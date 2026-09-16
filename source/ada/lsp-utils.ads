@@ -22,7 +22,6 @@ with GNATCOLL.VFS;
 with GPR2.Message;
 with GPR2.Path_Name;
 with GPR2.Source_Reference;
-with GPR2.Project.Tree;
 
 with LSP.Enumerations;
 with LSP.Structures;
@@ -38,8 +37,6 @@ with Utils.Command_Lines;
 
 with VSS.Strings.Conversions;
 with VSS.Transformers.Casing;
-
-limited with LSP.Ada_Contexts;
 
 package LSP.Utils is
 
@@ -163,15 +160,6 @@ package LSP.Utils is
      (Path : GPR2.Path_Name.Object) return VSS.Strings.Virtual_String is
      (VSS.Strings.Conversions.To_Virtual_String (String (Path.Value)));
    --  Cast GPR2.Path_Name.Object to Virtual_String
-
-   function Is_From_Extended_Project
-     (Context : in out LSP.Ada_Contexts.Context;
-      Tree    : GPR2.Project.Tree.Object;
-      File    : String)
-      return Boolean;
-   --  Returns True if the Node belongs to the extended project
-   --  Context is the context to get/set cached
-   --    `is from extended project` information.
 
    function Remove_Quote (S : String) return String is
      (if S'Length >= 2 and then S (S'First) = '"' and then S (S'Last) = '"'

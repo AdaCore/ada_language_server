@@ -48,8 +48,8 @@ with LSP.Ada_Project_Loading;
 with LSP.Client_Message_Receivers;
 with LSP.Constants;
 with LSP.Diagnostic_Sources; use LSP.Diagnostic_Sources;
-with LSP.File_Monitors;
 with LSP.File_Source_Locations;
+with LSP.File_Monitors;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Notification_Receivers;
 with LSP.Server_Notifications;
@@ -559,11 +559,12 @@ private
       Name_Node : Libadalang.Analysis.Name)
       return Libadalang.Analysis.Defining_Name;
 
-   overriding function To_LSP_Location
-     (Self    : in out Message_Handler;
-      Context : in out LSP.Ada_Contexts.Context;
-      Node    : Libadalang.Analysis.Ada_Node'Class)
-      return LSP.Structures.Location;
+   function To_LSP_Range
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      File    : String;
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range;
 
    overriding function To_LSP_Range
      (Self  : in out Message_Handler;
@@ -572,8 +573,8 @@ private
       return LSP.Structures.A_Range;
 
    overriding function To_LSP_Range
-     (Self  : in out Message_Handler;
-      Node   : Libadalang.Analysis.Ada_Node'Class)
+     (Self : in out Message_Handler;
+      Node : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.A_Range;
 
    overriding function From_LSP_Range
@@ -589,13 +590,6 @@ private
       Filter  : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Node    : Libadalang.Analysis.Ada_Node'Class;
       Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
-
-   overriding procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Token  : Libadalang.Common.Token_Reference);
 
    overriding procedure Trace_Exception
      (Self    : Message_Handler;

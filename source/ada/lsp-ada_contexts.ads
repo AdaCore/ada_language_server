@@ -19,7 +19,6 @@
 
 with Ada.Strings.Unbounded;
 
-with GNATCOLL.Tribooleans;
 with GNATCOLL.VFS;
 
 with GNATdoc.Comments.Options;
@@ -43,6 +42,7 @@ with VSS.Strings;
 
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
+with LSP.Constants;
 with LSP.Search;
 with LSP.Structures;
 with LSP.Tracers;
@@ -352,17 +352,12 @@ package LSP.Ada_Contexts is
    --  Same as above, but computing the value directly from the context's
    --  root project view.
 
-   function Is_From_Extended_Project
-     (Self : Context;
-      File : String)
-      return GNATCOLL.Tribooleans.Triboolean;
-   --  Return True if file is from the extended project.
-   --  Return Indeterminate if unknown.
-
-   procedure Set_From_Extended_Project
-     (Self  : in out Context;
+   function To_LSP_Location
+     (Self  : in out LSP.Ada_Contexts.Context;
       File  : String;
-      Value : Boolean);
+      Span  : LSP.Structures.A_Range;
+      Kinds : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location;
 
 private
 

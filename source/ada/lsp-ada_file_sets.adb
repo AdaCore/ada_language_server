@@ -312,19 +312,22 @@ package body LSP.Ada_File_Sets is
    -- Is_From_Extended_Project --
    ------------------------------
 
-   function Is_From_Extended_Project
-     (Self : Indexed_File_Set'Class;
-      File : GNATCOLL.VFS.Virtual_File)
-      return GNATCOLL.Tribooleans.Triboolean
+   procedure Is_From_Extended_Project
+     (Self   : Indexed_File_Set'Class;
+      File   : String;
+      Found  : out Boolean;
+      Result : out Boolean)
    is
-      C : constant Boolean_File_Maps.Cursor :=
-        Self.From_Extended_Project.Find (File);
+      Cursor : constant Boolean_File_Maps.Cursor :=
+        Self.From_Extended_Project.Find
+          (GNATCOLL.VFS.Create_From_UTF8 (File));
    begin
-      if Boolean_File_Maps.Has_Element (C) then
-         return GNATCOLL.Tribooleans.To_TriBoolean
-           (Boolean_File_Maps.Element (C));
+      if Boolean_File_Maps.Has_Element (Cursor) then
+         Result := Boolean_File_Maps.Element (Cursor);
+         Found := True;
       else
-         return GNATCOLL.Tribooleans.Indeterminate;
+         Result := False;
+         Found := False;
       end if;
    end Is_From_Extended_Project;
 
@@ -334,10 +337,11 @@ package body LSP.Ada_File_Sets is
 
    procedure Set_From_Extended_Project
      (Self  : in out Indexed_File_Set'Class;
-      File  : GNATCOLL.VFS.Virtual_File;
+      File  : String;
       Value : Boolean) is
    begin
-      Self.From_Extended_Project.Include (File, Value);
+      Self.From_Extended_Project.Include
+        (GNATCOLL.VFS.Create_From_UTF8 (File), Value);
    end Set_From_Extended_Project;
 
 end LSP.Ada_File_Sets;

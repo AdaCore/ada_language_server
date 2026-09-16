@@ -17,10 +17,7 @@
 
 with Ada.Containers;
 with Ada.Strings.Unbounded;
-with GNATCOLL.Tribooleans;
 with System;
-
-with GPR2.Build.Source.Sets;
 
 with Libadalang.Common;
 with Libadalang.Lexer;
@@ -42,7 +39,6 @@ with Laltools.Common;
 with LSP.Text_Documents;
 with LSP.Constants;
 with LSP.Formatters.File_Names;
-with LSP.Ada_Contexts;
 with URIs;
 
 package body LSP.Utils is
@@ -435,55 +431,6 @@ package body LSP.Utils is
                      ("{}",
                       VSS.Strings.Formatters.Integers.Image (Value.Integer)),
            when False => Value.Virtual_String);
-
-   ------------------------------
-   -- Is_From_Extended_Project --
-   ------------------------------
-
-   function Is_From_Extended_Project
-     (Context : in out LSP.Ada_Contexts.Context;
-      Tree    : GPR2.Project.Tree.Object;
-      File    : String)
-      return Boolean
-   is
-      use GNATCOLL.Tribooleans;
-
-      Res : GNATCOLL.Tribooleans.Triboolean;
-   begin
-      if not Tree.Is_Defined
-        or else not Tree.Root_Project.Is_Defined
-        or else not Tree.Root_Project.Is_Extending
-      then
-         --  No project or not extending another project
-         return False;
-      end if;
-
-      Res := Context.Is_From_Extended_Project (File);
-      if Res /= Indeterminate then
-         return To_Boolean (Res);
-      end if;
-
-      declare
-         Sources : constant GPR2.Build.Source.Sets.Object :=
-           Tree.Root_Project.Sources;
-      begin
-         for F of Sources loop
-            if F.Is_Defined
-              and then F.Path_Name.Is_Defined
-              and then F.Path_Name.Has_Value
-              and then F.Path_Name.String_Value = File
-            then
-               --  Found in the project's own files
-               Context.Set_From_Extended_Project (File, False);
-               return False;
-            end if;
-         end loop;
-      end;
-
-      --  Did not find in the project's own files
-      Context.Set_From_Extended_Project (File, True);
-      return True;
-   end Is_From_Extended_Project;
 
    ------------------
    -- Is_Synthetic --

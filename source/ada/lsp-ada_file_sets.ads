@@ -22,7 +22,6 @@ with Ada.Containers.Ordered_Sets;
 with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Vectors;
 
-with GNATCOLL.Tribooleans;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
@@ -99,16 +98,17 @@ package LSP.Ada_File_Sets is
    --  last indexing operation. If Only_Public is True it will skip any
    --  "private" symbols (like symbols in private part or body).
 
-   function Is_From_Extended_Project
-     (Self : Indexed_File_Set'Class;
-      File : GNATCOLL.VFS.Virtual_File)
-      return GNATCOLL.Tribooleans.Triboolean;
+   procedure Is_From_Extended_Project
+     (Self   : Indexed_File_Set'Class;
+      File   : String;
+      Found  : out Boolean;
+      Result : out Boolean);
    --  Return True if file is from the extended project.
-   --  Return Indeterminate if unknown.
+   --  Return Found = False if unknown.
 
    procedure Set_From_Extended_Project
      (Self  : in out Indexed_File_Set'Class;
-      File  : GNATCOLL.VFS.Virtual_File;
+      File  : String;
       Value : Boolean);
 
 private

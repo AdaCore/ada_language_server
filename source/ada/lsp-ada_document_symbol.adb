@@ -254,8 +254,9 @@ package body LSP.Ada_Document_Symbol is
                   tags              => LSP.Constants.Empty,
                   deprecated        => <>,
                   location          =>
-                    Self.Parent.Context.To_LSP_Location
-                      (Self.Context.all, Element),
+                    Self.Context.To_LSP_Location
+                      (Element.Unit.Get_Filename,
+                       Self.Parent.Context.To_LSP_Range (Element)),
                   containerName     => <>);
 
                Self.Response.Variant_1.Append (Item);

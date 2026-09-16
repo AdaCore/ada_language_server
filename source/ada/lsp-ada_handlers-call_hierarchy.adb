@@ -23,7 +23,6 @@ with Laltools.Common;
 with Laltools.Call_Hierarchy;
 
 with LSP.GNATCOLL_Tracers.Handle;
-with LSP.Ada_Handlers.Locations;
 with LSP.Utils;
 
 package body LSP.Ada_Handlers.Call_Hierarchy is
@@ -99,7 +98,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                Decl     : constant Libadalang.Analysis.Basic_Decl :=
                  Node.P_Basic_Decl;
                A_Range  : constant LSP.Structures.A_Range :=
-                 Locations.To_LSP_Range (Self, Node);
+                 Self.To_LSP_Range (Node);
             begin
                Call.from := LSP.Structures.CallHierarchyItem'
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
@@ -114,7 +113,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                for Ref of Refs loop
                   declare
                      A_Range : constant LSP.Structures.A_Range :=
-                       Locations.To_LSP_Range (Self, Ref);
+                       Self.To_LSP_Range (Ref);
                   begin
                      Call.fromRanges.Append (A_Range);
 
@@ -243,7 +242,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                Decl     : constant Libadalang.Analysis.Basic_Decl :=
                  Node.P_Basic_Decl;
                A_Range : constant LSP.Structures.A_Range :=
-                 Locations.To_LSP_Range (Self, Node);
+                 Self.To_LSP_Range (Node);
             begin
                Call.to := LSP.Structures.CallHierarchyItem'
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
@@ -258,7 +257,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                for Ref of Refs loop
                   declare
                      A_Range : constant LSP.Structures.A_Range :=
-                       Locations.To_LSP_Range (Self, Ref);
+                       Self.To_LSP_Range (Ref);
                   begin
                      Call.fromRanges.Append (A_Range);
 

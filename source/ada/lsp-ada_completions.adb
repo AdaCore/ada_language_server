@@ -45,7 +45,6 @@ with LSP.Ada_Configurations;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents;
-with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Enumerations;
 with LSP.Formatters.Texts;
@@ -561,8 +560,8 @@ package body LSP.Ada_Completions is
          --  Set node's location to the 'data' field of the completion item, so
          --  that we can retrieve it in the completionItem/resolve handler.
          LSP.Structures.LSPAny_Vectors.To_Any
-           (LSP.Ada_Handlers.Locations.To_LSP_Location
-              (Handler, Context, Name),
+           (Context.To_LSP_Location
+              (Name.Unit.Get_Filename, Handler.To_LSP_Range (Name)),
             Item.data);
       end if;
    end Set_Completion_Item_Documentation;

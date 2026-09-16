@@ -17,7 +17,6 @@
 
 with Libadalang.Common;
 
-with LSP.Ada_Handlers.Locations;
 with LSP.Constants;
 with LSP.Utils;
 
@@ -60,8 +59,9 @@ package body LSP.Ada_Handlers.Symbols is
                             (Name.Text),
                         kind          => LSP.Utils.Get_Decl_Kind
                           (Node.As_Basic_Decl),
-                        location      => Locations.To_LSP_Location
-                          (Self, Context.all, Name),
+                        location      => Context.To_LSP_Location
+                          (Name.Unit.Get_Filename,
+                           Self.To_LSP_Range (Name)),
                         tags          => LSP.Constants.Empty,
                         deprecated    => (Is_Set => False),
                         containerName => <>));

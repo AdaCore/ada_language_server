@@ -147,18 +147,27 @@ package body LSP.Ada_Definition is
          -----------------------
 
          procedure Append_Prev_Token_Location
-           (Node : Libadalang.Analysis.Ada_Node'Class) is
+           (Node : Libadalang.Analysis.Ada_Node'Class)
+         is
+            Prev : constant Libadalang.Common.Token_Reference :=
+              (if Node.Is_Null then Libadalang.Common.No_Token
+               else Libadalang.Common.Previous (Node.Token_Start, True));
          begin
-            if not Node.Is_Null then
+            if Prev /= Libadalang.Common.No_Token then
                declare
-                  Prev : constant Libadalang.Common.Token_Reference :=
-                    Libadalang.Common.Previous (Node.Token_Start, True);
+                  Span : constant
+                    LSP.File_Source_Locations.File_Source_Location :=
+                      LSP.File_Source_Locations.To_File_Source_Location
+                        (Node.Unit, Prev);
                begin
-                  Self.Parent.Context.Append_Location
-                    (Result => Self.Response,
-                     Filter => Self.Filter,
-                     Unit   => Node.Unit,
-                     Token  => Prev);
+                  if not Self.Filter.Contains (Span) then
+                     Self.Response.Append
+                       (Context.To_LSP_Location
+                          (File => Node.Unit.Get_Filename,
+                           Span => Self.Parent.Context.To_LSP_Range
+                             (Node.Unit, Prev)));
+                     Self.Filter.Insert (Span);
+                  end if;
                end;
             end if;
          end Append_Prev_Token_Location;
