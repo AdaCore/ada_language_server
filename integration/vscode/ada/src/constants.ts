@@ -162,7 +162,7 @@ export const CMD_PROJECT_VIEW_VISUALIZE_GPR = 'ada.projectView.visualizeGPR';
 export const CMD_TOOL_DOCUMENTATION = 'ada.project.openToolDocumentation';
 
 /**
- * Identifier for the command that retrieves scenario(external) variables information
+ * Identifier for the command that retrieves scenario (external) variables information
  * from the ALS, for use by the Scenario View.
  */
 export const CMD_SCENARIO_VARIABLES_INFORMATION = 'als-scenario-variables-information';
