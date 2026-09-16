@@ -16,6 +16,7 @@ import {
     CMD_EXT_ANNOTATIONS_REFRESH,
     CMD_EXT_ANNOTATIONS_TOGGLE,
     CMD_PROJECT_VIEW_INFORMATION,
+    CMD_SCENARIO_VARIABLES_INFORMATION,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
     CMD_SHOW_ADA_LS_OUTPUT,
@@ -37,6 +38,12 @@ import {
     Raw_ProjectViewResponse,
     parseProjectViewResponse,
 } from './projectViewProvider';
+import {
+    ScenarioViewItem,
+    ScenarioViewProvider,
+    Raw_ScenarioVariablesResponse,
+    parseScenarioVariablesResponse,
+} from './scenarioViewProvider';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
@@ -100,6 +107,8 @@ export class ExtensionState {
     public readonly statusBar: vscode.StatusBarItem;
     public projectViewProvider?: ProjectViewProvider;
     public projectTreeView?: vscode.TreeView<ProjectViewItem>;
+    public scenarioViewProvider?: ScenarioViewProvider;
+    public scenarioTreeView?: vscode.TreeView<ScenarioViewItem>;
 
     /**
      * Transient override set by context-menu task commands immediately before
@@ -589,6 +598,7 @@ export class ExtensionState {
                 'project related settings have changed: clearing caches and tasks',
             );
             void this.refreshProjectView();
+            void this.refreshScenarioView();
         }
 
         //  React to changes made in the environment variables, showing
@@ -874,6 +884,36 @@ export class ExtensionState {
 
         // Refresh the status bar to reflect the updated project name.
         this.updateStatusBarItem();
+    }
+
+    /**
+     * Refreshes the Scenario View by fetching scenario (external) variables
+     * information from the ALS and notifying the Scenario View provider of
+     * the new data.
+     */
+    public async refreshScenarioView(): Promise<void> {
+        if (!this.scenarioViewProvider) {
+            return;
+        }
+
+        const projectUri = await this.getProjectUri();
+
+        if (!projectUri) {
+            this.scenarioViewProvider.setScenarioVariables([]);
+            return;
+        }
+
+        try {
+            const raw = await vscode.commands.executeCommand<Raw_ScenarioVariablesResponse | null>(
+                CMD_SCENARIO_VARIABLES_INFORMATION,
+            );
+            this.scenarioViewProvider.setScenarioVariables(
+                raw ? parseScenarioVariablesResponse(raw) : [],
+            );
+        } catch (error) {
+            logger.error(`Failed to fetch scenario variables information: ${String(error)}`);
+            this.scenarioViewProvider.setScenarioVariables([]);
+        }
     }
 
     /**

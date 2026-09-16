@@ -1,0 +1,6 @@
+{
+    "projectFile": "prj.gpr",
+    "scenarioVariables": {
+        "FILE_VAR": "als-json-obj"
+    }
+}

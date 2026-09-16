@@ -8,6 +8,16 @@ import { activate, getCommandLines, isCoreTask } from '../utils';
 suite('Aggregate Projects Support', function () {
     let projectPath: string;
 
+    // Set the timeout to 15 seconds unless already configured to more, or
+    // disabled altogether (timeout() === 0), which is the default when
+    // running locally. This has to happen at suite scope: mocha fixes a
+    // test's timeout when the test is added, so raising it from inside the
+    // test body has no effect.
+    const inheritedTimeout = this.timeout();
+    if (inheritedTimeout !== 0) {
+        this.timeout(Math.max(inheritedTimeout, 15000));
+    }
+
     this.beforeAll(async () => {
         await activate();
         projectPath = await getProjectFile();
@@ -19,9 +29,6 @@ suite('Aggregate Projects Support', function () {
      * build and run the mains of all aggregated projects.
      */
     test('Ada tasks for aggregate projects', async () => {
-        // Set timeout to 15 seconds unless already configured to more
-        this.timeout(Math.max(this.timeout(), 15000));
-
         const expectedCmdLines = `
 ada: Clean current project - gprclean -P ${projectPath}
 ada: Build current project - gprbuild -P ${projectPath} '-cargs:ada' -gnatef

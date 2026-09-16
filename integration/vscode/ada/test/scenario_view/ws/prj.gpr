@@ -1,0 +1,13 @@
+project Prj is
+   type Mode_Type is ("Debug", "Release");
+   Mode : Mode_Type := external ("MODE", "Debug");
+
+   --  Set only by .als.json, so that tests can check that a value the
+   --  language server resolved from that file survives a write to
+   --  ada.scenarioVariables. Used as the object dir so that the value the
+   --  server actually loaded the tree with can be observed through
+   --  getObjectDir().
+   File_Var := external ("FILE_VAR", "default-obj");
+
+   for Object_Dir use File_Var;
+end Prj;

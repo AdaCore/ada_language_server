@@ -1,0 +1,11 @@
+project Default is
+
+   type Mode_Type is ("Debug", "Release");
+   Mode : Mode_Type := external ("MODE", "Debug");
+
+   Foo := external ("FOO", "bar");
+
+   for Source_Dirs use (".");
+   for Main use ("main.adb");
+   for Object_Dir use "obj";
+end Default;

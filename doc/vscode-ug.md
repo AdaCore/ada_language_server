@@ -692,7 +692,22 @@ formatting might no succeed on incomplete/illegal code.
   name from the crate description. [Tasks](#tasks) are also automatically
   invoked with Alire in this case.
 
-* **Project support**: there is no `Scenario` view: users should configure scenarios via the `ada.scenarioVariables` setting (see the settings list available [here](./settings.md)). Saving the settings file after changing the values will automatically reload the project and update the
-predefined tasks to take into account the new scenario values.
+* **Project support**: the `Scenario` view, available in the Explorer sidebar
+  next to the `Project` view, lists the scenario (external) variables
+  declared in the loaded project tree, along with their currently resolved
+  value (whichever of the `ada.scenarioVariables` setting, the
+  [`.als.json`](./settings.md#configuration-sources)
+  file, or the OS environment set it); a variable with no resolved value is
+  shown as `Default`, since the language server does not currently expose a
+  project's literal default value text. Clicking a variable opens a picker
+  constrained to its legal values if it is typed, or a free-text input box
+  otherwise. Picking a value writes it, together with every other
+  variable's currently resolved value, to the `ada.scenarioVariables`
+  setting (see the settings list available [here](./settings.md)) — so no
+  `.als.json`-defined variable is lost, though from that point on all of
+  them are pinned in `ada.scenarioVariables` rather than falling back to
+  `.als.json`. This automatically reloads the project and updates the
+  predefined tasks to take the new scenario values into account,
+  exactly as if the setting had been hand-edited.
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
