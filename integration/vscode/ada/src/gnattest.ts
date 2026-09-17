@@ -252,8 +252,22 @@ async function getGnatCovXMLReportDir() {
  *
  * When the project does not define coverage switches, we fall back to
  * `['--level=stmt']` to ensure a valid default.
+ *
+ * The `als-get-project-attribute-value` request this relies on can only
+ * answer for the currently loaded project tree, so it can't be trusted when
+ * a task targets a different project explicitly selected in the Project View
+ * ({@link ExtensionState.pendingProjectOverride}).
+ * In that case, this function returns no `--level` argument at all
+ * instead of risking querying the wrong project: `gnatcov` itself reads
+ * `Coverage.Switches` from whichever project `-P` points to, and
+ * gracefully falls back to `stmt` with just a warning if that
+ * project doesn't define one either.
  */
 export async function getCoverageLevelArgs(subcommand: string): Promise<string[]> {
+    if (adaExtState.pendingProjectOverride) {
+        return [];
+    }
+
     for (const index of [subcommand, '*']) {
         try {
             await adaExtState.getProjectAttributeValue('Switches', 'Coverage', index);

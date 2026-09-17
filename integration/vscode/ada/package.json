@@ -1557,6 +1557,25 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.tasks.gnatcovInstrument",
+                "category": "Ada",
+                "title": "GNATcoverage - Instrument project",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.tasks.gnatcovBuildInstrumented",
+                "category": "Ada",
+                "title": "GNATcoverage - Build instrumented project",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.gnatcov.runAllActionsAsk",
+                "category": "Ada",
+                "title": "Run GNATcoverage analysis...",
+                "icon": "$(run-coverage)",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "ada.project.openToolDocumentation",
                 "category": "Ada",
                 "title": "Open documentation related to project package",
@@ -1757,6 +1776,11 @@
                     "command": "ada.buildAndRunMainAsk",
                     "when": "editorLangId == ada",
                     "group": "navigation@1"
+                },
+                {
+                    "command": "ada.gnatcov.runAllActionsAsk",
+                    "when": "editorLangId == ada",
+                    "group": "navigation@2"
                 }
             ],
             "file/newFile": [
@@ -1865,6 +1889,16 @@
                     "command": "ada.tasks.gnatcovSetup",
                     "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
                     "group": "1_gnatdas_tasks@2"
+                },
+                {
+                    "command": "ada.tasks.gnatcovInstrument",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_gnatdas_tasks@3"
+                },
+                {
+                    "command": "ada.tasks.gnatcovBuildInstrumented",
+                    "when": "view == projectView && viewItem == gprFile && ADA_PROJECT_CONTEXT",
+                    "group": "1_gnatdas_tasks@4"
                 },
                 {
                     "command": "ada.spark.tasks.cleanProject",

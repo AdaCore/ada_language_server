@@ -216,6 +216,29 @@ export const CMD_EXT_ANNOTATIONS_CREATE = 'ada.externalAnnotations.create';
 export const CMD_EXT_ANNOTATIONS_DELETE = 'ada.externalAnnotations.delete';
 
 /**
+ * Identifier for a hidden command that returns the `--level=...` argument
+ * needed by `gnatcov instrument`, or an empty array if the project already
+ * defines a coverage level via the `Coverage.Switches` project attribute.
+ */
+export const CMD_GNATCOV_LEVEL_ARGS_INSTRUMENT = 'ada.tasks.gnatcovLevelArgsInstrument';
+
+/**
+ * Identifier for a hidden command that returns the `--level=...` argument
+ * needed by `gnatcov coverage`, or an empty array if the project already
+ * defines a coverage level via the `Coverage.Switches` project attribute.
+ */
+export const CMD_GNATCOV_LEVEL_ARGS_COVERAGE = 'ada.tasks.gnatcovLevelArgsCoverage';
+
+/**
+ * Identifier for the command that asks the User to pick a Main and runs the
+ * GNATcoverage instrumentation-based analysis workflow for it (instrument,
+ * build, run, generate report). The GNATcoverage runtime library must have
+ * been set up beforehand, e.g. via the 'GNATcoverage - Setup runtime library'
+ * task.
+ */
+export const CMD_GNATCOV_RUN_ALL_ACTIONS_ASK = 'ada.gnatcov.runAllActionsAsk';
+
+/**
  * Live doc URL of the Ada & SPARK VS Code extension User's Guide.
  */
 export const VSCODE_UG_LIVE_DOC_URL =

@@ -21,6 +21,7 @@ import {
     getCmdLine,
     getCommandLines,
     isCoreTask,
+    isGNATcovTask,
     testTask,
     waitForExpectedDiagnostics,
 } from '../utils';
@@ -85,6 +86,50 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
          * Exclude GNAT SAS tasks because they are tested in integration-testsuite.
          */
         const actualCommandLines = await getCommandLines(prov, isCoreTask);
+        assert.equal(actualCommandLines, expectedCmdLines);
+    });
+
+    test('GNATcoverage tasks list', async () => {
+        const prov = createAdaTaskProvider();
+        const tasks = await prov.provideTasks();
+        assert(tasks);
+
+        const expectedTasksList = `
+ada: GNATcoverage - Setup runtime library
+ada: GNATcoverage - Instrument project
+ada: GNATcoverage - Build instrumented project
+ada: GNATcoverage - Generate report - src/main1.adb
+ada: GNATcoverage - Run all actions - src/main1.adb
+ada: GNATcoverage - Generate report - src/test.adb
+ada: GNATcoverage - Run all actions - src/test.adb
+`.trim();
+
+        const actualTaskList = tasks
+            .filter(isGNATcovTask)
+            .map((t) => `${t.source}: ${t.name}`)
+            .join('\n');
+        assert.strictEqual(actualTaskList, expectedTasksList);
+    });
+
+    test('GNATcoverage task command lines', async function () {
+        /**
+         * Unlike `${command:ada.gprProjectArgs}`, `${command:ada.getObjectDir}`
+         * and `${workspaceFolder}` appear embedded within a larger argument
+         * (e.g. `--output-dir=${command:ada.getObjectDir}`), so they are left
+         * untouched by the task provider and only get resolved by VS Code
+         * itself when the task actually runs. They therefore appear literally
+         * below, since this test only resolves the tasks without running them.
+         */
+        const expectedCmdLines = `
+ada: GNATcoverage - Setup runtime library - gnatcov setup
+ada: GNATcoverage - Instrument project - gnatcov instrument -P ${projectPath} --level=stmt --dump-filename-simple
+ada: GNATcoverage - Build instrumented project - gprbuild -m -s -P ${projectPath} --src-subdirs=gnatcov-instr --implicit-with=gnatcov_rts.gpr '-cargs:ada' -gnatef
+ada: GNATcoverage - Generate report - src/main1.adb - gnatcov coverage -P ${projectPath} --level=stmt --annotate=xml --output-dir=\${command:ada.getObjectDir} -T \${workspaceFolder}/main1exec${exe}.srctrace
+ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${projectPath} --level=stmt --annotate=xml --output-dir=\${command:ada.getObjectDir} -T \${workspaceFolder}/test${exe}.srctrace
+`.trim();
+
+        const prov = createAdaTaskProvider();
+        const actualCommandLines = await getCommandLines(prov, isGNATcovTask);
         assert.equal(actualCommandLines, expectedCmdLines);
     });
 

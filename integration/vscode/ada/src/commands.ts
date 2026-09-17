@@ -13,6 +13,9 @@ import {
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
     CMD_GET_OBJECT_DIR,
+    CMD_GNATCOV_LEVEL_ARGS_COVERAGE,
+    CMD_GNATCOV_LEVEL_ARGS_INSTRUMENT,
+    CMD_GNATCOV_RUN_ALL_ACTIONS_ASK,
     CMD_GPR_PROJECT_ARGS,
     CMD_DELETE_METRICS_FOR_FILE,
     CMD_RELOAD_PROJECT,
@@ -46,7 +49,7 @@ import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigPr
 import { goToFileInProject } from './projectGoToFile';
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { CoverageFormat, detectCoverageFormat } from './gnatcov';
-import { loadCoberturaReport, loadGnatCoverageReport } from './gnattest';
+import { getCoverageLevelArgs, loadCoberturaReport, loadGnatCoverageReport } from './gnattest';
 import { findMetricsXmlForSource } from './metricsUtils';
 import {
     findAdaMain,
@@ -69,6 +72,7 @@ import {
     getBuildAndRunTaskName,
     getBuildTaskName,
     getConventionalTaskLabel,
+    getGnatcovRunAllActionsTaskName,
     getRunGNATemulatorTaskName,
     getTasksWithPrefix,
     isFromWorkspace,
@@ -155,6 +159,19 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.buildAndRunMainAsk', buildAndRunMainAsk),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_GNATCOV_RUN_ALL_ACTIONS_ASK, gnatcovRunAllActionsAsk),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_GNATCOV_LEVEL_ARGS_INSTRUMENT, () =>
+            getCoverageLevelArgs('instrument'),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_GNATCOV_LEVEL_ARGS_COVERAGE, () =>
+            getCoverageLevelArgs('coverage'),
+        ),
     );
 
     context.subscriptions.push(
@@ -702,6 +719,30 @@ async function openReportIssue() {
  * there.
  */
 async function buildAndRunMainAsk() {
+    return pickAndRunTaskWithPrefix(
+        getBuildAndRunTaskName(),
+        `There are no Mains defined in the workspace project ${await getProjectFileRelPath()}`,
+    );
+}
+
+/**
+ * Propose to the User a list of tasks matching the given name prefix, one for
+ * each Main defined in the project (this relies on the convention that the
+ * task family named by `taskNamePrefix` includes the Main's relative path at
+ * the end of its name, e.g. as produced by {@link getBuildAndRunTaskName} or
+ * {@link getGnatcovRunAllActionsTaskName}).
+ *
+ * Tasks defined explicitly in the workspace are identified as such in the
+ * offered list and proposed first.
+ *
+ * The User can choose either to run the task as is, or click the secondary
+ * button to add the task to tasks.json (if not already there) and configure it
+ * there.
+ *
+ * @param taskNamePrefix - the conventional name prefix of the tasks to offer
+ * @param noTasksMessage - warning message displayed if no matching task is found
+ */
+async function pickAndRunTaskWithPrefix(taskNamePrefix: string, noTasksMessage: string) {
     function createQuickPickItem(task: vscode.Task): TaskQuickPickItem {
         return {
             // Mark the last used task with a leading star
@@ -718,7 +759,7 @@ async function buildAndRunMainAsk() {
             ],
         };
     }
-    const adaTasksMain = await getTasksWithPrefix(getBuildAndRunTaskName());
+    const adaTasksMain = await getTasksWithPrefix(taskNamePrefix);
 
     if (adaTasksMain.length > 0) {
         const tasksFromWorkspace = adaTasksMain.filter(isFromWorkspace);
@@ -818,11 +859,24 @@ async function buildAndRunMainAsk() {
             disposables.forEach((d) => d.dispose());
         }
     } else {
-        void vscode.window.showWarningMessage(
-            `There are no Mains defined in the workspace project ${await getProjectFileRelPath()}`,
-        );
+        void vscode.window.showWarningMessage(noTasksMessage);
         return undefined;
     }
+}
+
+/**
+ * Propose to the User a list of GNATcoverage 'Run all actions' tasks, one for
+ * each main defined in the project. Each of these tasks runs the
+ * instrumentation-based coverage analysis workflow for that main: instrument
+ * the project, build it, run the main and generate a coverage report. The
+ * GNATcoverage runtime library must have been set up beforehand, e.g. via the
+ * 'GNATcoverage - Setup runtime library' task.
+ */
+async function gnatcovRunAllActionsAsk() {
+    return pickAndRunTaskWithPrefix(
+        getGnatcovRunAllActionsTaskName(),
+        `There are no Mains defined in the workspace project ${await getProjectFileRelPath()}`,
+    );
 }
 
 /**

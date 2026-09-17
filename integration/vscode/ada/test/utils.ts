@@ -339,7 +339,7 @@ export function isGNATtestTask(t: vscode.Task): boolean {
 /**
  * Utility filter for selecting GNATcoverage tasks.
  */
-function isGNATcovTask(t: vscode.Task): boolean {
+export function isGNATcovTask(t: vscode.Task): boolean {
     return t.name.toLowerCase().includes('gnatcov');
 }
 
