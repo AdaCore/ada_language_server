@@ -888,31 +888,37 @@ export class ExtensionState {
      *
      * This runs unconditionally so that the language-override feature works
      * even when the Project View panel is closed or has never been opened.
+     *
+     * This never rejects: any failure to reach the ALS is logged and leaves an
+     * empty project state. Callers can therefore await it and then inspect
+     * `getProjectViewInfo()` to tell whether a project is available.
      */
     public async refreshProjectView(): Promise<void> {
         // Clear the cached project URI to fetch a fresh one
         this.cachedProjectUri = undefined;
-        const projectUri = await this.getProjectUri();
 
-        if (projectUri) {
-            try {
-                const raw = await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
-                    CMD_PROJECT_VIEW_INFORMATION,
-                );
-                if (raw?.projects) {
-                    this.cachedProjectViewInfo = parseProjectViewResponse(raw);
-                    this.buildFileLanguageMap();
-                    await this.applyLanguageOverridesToOpenDocuments();
-                } else {
-                    this.cachedProjectViewInfo = undefined;
-                    this.fileLanguageMap = new Map();
-                }
-            } catch (error) {
-                logger.error(`Failed to fetch project view information: ${String(error)}`);
+        try {
+            //  getProjectUri() queries the ALS, so it rejects when the server
+            //  is restarting or otherwise unavailable. It has to stay inside
+            //  the try, so that such a failure yields an empty project state
+            //  like any other failure to fetch the project information.
+            const projectUri = await this.getProjectUri();
+            const raw = projectUri
+                ? await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
+                      CMD_PROJECT_VIEW_INFORMATION,
+                  )
+                : null;
+
+            if (raw?.projects) {
+                this.cachedProjectViewInfo = parseProjectViewResponse(raw);
+                this.buildFileLanguageMap();
+                await this.applyLanguageOverridesToOpenDocuments();
+            } else {
                 this.cachedProjectViewInfo = undefined;
                 this.fileLanguageMap = new Map();
             }
-        } else {
+        } catch (error) {
+            logger.error(`Failed to fetch project view information: ${String(error)}`);
             this.cachedProjectViewInfo = undefined;
             this.fileLanguageMap = new Map();
         }
