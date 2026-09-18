@@ -976,4 +976,52 @@ suite('Project View', function () {
             workspaceWithPatch.getConfiguration = originalGetConfiguration;
         }
     });
+    test('Go to File reports no project when the ALS is unreachable', async function () {
+        const stateWithPatch = adaExtState as typeof adaExtState & {
+            getProjectUri: typeof adaExtState.getProjectUri;
+        };
+        const originalGetProjectUri = adaExtState.getProjectUri.bind(adaExtState);
+
+        const windowWithPatch = vscode.window as typeof vscode.window & {
+            showInformationMessage: typeof vscode.window.showInformationMessage;
+        };
+        const originalShowInformationMessage = vscode.window.showInformationMessage;
+
+        let infoMessage: string | undefined;
+        windowWithPatch.showInformationMessage = ((message: string) => {
+            infoMessage = message;
+            return Promise.resolve(undefined);
+        }) as typeof vscode.window.showInformationMessage;
+
+        // Simulate the ALS being restarted or otherwise unavailable: the
+        // 'als-project-file' request rejects.
+        stateWithPatch.getProjectUri = () => Promise.reject(new Error('ALS is not available'));
+
+        try {
+            // The refresh must absorb the failure rather than propagate it.
+            await adaExtState.refreshProjectView();
+            assert.strictEqual(
+                adaExtState.getProjectViewInfo(),
+                undefined,
+                'Expected an empty project state after a failed refresh',
+            );
+
+            // And the command must report it, not throw.
+            await vscode.commands.executeCommand(CMD_PROJECT_VIEW_GO_TO_FILE);
+            assert.ok(
+                infoMessage?.includes('No GPR project'),
+                `Expected the 'no project' message, got: ${String(infoMessage)}`,
+            );
+        } finally {
+            stateWithPatch.getProjectUri = originalGetProjectUri;
+            windowWithPatch.showInformationMessage = originalShowInformationMessage;
+            // Restore a valid project state for the remaining tests.
+            await adaExtState.refreshProjectView();
+        }
+
+        assert.ok(
+            adaExtState.getProjectViewInfo(),
+            'Expected the project view information to be restored',
+        );
+    });
 });
