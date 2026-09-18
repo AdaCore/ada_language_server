@@ -215,6 +215,15 @@ The Ada & SPARK extension contributes a **Project View** panel in the VS Code Ex
 
 ![Project View](media/project-view.png)
 
+The **Project View** also exposes a toolbar with the following buttons:
+
+* **Filter** — filters the tree view to show only projects, directories, and files whose names contain the filter string.
+* **Open Project File** — opens a dialog to select a new GPR project file to load.
+* **Refresh** — reloads the project and updates the tree view.
+* **View Options** — toggles the display of object directories and runtime files, and allows to switch between flat and hierarchical view modes.
+
+![Project View Toolbar](media/project-view-toolbar.png)
+
 ### Tree Structure
 
 The tree reflects the GPR project hierarchy:
@@ -698,7 +707,7 @@ formatting might no succeed on incomplete/illegal code.
   value (whichever of the `ada.scenarioVariables` setting, the
   [`.als.json`](./settings.md#configuration-sources)
   file, or the OS environment set it); a variable with no resolved value is
-  shown as `Default`, since the language server does not currently expose a
+  shown as `(default)}`, since the language server does not currently expose a
   project's literal default value text. Clicking a variable opens a picker
   constrained to its legal values if it is typed, or a free-text input box
   otherwise. Picking a value writes it, together with every other
