@@ -84,6 +84,21 @@ export function buildProjectFileItems(
 }
 
 /**
+ * Tells whether the runtime sources should be listed by the quick-pick.
+ *
+ * This deliberately reads the Project View provider's cached flag rather than
+ * the `ada.projectView.showRuntimeFiles` setting: that cached flag is the one
+ * `ProjectViewProvider.findSourceFileItem` is gated on, so sharing it
+ * guarantees that every file listed by the quick-pick is a file the
+ * 'Reveal in Project View' button can actually resolve.
+ *
+ * @returns whether runtime sources are currently visible in the Project View
+ */
+export function shouldIncludeRuntimeFiles(): boolean {
+    return adaExtState.projectViewProvider?.showRuntimeFiles ?? false;
+}
+
+/**
  * Shows a quick-pick listing the source files of the loaded GPR project and
  * opens the selected one in an editor.
  */
@@ -105,10 +120,7 @@ export async function goToFileInProject(): Promise<void> {
         return;
     }
 
-    //  Follow the Project View setting so that both show the same set of files
-    const includeRuntime = vscode.workspace
-        .getConfiguration('ada')
-        .get<boolean>('projectView.showRuntimeFiles', false);
+    const includeRuntime = shouldIncludeRuntimeFiles();
 
     const items = buildProjectFileItems(info, includeRuntime);
 

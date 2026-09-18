@@ -30,6 +30,26 @@ export function normalizeFsPath(p: string): string {
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }
 
+/**
+ * Reads the Project View display preferences from the VS Code settings.
+ *
+ * These preferences are cached on the provider, so they must be re-read
+ * whenever the corresponding settings change, be it through the View Options
+ * quick-pick or directly through the VS Code Settings UI.
+ */
+function readViewSettingsFromConfig(): {
+    flatMode: boolean;
+    showObjectDirs: boolean;
+    showRuntimeFiles: boolean;
+} {
+    const config = vscode.workspace.getConfiguration('ada');
+    return {
+        flatMode: config.get<boolean>('projectView.flatMode', false),
+        showObjectDirs: config.get<boolean>('projectView.showObjectDirectories', false),
+        showRuntimeFiles: config.get<boolean>('projectView.showRuntimeFiles', false),
+    };
+}
+
 // ---------------------------------------------------------------------------
 // Raw wire types – match the JSON field names returned by the server
 // ---------------------------------------------------------------------------
@@ -373,10 +393,10 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
 
     constructor() {
         // Restore persisted display preferences from VS Code settings
-        const config = vscode.workspace.getConfiguration('ada');
-        this.flatMode = config.get<boolean>('projectView.flatMode', false);
-        this.showObjectDirs = config.get<boolean>('projectView.showObjectDirectories', false);
-        this.showRuntimeFiles = config.get<boolean>('projectView.showRuntimeFiles', false);
+        const settings = readViewSettingsFromConfig();
+        this.flatMode = settings.flatMode;
+        this.showObjectDirs = settings.showObjectDirs;
+        this.showRuntimeFiles = settings.showRuntimeFiles;
     }
 
     /**
@@ -985,6 +1005,20 @@ export class ProjectViewProvider implements vscode.TreeDataProvider<ProjectViewI
         this.showObjectDirs = showObjectDirs;
         this.showRuntimeFiles = showRuntimeFiles;
         this._onDidChangeTreeData.fire();
+    }
+
+    /**
+     * Re-reads the display preferences from the VS Code settings and refreshes
+     * the tree.
+     *
+     * The preferences are cached on this provider, so a change made outside of
+     * the View Options quick-pick (typically through the Settings UI) would
+     * otherwise leave the tree, and anything relying on these flags such as
+     * `findSourceFileItem`, out of sync with the settings.
+     */
+    applyViewSettingsFromConfig(): void {
+        const settings = readViewSettingsFromConfig();
+        this.setViewSettings(settings.flatMode, settings.showObjectDirs, settings.showRuntimeFiles);
     }
 }
 

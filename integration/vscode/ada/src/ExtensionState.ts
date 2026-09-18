@@ -459,7 +459,8 @@ export class ExtensionState {
             // the project may still have been located and loaded through Alire.
             alireProjectLoaded = alsDiagnostics.some(
                 (diagnostic) =>
-                    diagnostic.source == PROJECT_DIAGS_SOURCE && diagnostic.message.includes('Alire'),
+                    diagnostic.source == PROJECT_DIAGS_SOURCE &&
+                    diagnostic.message.includes('Alire'),
             );
 
             switch (statusBarSeverity) {
@@ -599,6 +600,15 @@ export class ExtensionState {
             );
             void this.refreshProjectView();
             void this.refreshScenarioView();
+        }
+
+        //  The Project View caches its display preferences, so they must be
+        //  re-read when they are changed outside of the View Options
+        //  quick-pick, e.g. through the Settings UI. Without this the tree and
+        //  everything keyed on these flags, such as the runtime files listed by
+        //  'Go to File in Project', would disagree with the settings.
+        if (e.affectsConfiguration('ada.projectView')) {
+            this.projectViewProvider?.applyViewSettingsFromConfig();
         }
 
         //  React to changes made in the environment variables, showing
