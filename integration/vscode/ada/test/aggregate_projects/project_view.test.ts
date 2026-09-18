@@ -9,7 +9,7 @@ import {
 } from '../../src/constants';
 import { adaExtState } from '../../src/extension';
 import { ProjectViewItemKind, ProjectViewProvider } from '../../src/projectViewProvider';
-import { buildProjectFileItems } from '../../src/projectGoToFile';
+import { buildProjectFileItems, shouldIncludeRuntimeFiles } from '../../src/projectGoToFile';
 import { activate } from '../utils';
 
 suite('Project View', function () {
@@ -897,5 +897,83 @@ suite('Project View', function () {
             commands.includes(CMD_PROJECT_VIEW_GO_TO_FILE),
             `Expected command ${CMD_PROJECT_VIEW_GO_TO_FILE} to be registered`,
         );
+    });
+    test('Runtime visibility stays consistent between Go to File and the tree', function () {
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Expected a Project View provider');
+
+        const info = adaExtState.getProjectViewInfo();
+        assert.ok(info, 'Expected project view information to be available');
+        assert.ok(info.runtime_project, 'Expected a runtime project in this workspace');
+
+        const workspaceWithPatch = vscode.workspace as typeof vscode.workspace & {
+            getConfiguration: typeof vscode.workspace.getConfiguration;
+        };
+        const originalGetConfiguration = vscode.workspace.getConfiguration;
+
+        // Simulate 'ada.projectView.showRuntimeFiles' being enabled through the
+        // Settings UI rather than through the View Options quick-pick.
+        const patchConfig = (showRuntimeFiles: boolean) => {
+            workspaceWithPatch.getConfiguration = ((section?: string) => {
+                if (section === 'ada') {
+                    return {
+                        get: (key: string, defaultValue: boolean) =>
+                            key === 'projectView.showRuntimeFiles'
+                                ? showRuntimeFiles
+                                : defaultValue,
+                    };
+                }
+                return originalGetConfiguration(section);
+            }) as typeof vscode.workspace.getConfiguration;
+        };
+
+        try {
+            // Before the provider is synced, the setting and the provider's
+            // cached flag disagree. The quick-pick must follow the provider,
+            // otherwise it would offer runtime files that the reveal path,
+            // gated on that same cached flag, cannot resolve.
+            patchConfig(true);
+            assert.strictEqual(
+                shouldIncludeRuntimeFiles(),
+                provider.showRuntimeFiles,
+                'Go to File must follow the Project View flag, not the raw setting',
+            );
+
+            provider.applyViewSettingsFromConfig();
+            assert.strictEqual(
+                provider.showRuntimeFiles,
+                true,
+                'Expected the provider to pick up the setting change',
+            );
+
+            // Every runtime file the picker offers must be resolvable by the
+            // reveal path, which is gated on the provider's own flag.
+            const items = buildProjectFileItems(info, provider.showRuntimeFiles);
+            const runtimeName = info.runtime_project.project.name;
+            const runtimeItem = items.find((i) => i.description === runtimeName);
+            assert.ok(runtimeItem, 'Expected runtime entries once the setting is enabled');
+            assert.ok(
+                provider.findSourceFileItem(runtimeItem.uri),
+                'A runtime file listed by Go to File must be revealable in the Project View',
+            );
+
+            // And with the setting disabled, neither path exposes runtime files.
+            patchConfig(false);
+            provider.applyViewSettingsFromConfig();
+            assert.strictEqual(provider.showRuntimeFiles, false);
+            assert.strictEqual(shouldIncludeRuntimeFiles(), false);
+            assert.ok(
+                !buildProjectFileItems(info, provider.showRuntimeFiles).some(
+                    (i) => i.description === runtimeName,
+                ),
+                'Did not expect runtime entries once the setting is disabled',
+            );
+            assert.ok(
+                !provider.findSourceFileItem(runtimeItem.uri),
+                'Did not expect a runtime file to be revealable once the setting is disabled',
+            );
+        } finally {
+            workspaceWithPatch.getConfiguration = originalGetConfiguration;
+        }
     });
 });
