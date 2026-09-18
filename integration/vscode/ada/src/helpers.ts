@@ -348,6 +348,49 @@ export async function getProjectFileRelPath(): Promise<string> {
 }
 
 /**
+ *
+ * @returns the full path of the directory used by the Ada Language Server as
+ * its root directory, i.e. the first workspace folder, or `undefined` if no
+ * workspace folder is open.
+ */
+export function getWorkspaceRootPath(): string | undefined {
+    const folders = vscode.workspace.workspaceFolders;
+
+    return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
+}
+
+/**
+ * Compute the value to store in the `ada.projectFile` setting for the given
+ * project file.
+ *
+ * A relative `ada.projectFile` is resolved by the Ada Language Server against
+ * its root directory. `vscode.workspace.asRelativePath` can't be used here
+ * because in a multi-root workspace it prepends the name of the workspace
+ * folder, which the server has no way to resolve.
+ *
+ * @param projectFile - the full path of the project file
+ * @param rootPath - the full path of the root directory. Defaults to the first
+ * workspace folder.
+ * @returns the path of the project file relative to `rootPath` if it is
+ * located under it, and its full path otherwise.
+ */
+export function getProjectFileSettingValue(
+    projectFile: string,
+    rootPath: string | undefined = getWorkspaceRootPath(),
+): string {
+    if (rootPath !== undefined) {
+        const relPath = path.relative(rootPath, projectFile);
+
+        if (relPath !== '' && !relPath.startsWith('..') && !path.isAbsolute(relPath)) {
+            //  Always use forward slashes to keep the setting portable
+            return relPath.split(path.sep).join('/');
+        }
+    }
+
+    return projectFile;
+}
+
+/**
  * Get the Object Directory path
  * @param client - the client to send the request to
  * @returns a string path

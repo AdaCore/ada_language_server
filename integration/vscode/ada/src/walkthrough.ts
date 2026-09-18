@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
+import { getProjectFileSettingValue } from './helpers';
 
 /**
  * This function creates a hello world project in the current workspace. It is
@@ -47,7 +48,7 @@ end Hello_World;
          */
         await vscode.workspace
             .getConfiguration()
-            .update('ada.projectFile', vscode.workspace.asRelativePath(prjUri));
+            .update('ada.projectFile', getProjectFileSettingValue(prjUri.fsPath));
 
         /**
          * Show the created files for convenience.
