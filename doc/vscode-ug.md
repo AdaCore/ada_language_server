@@ -238,6 +238,7 @@ The tree reflects the GPR project hierarchy:
 ### Navigation
 
 * **Reveal Active File** (`Ada: Reveal in Project View`) — locates and selects the currently open editor file in the Project View tree. This command is also available as an editor context menu.
+* **Go to File in Project** (`Ada: Go to File in Project...`, `Ctrl+Alt+P` / `Cmd+Alt+P` on macOS) — opens a quick-pick search restricted to the source files of the loaded GPR project, and opens the selected file in the editor. Unlike the native `Go to File...` command, it lists exactly the files that the project declares, including sources located outside the workspace folders, and excluding files that do not belong to the project. Type part of a file name, of a directory, or of a project name to narrow the list; each entry also offers a button to reveal the file in the Project View tree. The command is available from the Command Palette and from the Project View toolbar. Runtime sources are listed only when the `ada.projectView.showRuntimeFiles` setting is enabled. Note that `Ctrl+Alt+P` coincides with `AltGr+P` on some keyboard layouts; the shortcut can be changed from `Preferences: Open Keyboard Shortcuts`.
 * **Reveal in Explorer** — available via right-click on a source file or a project file node; opens the VS Code Explorer and selects the item there.
 
 ### File Management

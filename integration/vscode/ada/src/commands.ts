@@ -35,6 +35,7 @@ import {
     CMD_PROJECT_VIEW_OPTIONS,
     CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
+    CMD_PROJECT_VIEW_GO_TO_FILE,
     CMD_PROJECT_VIEW_VISUALIZE_FILES,
     CMD_PROJECT_VIEW_VISUALIZE_GPR,
     CMD_SCENARIO_VARIABLES_INFORMATION,
@@ -42,6 +43,7 @@ import {
     CMD_SCENARIO_VIEW_RESET_VARIABLE,
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
+import { goToFileInProject } from './projectGoToFile';
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { CoverageFormat, detectCoverageFormat } from './gnatcov';
 import { loadCoberturaReport, loadGnatCoverageReport } from './gnattest';
@@ -186,6 +188,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
             CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
             revealActiveFileInProjectView,
         ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_GO_TO_FILE, goToFileInProject),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_FILES, (item: ProjectViewItem) =>
@@ -1603,30 +1608,10 @@ async function deleteMetricsForFile(fileUri: vscode.Uri) {
  * command.
  */
 async function revealActiveFileInProjectView() {
-    const provider = adaExtState.projectViewProvider;
-    const treeView = adaExtState.projectTreeView;
-    if (!provider || !treeView) return;
-
     const activeEditor = vscode.window.activeTextEditor;
     if (!activeEditor) return;
 
-    const fileUri = activeEditor.document.uri;
-    const item = provider.findSourceFileItem(fileUri);
-
-    if (!item) {
-        void vscode.window.showInformationMessage(
-            `'${path.basename(fileUri.fsPath)}' is not found in the Project View.`,
-        );
-        return;
-    }
-
-    try {
-        await treeView.reveal(item, { select: true, focus: true, expand: true });
-    } catch {
-        void vscode.window.showInformationMessage(
-            `'${path.basename(fileUri.fsPath)}' could not be found in the Project View.`,
-        );
-    }
+    await adaExtState.revealUriInProjectView(activeEditor.document.uri);
 }
 
 /**

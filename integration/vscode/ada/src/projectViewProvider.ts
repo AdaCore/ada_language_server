@@ -25,7 +25,7 @@ import * as vscode from 'vscode';
  * (e.g. lowercase drive letter from `fsPath`) and paths returned by
  * the Ada language server (typically uppercase drive letter).
  */
-function normalizeFsPath(p: string): string {
+export function normalizeFsPath(p: string): string {
     const resolved = path.resolve(p);
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }

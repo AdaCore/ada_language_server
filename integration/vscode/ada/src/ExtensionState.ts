@@ -815,6 +815,49 @@ export class ExtensionState {
     }
 
     /**
+     * Returns the project view information last obtained from the ALS, or
+     * undefined if no project is loaded or the information could not be
+     * fetched. Call `refreshProjectView()` first if a fresh view is required.
+     */
+    public getProjectViewInfo(): ProjectViewInformation | undefined {
+        return this.cachedProjectViewInfo;
+    }
+
+    /**
+     * Locates the given file in the Project View tree and selects it.
+     *
+     * Shows an information message and returns false when the file does not
+     * belong to the loaded project, or when the tree could not reveal it.
+     *
+     * @param uri - the URI of the file to reveal
+     * @returns whether the file could be revealed
+     */
+    public async revealUriInProjectView(uri: vscode.Uri): Promise<boolean> {
+        const provider = this.projectViewProvider;
+        const treeView = this.projectTreeView;
+        if (!provider || !treeView) return false;
+
+        const item = provider.findSourceFileItem(uri);
+
+        if (!item) {
+            void vscode.window.showInformationMessage(
+                `'${path.basename(uri.fsPath)}' is not found in the Project View.`,
+            );
+            return false;
+        }
+
+        try {
+            await treeView.reveal(item, { select: true, focus: true, expand: true });
+            return true;
+        } catch {
+            void vscode.window.showInformationMessage(
+                `'${path.basename(uri.fsPath)}' could not be found in the Project View.`,
+            );
+            return false;
+        }
+    }
+
+    /**
      * Iterates over all currently open text documents and overrides the
      * VS Code language ID for any document whose language is known from
      * the GPR project metadata but does not yet match.
