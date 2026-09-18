@@ -5,9 +5,11 @@ import {
     CMD_OPEN_PROJECT_FILE,
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_SET_PROJECT_VIEW_FILTER,
+    CMD_PROJECT_VIEW_GO_TO_FILE,
 } from '../../src/constants';
 import { adaExtState } from '../../src/extension';
 import { ProjectViewItemKind, ProjectViewProvider } from '../../src/projectViewProvider';
+import { buildProjectFileItems } from '../../src/projectGoToFile';
 import { activate } from '../utils';
 
 suite('Project View', function () {
@@ -838,5 +840,62 @@ suite('Project View', function () {
         assert.strictEqual(selection.length, 1, 'Runtime: expected one selected item');
         assert.strictEqual(selection[0].itemKind, ProjectViewItemKind.SOURCE_FILE);
         assert.strictEqual(selection[0].uri.fsPath, runtimeFileUri.fsPath);
+    });
+
+    test('Go to File lists each project source exactly once', function () {
+        const info = adaExtState.getProjectViewInfo();
+        assert.ok(info, 'Expected project view information to be available');
+
+        const items = buildProjectFileItems(info, false);
+
+        // project_1.gpr and project_2.gpr both use the 'src' directory, so every
+        // source is reported by two projects. They must appear only once.
+        const labels = items.map((i) => i.label).sort();
+        assert.deepStrictEqual(labels, ['main_1.adb', 'main_2.adb', 'main_3.adb']);
+
+        const paths = items.map((i) => i.uri.fsPath);
+        assert.strictEqual(
+            new Set(paths).size,
+            paths.length,
+            'Expected no duplicate files in the quick-pick items',
+        );
+
+        for (const item of items) {
+            assert.ok(item.uri.fsPath.endsWith(item.label), `URI of ${item.label} should match`);
+            assert.ok(item.description, `Expected an owning project name for ${item.label}`);
+            assert.ok(item.detail !== undefined, `Expected a directory for ${item.label}`);
+        }
+    });
+
+    test('Go to File excludes runtime sources unless requested', function () {
+        const info = adaExtState.getProjectViewInfo();
+        assert.ok(info, 'Expected project view information to be available');
+        assert.ok(info.runtime_project, 'Expected a runtime project in this workspace');
+
+        const withoutRuntime = buildProjectFileItems(info, false);
+        const withRuntime = buildProjectFileItems(info, true);
+
+        assert.ok(
+            withRuntime.length > withoutRuntime.length,
+            'Expected more items when runtime sources are included',
+        );
+
+        const runtimeName = info.runtime_project.project.name;
+        assert.ok(
+            !withoutRuntime.some((i) => i.description === runtimeName),
+            'Did not expect runtime entries when includeRuntime is false',
+        );
+        assert.ok(
+            withRuntime.some((i) => i.description === runtimeName),
+            'Expected runtime entries when includeRuntime is true',
+        );
+    });
+
+    test('Go to File command is registered', async function () {
+        const commands = await vscode.commands.getCommands(true);
+        assert.ok(
+            commands.includes(CMD_PROJECT_VIEW_GO_TO_FILE),
+            `Expected command ${CMD_PROJECT_VIEW_GO_TO_FILE} to be registered`,
+        );
     });
 });
