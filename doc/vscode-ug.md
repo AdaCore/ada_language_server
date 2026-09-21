@@ -269,6 +269,48 @@ Right-clicking a node in the Project View exposes additional commands:
 
 Project file items also have a context menu with commands to build, analyze, and clean the project, among others.
 
+## Scenario View
+
+The Ada & SPARK extension contributes a **Scenario View** panel in the VS Code
+Explorer sidebar, next to the Project View. It lists the scenario (external)
+variables declared in the loaded project tree, along with each variable's
+currently resolved value.
+
+![Scenario View](media/scenario_view.gif)
+
+### Resolved Values
+
+A variable's resolved value comes from whichever of the `ada.scenarioVariables`
+setting, the [`.als.json`](./settings.md#configuration-sources) file, or the OS
+environment sets it; a variable with no resolved value is shown as `(default)`,
+since the language server does not currently expose a project's literal
+default value text.
+
+If the same variable is declared with conflicting types across the project
+tree, it is shown with a warning icon and an explanatory tooltip, since GPR2
+cannot resolve a single authoritative type for it in that case.
+
+### Editing Values
+
+Clicking a variable, or using its **Edit Value…** action, opens a picker
+constrained to its legal values if it is typed, or a free-text input box
+otherwise. Picking a value writes it, together with every other variable's
+currently resolved value, to the `ada.scenarioVariables` setting (see the
+[settings list](./settings.md)) — so no `.als.json`-defined variable is lost,
+though from that point on all of them are pinned in `ada.scenarioVariables`
+rather than falling back to `.als.json`. This automatically reloads the
+project and updates the predefined [Tasks](#tasks) to take the new scenario
+values into account, exactly as if the setting had been hand-edited.
+
+A **Reset to Default** action is available for any variable that currently
+has a resolved value, whether or not that value was set from the Scenario
+View — a variable resolved purely from `.als.json` or the environment offers
+it too. It only clears the variable from the Workspace-scoped
+`ada.scenarioVariables` setting; if the variable is still resolved
+afterwards, for example because it is also set at the User or Remote level,
+that value takes effect instead of falling back to `.als.json`, the
+environment, or the project's default.
+
 ## Alire Support
 
 When the workspace is an Alire crate (i.e. it contains an `alire.toml` file), the extension uses Alire to determine the GPR project that should be loaded and to obtain an environment where the crate's dependencies have been provisioned.
@@ -701,22 +743,7 @@ formatting might no succeed on incomplete/illegal code.
   name from the crate description. [Tasks](#tasks) are also automatically
   invoked with Alire in this case.
 
-* **Project support**: the `Scenario` view, available in the Explorer sidebar
-  next to the `Project` view, lists the scenario (external) variables
-  declared in the loaded project tree, along with their currently resolved
-  value (whichever of the `ada.scenarioVariables` setting, the
-  [`.als.json`](./settings.md#configuration-sources)
-  file, or the OS environment set it); a variable with no resolved value is
-  shown as `(default)`, since the language server does not currently expose a
-  project's literal default value text. Clicking a variable opens a picker
-  constrained to its legal values if it is typed, or a free-text input box
-  otherwise. Picking a value writes it, together with every other
-  variable's currently resolved value, to the `ada.scenarioVariables`
-  setting (see the settings list available [here](./settings.md)) — so no
-  `.als.json`-defined variable is lost, though from that point on all of
-  them are pinned in `ada.scenarioVariables` rather than falling back to
-  `.als.json`. This automatically reloads the project and updates the
-  predefined tasks to take the new scenario values into account,
-  exactly as if the setting had been hand-edited.
+* **Project support**: the [Scenario View](#scenario-view) lets you inspect
+  and edit the scenario (external) variables of the loaded project tree.
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
