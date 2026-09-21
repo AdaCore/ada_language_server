@@ -26,7 +26,7 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.Subtypes;
 with LSP.Structures;
 with LSP.Utils;
@@ -47,7 +47,7 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
      (Priority => LSP.Server_Jobs.Low) with
    record
       Response : LSP.Structures.TypeHierarchyItem_Vector_Or_Null;
-      Filter   : LSP.Locations.File_Span_Sets.Set;
+      Filter   : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Context  : LSP.Ada_Context_Sets.Context_Access;
       Iterator : Iterator_Access;
       Cursor   : LSP.Ada_File_Sets.File_Sets.Cursor;
@@ -131,11 +131,13 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
       Message : LSP.Server_Requests.Subtypes.Request
         renames LSP.Server_Requests.Subtypes.Request (Self.Message.all);
 
-      Ignore : Boolean;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Loc    : LSP.Structures.Location;
-      Item   : LSP.Structures.TypeHierarchyItem;
-      Name   : Libadalang.Analysis.Defining_Name;
+      Ignore  : Boolean;
+      Unit    : Libadalang.Analysis.Analysis_Unit;
+      URI     : LSP.Structures.DocumentUri;
+      A_Range : LSP.Structures.A_Range;
+      Span    : LSP.File_Source_Locations.File_Source_Location;
+      Item    : LSP.Structures.TypeHierarchyItem;
+      Name    : Libadalang.Analysis.Defining_Name;
    begin
       if LSP.Ada_File_Sets.File_Sets.Has_Element (Self.Cursor) then
          Unit := Self.Context.Get_AU
@@ -150,9 +152,12 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
             loop
                Name := Tipe.P_Defining_Name.P_Canonical_Part;
 
-               Loc := Self.Parent.Context.To_LSP_Location (Name.P_Basic_Decl);
+               URI     := LSP.Utils.To_URI (Name.P_Basic_Decl);
+               A_Range := Self.Parent.Context.To_LSP_Range (Name.P_Basic_Decl);
 
-               if not Self.Filter.Contains (Loc)
+               Span := LSP.File_Source_Locations.To_File_Source_Location (Name);
+
+               if not Self.Filter.Contains (Span)
                  and Is_Derived_From (Tipe, Self.Decl.P_Canonical_Part)
                then
                   Item :=
@@ -163,13 +168,12 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
                      tags           => <>,
                      detail         => LSP.Utils.Node_Location_Image
                        (Name),
-                     uri            => Loc.uri,
-                     a_range        => Loc.a_range,
-                     selectionRange => Self.Parent.Context.To_LSP_Location
-                       (Name).a_range,
+                     uri            => URI,
+                     a_range        => A_Range,
+                     selectionRange => Self.Parent.Context.To_LSP_Range (Name),
                      data           => <>);
 
-                  Self.Filter.Insert (Loc);
+                  Self.Filter.Insert (Span);
                   Self.Response.Append (Item);
                end if;
             end loop;

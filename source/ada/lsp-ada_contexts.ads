@@ -42,6 +42,7 @@ with VSS.Strings;
 
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
+with LSP.Constants;
 with LSP.Search;
 with LSP.Structures;
 with LSP.Tracers;
@@ -350,6 +351,13 @@ package LSP.Ada_Contexts is
       Default      : String := "") return String;
    --  Same as above, but computing the value directly from the context's
    --  root project view.
+
+   function To_LSP_Location
+     (Self  : in out LSP.Ada_Contexts.Context;
+      File  : String;
+      Span  : LSP.Structures.A_Range;
+      Kinds : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location;
 
 private
 

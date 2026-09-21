@@ -35,7 +35,7 @@ package LSP.Ada_Handlers.Renaming is
 
    procedure Process_Context
      (Self      : in out Message_Handler'Class;
-      C         : LSP.Ada_Context_Sets.Context_Access;
+      Context   : LSP.Ada_Context_Sets.Context_Access;
       Name_Node : Libadalang.Analysis.Name;
       New_Name  : VSS.Strings.Virtual_String;
       Filter    : in out Edit_Sets.Set;

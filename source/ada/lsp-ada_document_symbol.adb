@@ -57,6 +57,7 @@ package body LSP.Ada_Document_Symbol is
    new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
+      Context  : LSP.Ada_Context_Sets.Context_Access;
       Pattern  : Search_Pattern_Access;
       Cursor   : Traverse_Iterator_Access;
       Response : LSP.Structures.DocumentSymbol_Result;
@@ -81,6 +82,7 @@ package body LSP.Ada_Document_Symbol is
    new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
+      Context : LSP.Ada_Context_Sets.Context_Access;
       Pattern : Search_Pattern_Access;
       --  Pattern used to filter the symbols.
 
@@ -174,6 +176,7 @@ package body LSP.Ada_Document_Symbol is
       function Flat_Job return LSP.Server_Jobs.Server_Job_Access is
         (new Flat_Document_Symbol_Job'
            (Parent  => Self'Unchecked_Access,
+            Context => Context,
             Request => LSP.Ada_Request_Jobs.Request_Access (Message),
             Cursor  => new Libadalang.Iterators.Traverse_Iterator'Class'
               (Libadalang.Iterators.Find (Unit.Root, Is_Defining_Name)),
@@ -190,6 +193,7 @@ package body LSP.Ada_Document_Symbol is
       function Full_Job return LSP.Server_Jobs.Server_Job_Access is
         (new Full_Document_Symbol_Job'
            (Parent  => Self'Unchecked_Access,
+            Context => Context,
             Request => LSP.Ada_Request_Jobs.Request_Access (Message),
             Node    => Unit.Root,
             Stack   => [(Node     => Libadalang.Analysis.No_Ada_Node,
@@ -250,7 +254,9 @@ package body LSP.Ada_Document_Symbol is
                   tags              => LSP.Constants.Empty,
                   deprecated        => <>,
                   location          =>
-                    Self.Parent.Context.To_LSP_Location (Element),
+                    Self.Context.To_LSP_Location
+                      (Element.Unit.Get_Filename,
+                       Self.Parent.Context.To_LSP_Range (Element)),
                   containerName     => <>);
 
                Self.Response.Variant_1.Append (Item);
@@ -417,10 +423,10 @@ package body LSP.Ada_Document_Symbol is
            VSS.Strings.Empty_Virtual_String)
       is
          Node_Span : constant LSP.Structures.A_Range :=
-           Self.Parent.Context.To_LSP_Location (Node).a_range;
+           Self.Parent.Context.To_LSP_Range (Node);
 
          Name_Span : constant LSP.Structures.A_Range :=
-           Self.Parent.Context.To_LSP_Location (Name).a_range;
+           Self.Parent.Context.To_LSP_Range (Name);
 
          Top       : Stack_Item renames Self.Stack (Self.Stack.Last);
 

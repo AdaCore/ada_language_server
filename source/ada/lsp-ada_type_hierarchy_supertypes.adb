@@ -79,9 +79,10 @@ package body LSP.Ada_Type_Hierarchy_Supertypes is
          then Node.As_Name.P_Enclosing_Defining_Name.P_Basic_Decl
          else Libadalang.Analysis.No_Basic_Decl);
 
-      Loc  : LSP.Structures.Location;
-      Item : LSP.Structures.TypeHierarchyItem;
-      Name : Libadalang.Analysis.Defining_Name;
+      URI     : LSP.Structures.DocumentUri;
+      A_Range : LSP.Structures.A_Range;
+      Item    : LSP.Structures.TypeHierarchyItem;
+      Name    : Libadalang.Analysis.Defining_Name;
    begin
       --  Iterate over all type completion parts and find parent types for each
       --  part.
@@ -92,11 +93,12 @@ package body LSP.Ada_Type_Hierarchy_Supertypes is
             for Tipe of Part.As_Base_Type_Decl.P_Base_Types (Part) loop
                Name := Tipe.P_Defining_Name.P_Canonical_Part;
 
-               Loc := Self.Parent.Context.To_LSP_Location (Name.P_Basic_Decl);
+               URI     := LSP.Utils.To_URI (Name.P_Basic_Decl);
+               A_Range := Self.Parent.Context.To_LSP_Range (Name.P_Basic_Decl);
 
                if not
                  (for some X of Response =>
-                    X.uri = Loc.uri and X.a_range = Loc.a_range)
+                    X.uri = URI and X.a_range = A_Range)
                then
                   Item :=
                     (name           => VSS.Strings.To_Virtual_String
@@ -106,10 +108,9 @@ package body LSP.Ada_Type_Hierarchy_Supertypes is
                      tags           => <>,
                      detail         => LSP.Utils.Node_Location_Image
                        (Name),
-                     uri            => Loc.uri,
-                     a_range        => Loc.a_range,
-                     selectionRange => Self.Parent.Context.To_LSP_Location
-                       (Name).a_range,
+                     uri            => URI,
+                     a_range        => A_Range,
+                     selectionRange => Self.Parent.Context.To_LSP_Range (Name),
                      data           => <>);
 
                   Response.Append (Item);

@@ -115,7 +115,7 @@ package LSP.Ada_Completions is
 
    procedure Write_Completions
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
-      Context                   : LSP.Ada_Contexts.Context;
+      Context                   : in out LSP.Ada_Contexts.Context;
       Document                  : LSP.Ada_Documents.Document;
       Token                     : Libadalang.Common.Token_Reference;
       Node                      : Libadalang.Analysis.Ada_Node;
@@ -148,7 +148,7 @@ package LSP.Ada_Completions is
 
    procedure Set_Completion_Item_Documentation
      (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
-      Context                 : LSP.Ada_Contexts.Context;
+      Context                 : in out LSP.Ada_Contexts.Context;
       Name                    : Libadalang.Analysis.Defining_Name;
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean);

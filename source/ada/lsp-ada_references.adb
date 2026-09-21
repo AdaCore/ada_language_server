@@ -29,7 +29,7 @@ with LSP.Ada_Id_Iterators;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.References;
 with LSP.Structures;
 
@@ -52,7 +52,7 @@ package body LSP.Ada_References is
    record
       Is_Enum    : Boolean := False;
       Response   : LSP.Structures.Location_Vector_Or_Null;
-      Filter     : LSP.Locations.File_Span_Sets.Set;
+      Filter     : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Contexts   : LSP.Ada_Context_Sets.Context_Lists.List;
       Context    : LSP.Ada_Context_Sets.Context_Access;
       Iterator   : Iterator_Access;
@@ -135,7 +135,8 @@ package body LSP.Ada_References is
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
 
             Self.Parent.Context.Append_Location
-              (Self.Response,
+              (Self.Context.all,
+               Self.Response,
                Self.Filter,
                Node,
                Self.Get_Reference_Kind (Node));
@@ -191,7 +192,8 @@ package body LSP.Ada_References is
               (Self.Definition.P_Basic_Decl, Ignore)
             loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Self.Context.all,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Self.Get_Reference_Kind
@@ -201,7 +203,8 @@ package body LSP.Ada_References is
 
             if Message.Params.context.includeDeclaration then
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Self.Context.all,
+                  Self.Response,
                   Self.Filter,
                   Self.Definition,
                   Self.Get_Reference_Kind (Self.Definition));

@@ -22,7 +22,6 @@ with GNATCOLL.VFS;
 with GPR2.Message;
 with GPR2.Path_Name;
 with GPR2.Source_Reference;
-with GPR2.Project.Tree;
 
 with LSP.Enumerations;
 with LSP.Structures;
@@ -133,6 +132,14 @@ package LSP.Utils is
      (Path : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri;
    --  Convert a GPR2 file path into a LSP URI.
 
+   function To_URI
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.DocumentUri;
+   --  Returns LSP URI for node's file.
+
+   function To_URI (File : String) return LSP.Structures.DocumentUri;
+   --  Returns LSP URI for file.
+
    function To_Optional_DiagnosticSeverity
      (Level : GPR2.Message.Level_Value)
       return LSP.Structures.DiagnosticSeverity_Optional;
@@ -153,10 +160,6 @@ package LSP.Utils is
      (Path : GPR2.Path_Name.Object) return VSS.Strings.Virtual_String is
      (VSS.Strings.Conversions.To_Virtual_String (String (Path.Value)));
    --  Cast GPR2.Path_Name.Object to Virtual_String
-
-   function Is_From_Extended_Project
-     (Tree : GPR2.Project.Tree.Object; File : String) return Boolean;
-   --  Returns True if the Node belongs to the extended project
 
    function Remove_Quote (S : String) return String is
      (if S'Length >= 2 and then S (S'First) = '"' and then S (S'Last) = '"'

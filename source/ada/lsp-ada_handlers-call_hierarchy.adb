@@ -23,7 +23,6 @@ with Laltools.Common;
 with Laltools.Call_Hierarchy;
 
 with LSP.GNATCOLL_Tracers.Handle;
-with LSP.Ada_Handlers.Locations;
 with LSP.Utils;
 
 package body LSP.Ada_Handlers.Call_Hierarchy is
@@ -70,7 +69,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Incoming_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyIncomingCall_Vector;
-      Filter      : in out LSP.Locations.File_Span_Sets.Set;
+      Filter      : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Context     : LSP.Ada_Contexts.Context;
       Definition  : Libadalang.Analysis.Defining_Name)
    is
@@ -91,32 +90,32 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          Refs  : Laltools.Common.References_Sets.Set)
       is
          Call : LSP.Structures.CallHierarchyIncomingCall;
-         Span : constant LSP.Structures.Location :=
-           Locations.To_LSP_Location (Self, Node);
+         Span : constant LSP.File_Source_Locations.File_Source_Location :=
+           LSP.File_Source_Locations.To_File_Source_Location (Node);
       begin
          if not Filter.Contains (Span) then
             declare
                Decl     : constant Libadalang.Analysis.Basic_Decl :=
                  Node.P_Basic_Decl;
-               Location : constant LSP.Structures.Location :=
-                 Locations.To_LSP_Location (Self, Node);
+               A_Range  : constant LSP.Structures.A_Range :=
+                 Self.To_LSP_Range (Node);
             begin
                Call.from := LSP.Structures.CallHierarchyItem'
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
                   detail         => <>,
-                  uri            => Location.uri,
-                  a_range        => Location.a_range,
-                  selectionRange => Location.a_range,
+                  uri            => LSP.Utils.To_URI (Node),
+                  a_range        => A_Range,
+                  selectionRange => A_Range,
                   data           => <>);
 
                for Ref of Refs loop
                   declare
-                     Ref_Location : constant LSP.Structures.Location :=
-                       Locations.To_LSP_Location (Self, Ref);
+                     A_Range : constant LSP.Structures.A_Range :=
+                       Self.To_LSP_Range (Ref);
                   begin
-                     Call.fromRanges.Append (Ref_Location.a_range);
+                     Call.fromRanges.Append (A_Range);
 
                      if Ref.P_Is_Dispatching_Call then
                         Call.dispatching_calls.Append (True);
@@ -207,7 +206,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Outgoing_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyOutgoingCall_Vector;
-      Filter      : in out LSP.Locations.File_Span_Sets.Set;
+      Filter      : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Definition  : Libadalang.Analysis.Defining_Name)
    is
       use Laltools.Common.References_By_Subprogram;
@@ -235,32 +234,32 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          Refs  : Laltools.Common.References_Sets.Set)
       is
          Call : LSP.Structures.CallHierarchyOutgoingCall;
-         Span : constant LSP.Structures.Location :=
-           Locations.To_LSP_Location (Self, Node);
+         Span : constant LSP.File_Source_Locations.File_Source_Location :=
+           LSP.File_Source_Locations.To_File_Source_Location (Node);
       begin
          if not Filter.Contains (Span) then
             declare
                Decl     : constant Libadalang.Analysis.Basic_Decl :=
                  Node.P_Basic_Decl;
-               Location : constant LSP.Structures.Location :=
-                 Locations.To_LSP_Location (Self, Node);
+               A_Range : constant LSP.Structures.A_Range :=
+                 Self.To_LSP_Range (Node);
             begin
                Call.to := LSP.Structures.CallHierarchyItem'
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
                   detail         => <>,
-                  uri            => Location.uri,
-                  a_range        => Location.a_range,
-                  selectionRange => Location.a_range,
+                  uri            => LSP.Utils.To_URI (Node),
+                  a_range        => A_Range,
+                  selectionRange => A_Range,
                   data           => <>);
 
                for Ref of Refs loop
                   declare
-                     Ref_Location : constant LSP.Structures.Location :=
-                       Locations.To_LSP_Location (Self, Ref);
+                     A_Range : constant LSP.Structures.A_Range :=
+                       Self.To_LSP_Range (Ref);
                   begin
-                     Call.fromRanges.Append (Ref_Location.a_range);
+                     Call.fromRanges.Append (A_Range);
 
                      if Ref.P_Is_Dispatching_Call then
                         Call.dispatching_calls.Append (True);

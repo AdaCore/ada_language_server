@@ -29,7 +29,7 @@ with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.Definition;
 with LSP.Structures;
 
@@ -49,7 +49,7 @@ package body LSP.Ada_Definition is
      (Priority => LSP.Server_Jobs.High)
    with record
       Response : LSP.Structures.Location_Vector;
-      Filter   : LSP.Locations.File_Span_Sets.Set;
+      Filter   : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Contexts : LSP.Ada_Context_Sets.Context_Lists.List;
    end record;
 
@@ -147,18 +147,27 @@ package body LSP.Ada_Definition is
          -----------------------
 
          procedure Append_Prev_Token_Location
-           (Node : Libadalang.Analysis.Ada_Node'Class) is
+           (Node : Libadalang.Analysis.Ada_Node'Class)
+         is
+            Prev : constant Libadalang.Common.Token_Reference :=
+              (if Node.Is_Null then Libadalang.Common.No_Token
+               else Libadalang.Common.Previous (Node.Token_Start, True));
          begin
-            if not Node.Is_Null then
+            if Prev /= Libadalang.Common.No_Token then
                declare
-                  Prev : constant Libadalang.Common.Token_Reference :=
-                    Libadalang.Common.Previous (Node.Token_Start, True);
+                  Span : constant
+                    LSP.File_Source_Locations.File_Source_Location :=
+                      LSP.File_Source_Locations.To_File_Source_Location
+                        (Node.Unit, Prev);
                begin
-                  Self.Parent.Context.Append_Location
-                    (Result => Self.Response,
-                     Filter => Self.Filter,
-                     Unit   => Node.Unit,
-                     Token  => Prev);
+                  if not Self.Filter.Contains (Span) then
+                     Self.Response.Append
+                       (Context.To_LSP_Location
+                          (File => Node.Unit.Get_Filename,
+                           Span => Self.Parent.Context.To_LSP_Range
+                             (Node.Unit, Prev)));
+                     Self.Filter.Insert (Span);
+                  end if;
                end;
             end if;
          end Append_Prev_Token_Location;
@@ -287,7 +296,8 @@ package body LSP.Ada_Definition is
 
          if not Definition.Is_Null then
             Self.Parent.Context.Append_Location
-              (Self.Response,
+              (Context.all,
+               Self.Response,
                Self.Filter,
                Definition);
 
@@ -325,7 +335,8 @@ package body LSP.Ada_Definition is
                then
                   for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
                      Self.Parent.Context.Append_Location
-                       (Self.Response,
+                       (Context.all,
+                        Self.Response,
                         Self.Filter,
                         Accept_Node.F_Body_Decl.F_Name);
                   end loop;
@@ -380,13 +391,15 @@ package body LSP.Ada_Definition is
                --  We have found a result using the imprecise heuristics.
                --  We'll warn the user and send the result.
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context.all,
+                  Self.Response,
                   Self.Filter,
                   Manual_Fallback);
             end if;
          else
             Self.Parent.Context.Append_Location
-              (Self.Response,
+              (Context.all,
+               Self.Response,
                Self.Filter,
                Other_Part);
 
@@ -407,7 +420,8 @@ package body LSP.Ada_Definition is
          begin
             for Subp of Bases loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context.all,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Parent);
@@ -415,7 +429,8 @@ package body LSP.Ada_Definition is
 
             for Subp of Overridings loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context.all,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Child);

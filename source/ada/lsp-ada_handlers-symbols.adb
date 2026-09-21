@@ -17,7 +17,6 @@
 
 with Libadalang.Common;
 
-with LSP.Ada_Handlers.Locations;
 with LSP.Constants;
 with LSP.Utils;
 
@@ -28,9 +27,9 @@ package body LSP.Ada_Handlers.Symbols is
    -------------------
 
    procedure Write_Symbols
-     (Self   : in out Message_Handler'Class;
-      Names  : LSP.Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.SymbolInformation_Vector) is
+     (Self    : in out Message_Handler'Class;
+      Names   : LSP.Ada_Completions.Completion_Maps.Map;
+      Result  : in out LSP.Structures.SymbolInformation_Vector) is
    begin
       for Cursor in Names.Iterate loop
          declare
@@ -45,16 +44,28 @@ package body LSP.Ada_Handlers.Symbols is
             end loop;
 
             if not Node.Is_Null then
-               Result.Append
-                 (LSP.Structures.SymbolInformation'
-                    (name     => VSS.Strings.To_Virtual_String (Name.Text),
-                     kind     => LSP.Utils.Get_Decl_Kind
-                                  (Node.As_Basic_Decl),
-                     location => Locations.To_LSP_Location
-                                  (Self, Name),
-                     tags          => LSP.Constants.Empty,
-                     deprecated    => (Is_Set => False),
-                     containerName => <>));
+               declare
+                  URI     : constant LSP.Structures.DocumentUri :=
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (URIs.Conversions.From_File
+                            (Name.As_Ada_Node.Unit.Get_Filename))
+                         with null record);
+                  Context : constant LSP.Ada_Context_Sets.Context_Access :=
+                    Self.Get_Best_Context (URI);
+               begin
+                  Result.Append
+                    (LSP.Structures.SymbolInformation'
+                       (name          => VSS.Strings.To_Virtual_String
+                            (Name.Text),
+                        kind          => LSP.Utils.Get_Decl_Kind
+                          (Node.As_Basic_Decl),
+                        location      => Context.To_LSP_Location
+                          (Name.Unit.Get_Filename,
+                           Self.To_LSP_Range (Name)),
+                        tags          => LSP.Constants.Empty,
+                        deprecated    => (Is_Set => False),
+                        containerName => <>));
+               end;
             end if;
          end;
       end loop;

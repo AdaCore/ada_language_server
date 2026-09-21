@@ -41,7 +41,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
 with LSP.Ada_Highlighters;
 with LSP.Constants;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Structures;
 
 package LSP.Ada_Job_Contexts is
@@ -190,11 +190,6 @@ package LSP.Ada_Job_Contexts is
    --  Return the defining name (canonical part) of the entity and AST node at
    --  the given location. If an error happened then return No_Defining_Name.
 
-   function To_LSP_Location
-     (Self : in out Ada_Job_Context; Node : Libadalang.Analysis.Ada_Node'Class)
-      return LSP.Structures.Location
-   is abstract;
-
    function To_LSP_Range
      (Self : in out Ada_Job_Context; Node : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.A_Range
@@ -214,23 +209,15 @@ package LSP.Ada_Job_Contexts is
    is abstract;
 
    procedure Append_Location
-     (Self   : in out Ada_Job_Context;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+     (Self    : in out Ada_Job_Context;
+      Context : in out LSP.Ada_Contexts.Context;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
    is abstract;
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
-
-   procedure Append_Location
-     (Self   : in out Ada_Job_Context;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Token  : Libadalang.Common.Token_Reference)
-   is abstract;
-   --  Append given token location to the Result.
 
    procedure Trace_Exception
      (Self    : Ada_Job_Context;

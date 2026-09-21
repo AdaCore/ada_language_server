@@ -31,6 +31,7 @@ with Langkit_Support.Slocs;
 with Laltools.Partial_GNATPP;
 
 limited with LSP.Ada_Contexts;
+limited with LSP.Ada_Context_Sets;
 limited with LSP.Ada_Handlers;
 with LSP.Ada_Completions;
 with LSP.Constants;
@@ -153,7 +154,7 @@ package LSP.Ada_Documents is
 
    procedure Get_Any_Symbol
      (Self        : in out Document;
-      Context     : LSP.Ada_Contexts.Context;
+      Context     : LSP.Ada_Context_Sets.Context_Access;
       Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;

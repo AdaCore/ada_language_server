@@ -31,6 +31,7 @@ with LSP.Ada_Semantic_Diagnostics;
 with LSP.Env;
 with VSS.Characters.Latin;
 with VSS.Strings;
+with VSS.Strings.Character_Iterators;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
@@ -150,39 +151,34 @@ package body LSP.Ada_Handlers is
    function Resolve_Name
      (Self      : in out Message_Handler;
       Id        : LSP.Structures.Integer_Or_Virtual_String;
-      Context   : LSP.Ada_Contexts.Context;
+      Context   : in out LSP.Ada_Contexts.Context;
       Name_Node : Libadalang.Analysis.Name;
       Imprecise : out Boolean) return Libadalang.Analysis.Defining_Name;
    --  Toplayer Resolve_Name based on Laltools.Common.Resolve_Name.
    --  This function is handling Imprecise and Error results during Nameres by
    --  logging them and generating Diagnostics if needed.
 
-   overriding
-   function To_LSP_Location
-     (Self : in out Message_Handler; Node : Libadalang.Analysis.Ada_Node'Class)
-      return LSP.Structures.Location
-   is (LSP.Ada_Handlers.Locations.To_LSP_Location (Self, Node));
+   function From_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+        return Langkit_Support.Slocs.Source_Location_Range;
+
+   function To_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location_Range)
+        return LSP.Structures.A_Range;
+
+   function To_LSP_Range
+     (Self : in out Message_Handler'Class;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range;
 
    overriding
    function To_LSP_Range
      (Self : in out Message_Handler; Node : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.A_Range
-   is (LSP.Ada_Handlers.Locations.To_LSP_Range (Self, Node));
-
-   overriding
-   function To_LSP_Range
-     (Self  : in out Message_Handler;
-      Unit  : Libadalang.Analysis.Analysis_Unit;
-      Token : Libadalang.Common.Token_Reference) return LSP.Structures.A_Range
-   is (LSP.Ada_Handlers.Locations.To_LSP_Range (Self, Unit, Token));
-
-   overriding
-   function From_LSP_Range
-     (Self : in out Message_Handler;
-      Unit : Libadalang.Analysis.Analysis_Unit;
-      Sloc : LSP.Structures.A_Range)
-      return Langkit_Support.Slocs.Source_Location_Range
-   is (LSP.Ada_Handlers.Locations.From_LSP_Range (Self, Unit, Sloc));
+   is (Self.To_LSP_Range (Node.Unit, Node.Sloc_Range));
 
    overriding
    function Get_Node_At
@@ -191,23 +187,6 @@ package body LSP.Ada_Handlers is
       Value   : LSP.Structures.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node
    is (LSP.Ada_Handlers.Locations.Get_Node_At (Self, Context, Value));
-
-   overriding
-   procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
-   renames LSP.Ada_Handlers.Locations.Append_Location;
-
-   overriding procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Token  : Libadalang.Common.Token_Reference)
-        renames LSP.Ada_Handlers.Locations.Append_Location;
 
    function Project_Predefined_Units
      (Self : in out Message_Handler; Context : LSP.Ada_Contexts.Context)
@@ -270,6 +249,34 @@ package body LSP.Ada_Handlers is
               VSS.Strings.Formatters.Strings.Image (Operation),
               VSS.Strings.Formatters.Integers.Image (Self.Token_Id)));
    end Allocate_Progress_Token;
+
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   overriding procedure Append_Location
+     (Self    : in out Message_Handler;
+      Context : in out LSP.Ada_Contexts.Context;
+      Result  : in out LSP.Structures.Location_Vector;
+      Filter  : in out LSP.File_Source_Locations.File_Source_Location_Sets.Set;
+      Node    : Libadalang.Analysis.Ada_Node'Class;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+   is
+      Span : constant LSP.File_Source_Locations.File_Source_Location :=
+        LSP.File_Source_Locations.To_File_Source_Location (Node);
+   begin
+      if not LSP.Utils.Is_Synthetic (Node)
+        and then not Filter.Contains (Span)
+      then
+         Result.Append
+           (Context.To_LSP_Location
+              (File  => Node.Unit.Get_Filename,
+               Span  => Self.To_LSP_Range (Node),
+               Kinds => Kinds));
+
+         Filter.Insert (Span);
+      end if;
+   end Append_Location;
 
    -----------------------
    -- Clean_Diagnostics --
@@ -506,6 +513,98 @@ package body LSP.Ada_Handlers is
       Self.Cleanup;
       Unchecked_Free (Self);
    end Free;
+
+   --------------------
+   -- From_LSP_Range --
+   --------------------
+
+   function From_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+        return Langkit_Support.Slocs.Source_Location_Range
+   is
+      use type Langkit_Support.Slocs.Column_Number;
+
+      Result : Langkit_Support.Slocs.Source_Location_Range :=
+        (Start_Line => Positive'Pos (Sloc.start.line + 1),
+         End_Line   => Positive'Pos (Sloc.an_end.line + 1),
+         others => 0);
+   begin
+      declare
+         Line : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Sloc.start.line + 1));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+
+      begin
+         while Cursor.Forward and then
+           Natural (Cursor.First_UTF16_Offset) <= Sloc.start.character
+         loop
+            Result.Start_Column := @ + 1;
+         end loop;
+
+         if Sloc.start.line = Sloc.an_end.line then
+
+            Result.End_Column := Result.Start_Column;
+
+            while Cursor.Forward and then
+              Natural (Cursor.First_UTF16_Offset) <= Sloc.an_end.character
+            loop
+               Result.End_Column := @ + 1;
+            end loop;
+
+            return Result;
+         end if;
+      end;
+
+      declare
+         Line : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Sloc.an_end.line + 1));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+
+      begin
+         while Cursor.Forward and then
+           Natural (Cursor.First_UTF16_Offset) <= Sloc.an_end.character
+         loop
+            Result.End_Column := @ + 1;
+         end loop;
+
+         return Result;
+      end;
+   end From_LSP_Range;
+
+   --------------------
+   -- From_LSP_Range --
+   --------------------
+
+   overriding
+   function From_LSP_Range
+     (Self : in out Message_Handler;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+      return Langkit_Support.Slocs.Source_Location_Range
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI : constant LSP.Structures.DocumentUri :=
+        LSP.Utils.To_URI (Unit.Get_Filename);
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+
+   begin
+      if Doc /= null then
+         return Doc.To_Source_Location_Range (Sloc);
+
+      else
+         return From_LSP_Range (Unit, Sloc);
+      end if;
+   end From_LSP_Range;
 
    -----------------------
    -- Get_Open_Document --
@@ -1185,7 +1284,8 @@ package body LSP.Ada_Handlers is
                Generate_Package_Command.Append_Code_Action
                  (Context         => Context,
                   Commands_Vector => Result,
-                  Spec_Loc        => Self.To_LSP_Location (Spec),
+                  Spec_Loc        => Context.To_LSP_Location
+                    (Spec.Unit.Get_Filename, Self.To_LSP_Range (Spec)),
                   Body_Path       =>
                     VSS.Strings.Conversions.To_Virtual_String
                       (Get_Body_Path (Spec)),
@@ -1223,7 +1323,8 @@ package body LSP.Ada_Handlers is
                Generate_Subprogram_Command.Append_Code_Action
                  (Context         => Context,
                   Commands_Vector => Result,
-                  Subp_Start      => Self.To_LSP_Location (Decl),
+                  Subp_Start      => Context.To_LSP_Location
+                    (Decl.Unit.Get_Filename, Self.To_LSP_Range (Decl)),
                   Subp_Type       => Decl.F_Subp_Spec.F_Subp_Kind);
                Found := True;
             else
@@ -2685,6 +2786,26 @@ package body LSP.Ada_Handlers is
          return LSP.Structures.DocumentHighlightKind_Optional;
       --  Fetch highlight kind for given node
 
+      procedure Append_Location
+        (Document : not null access LSP.Ada_Documents.Document'Class;
+         Node     : Libadalang.Analysis.Ada_Node'Class;
+         Kind     : LSP.Structures.DocumentHighlightKind_Optional);
+
+      ---------------------
+      -- Append_Location --
+      ---------------------
+
+      procedure Append_Location
+        (Document : not null access LSP.Ada_Documents.Document'Class;
+         Node     : Libadalang.Analysis.Ada_Node'Class;
+         Kind     : LSP.Structures.DocumentHighlightKind_Optional) is
+      begin
+         Response.Append
+           (LSP.Structures.DocumentHighlight'
+              (a_range => Document.To_A_Range (Node.Sloc_Range),
+               kind    => Kind));
+      end Append_Location;
+
       ----------------------
       -- Compute_Response --
       ----------------------
@@ -2718,15 +2839,20 @@ package body LSP.Ada_Handlers is
             Kind   : Libadalang.Common.Ref_Result_Kind;
             Cancel : in out Boolean)
          is
+            use type GNATCOLL.VFS.Virtual_File;
+
             pragma Unreferenced (Kind);
             pragma Unreferenced (Cancel);
 
+            Node_File : constant GNATCOLL.VFS.Virtual_File :=
+              GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
+
          begin
-            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
-               LSP.Ada_Handlers.Locations.Append_Location
-                 (Result   => Response,
-                  Document => Document,
-                  File     => File,
+            if File = Node_File
+              and then not Laltools.Common.Is_End_Label (Node.As_Ada_Node)
+            then
+               Append_Location
+                 (Document => Document,
                   Node     => Node,
                   Kind     => Get_Highlight_Kind (Node.As_Ada_Node));
             end if;
@@ -2748,10 +2874,8 @@ package body LSP.Ada_Handlers is
 
          --  ... add it manually
 
-         LSP.Ada_Handlers.Locations.Append_Location
-           (Result   => Response,
-            Document => Document,
-            File     => File,
+         Append_Location
+           (Document => Document,
             Node     => Defining_Name,
             Kind     => Get_Highlight_Kind (Defining_Name.As_Ada_Node));
       end Compute_Response;
@@ -2845,7 +2969,7 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
 
       Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter : LSP.Locations.File_Span_Sets.Set;
+      Filter : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
 
       Display_Method_Policy :
         constant LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
@@ -2853,14 +2977,16 @@ package body LSP.Ada_Handlers is
            then Value.alsDisplayMethodAncestryOnNavigation.Value
            else Self.Configuration.Display_Method_Ancestry_Policy);
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      procedure Resolve_In_Context (Context : in out LSP.Ada_Contexts.Context);
       --  Utility function to gather results on one context
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+      procedure Resolve_In_Context
+        (Context : in out LSP.Ada_Contexts.Context)
+      is
 
          use all type LSP
                         .Enumerations
@@ -2869,7 +2995,7 @@ package body LSP.Ada_Handlers is
          use Libadalang.Common;
 
          Name_Node : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (Context, Value));
 
          procedure Update_Response
            (Bodies : Laltools.Common.Bodies_List.List;
@@ -2885,7 +3011,7 @@ package body LSP.Ada_Handlers is
             Kinds  : AlsReferenceKind_Array) is
          begin
             for E of Bodies loop
-               Self.Append_Location (Vector, Filter, E, Kinds);
+               Self.Append_Location (Context, Vector, Filter, E, Kinds);
             end loop;
          end Update_Response;
 
@@ -2904,7 +3030,7 @@ package body LSP.Ada_Handlers is
            Resolve_Name
              (Self      => Self,
               Id        => Id,
-              Context   => C.all,
+              Context   => Context,
               Name_Node => Name_Node,
               Imprecise => Imprecise);
 
@@ -2927,7 +3053,9 @@ package body LSP.Ada_Handlers is
            or else (Display_Method_Policy = Usage_And_Abstract_Only
                     and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
          then
-            for Subp of C.Find_All_Base_Declarations (Decl, Imprecise) loop
+            for Subp of
+              Context.Find_All_Base_Declarations (Decl, Imprecise)
+            loop
                Update_Response
                  (Laltools.Common.List_Bodies_Of
                     (Subp.P_Defining_Name, Trace, Ignore),
@@ -2935,7 +3063,7 @@ package body LSP.Ada_Handlers is
             end loop;
 
             --  And finally the bodies of child implementations
-            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+            for Subp of Context.Find_All_Overrides (Decl, Imprecise) loop
                Update_Response
                  (Laltools.Common.List_Bodies_Of
                     (Subp.P_Defining_Name, Trace, Ignore),
@@ -2952,8 +3080,8 @@ package body LSP.Ada_Handlers is
       --       Value.alsDisplayMethodAncestryOnNavigation.Value;
       --  end if;
 
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Resolve_In_Context (C);
+      for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (Context.all);
 
          exit when Self.Is_Canceled.all;
       end loop;
@@ -2987,7 +3115,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : LSP.Locations.File_Span_Sets.Set;
+      Filter : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3189,7 +3317,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : LSP.Locations.File_Span_Sets.Set;
+      Filter : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3257,17 +3385,24 @@ package body LSP.Ada_Handlers is
 
             declare
                Span : constant LSP.Structures.A_Range :=
-                 Self.To_LSP_Location (Decl).a_range;
+                 Self.To_LSP_Range (Decl);
 
                Node : constant Libadalang.Analysis.Defining_Name :=
                  Decl.P_Defining_Name;
 
                --  In case the Defining_Name is a Dotted_Name then we need
                --  to point to the func which is the last.
-               Location : constant LSP.Structures.Location :=
-                 Self.To_LSP_Location
+               URI : constant LSP.Structures.DocumentUri :=
+                 LSP.Utils.To_URI
                    (if Node.First_Child.Kind
-                       in Libadalang.Common.Ada_Dotted_Name_Range
+                    in Libadalang.Common.Ada_Dotted_Name_Range
+                    then Node.First_Child.As_Dotted_Name.F_Suffix
+                    else Node);
+
+               A_Range : constant LSP.Structures.A_Range :=
+                 Self.To_LSP_Range
+                   (if Node.First_Child.Kind
+                    in Libadalang.Common.Ada_Dotted_Name_Range
                     then Node.First_Child.As_Dotted_Name.F_Suffix
                     else Node);
 
@@ -3276,9 +3411,9 @@ package body LSP.Ada_Handlers is
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
                   detail         => Utils.Node_Location_Image (Node),
-                  uri            => Location.uri,
+                  uri            => URI,
                   a_range        => Span,
-                  selectionRange => Location.a_range,
+                  selectionRange => A_Range,
                   data           => <>);
             begin
 
@@ -3334,7 +3469,7 @@ package body LSP.Ada_Handlers is
            (Is_Null => False,
             Value   =>
               (Kind      => LSP.Structures.Variant_1,
-               Variant_1 => Self.To_LSP_Location (Name_Node).a_range));
+               Variant_1 => Self.To_LSP_Range (Name_Node)));
       end if;
 
       Self.Sender.On_PrepareRename_Response (Id, Response);
@@ -3389,13 +3524,13 @@ package body LSP.Ada_Handlers is
                       (LSP.Formatters.Texts.Image (Name_Node.Text));
 
                   Diagnostic : LSP.Structures.Diagnostic;
-                  Loc        : constant LSP.Structures.Location :=
-                    Self.To_LSP_Location (Name_Node);
+                  A_Range    : constant LSP.Structures.A_Range :=
+                    Self.To_LSP_Range (Name_Node);
                   Document   : constant LSP.Ada_Documents.Document_Access :=
-                    Get_Open_Document (Self, Loc.uri);
+                    Get_Open_Document (Self, LSP.Utils.To_URI (Name_Node));
                begin
                   if Document /= null then
-                     Diagnostic.a_range := Loc.a_range;
+                     Diagnostic.a_range := A_Range;
                      Diagnostic.severity := LSP.Constants.Error;
                      Diagnostic.source := "Ada";
 
@@ -3407,12 +3542,12 @@ package body LSP.Ada_Handlers is
                            Diagnostic.relatedInformation.Append
                              (LSP.Structures.DiagnosticRelatedInformation'
                                 (location =>
-                                   LSP.Ada_Handlers.Locations.To_LSP_Location
-                                     (Self,
-                                      C.all,
-                                      Problem.Filename,
-                                      Problem.Location),
-
+                                  C.To_LSP_Location
+                                    (Problem.Filename,
+                                     Self.To_LSP_Range
+                                      (C.all,
+                                       Problem.Filename,
+                                       Problem.Location)),
                                  message  =>
                                    VSS.Strings.Conversions.To_Virtual_String
                                      (Problem.Info)));
@@ -3842,19 +3977,19 @@ package body LSP.Ada_Handlers is
               Self.Contexts.Get_Best_Context (Doc.URI);
          begin
             Doc.Get_Any_Symbol
-              (Context.all,
+              (Context,
                Pattern,
                Ada.Containers.Count_Type'Last,
                False,
                Self.Is_Canceled,
                Names);
+
+            exit when Self.Is_Canceled.all;
+
+            if Value.partialResultToken.Is_Set and then Names.Length > 100 then
+               Send_Partial_Response;
+            end if;
          end;
-
-         exit when Self.Is_Canceled.all;
-
-         if Value.partialResultToken.Is_Set and then Names.Length > 100 then
-            Send_Partial_Response;
-         end if;
       end loop;
 
       if Partial_Response_Sended then
@@ -3880,19 +4015,21 @@ package body LSP.Ada_Handlers is
 
       Response  : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector    : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter    : LSP.Locations.File_Span_Sets.Set;
+      Filter    : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Imprecise : Boolean := False;
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      procedure Resolve_In_Context (Context : in out LSP.Ada_Contexts.Context);
       --  Utility function to gather results on one context
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+      procedure Resolve_In_Context
+        (Context : in out LSP.Ada_Contexts.Context)
+      is
          Name_Node : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (Context, Value));
 
          Definition : Libadalang.Analysis.Defining_Name;
          Type_Decl  : Libadalang.Analysis.Base_Type_Decl;
@@ -3916,7 +4053,7 @@ package body LSP.Ada_Handlers is
                     Resolve_Name
                       (Self      => Self,
                        Id        => Id,
-                       Context   => C.all,
+                       Context   => Context,
                        Name_Node => Type_Expr.P_Type_Name,
                        Imprecise => Imprecise);
                end if;
@@ -3935,13 +4072,13 @@ package body LSP.Ada_Handlers is
          end if;
 
          if not Definition.Is_Null then
-            Self.Append_Location (Vector, Filter, Definition);
+            Self.Append_Location (Context, Vector, Filter, Definition);
          end if;
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Resolve_In_Context (C);
+      for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (Context.all);
 
          exit when Self.Is_Canceled.all;
       end loop;
@@ -4095,7 +4232,7 @@ package body LSP.Ada_Handlers is
    function Resolve_Name
      (Self      : in out Message_Handler;
       Id        : LSP.Structures.Integer_Or_Virtual_String;
-      Context   : LSP.Ada_Contexts.Context;
+      Context   : in out LSP.Ada_Contexts.Context;
       Name_Node : Libadalang.Analysis.Name;
       Imprecise : out Boolean) return Libadalang.Analysis.Defining_Name
    is
@@ -4126,10 +4263,12 @@ package body LSP.Ada_Handlers is
             Err_Msg    : constant String :=
               "Failed to resolve " & Name_Node.Image;
             Diagnostic : LSP.Structures.Diagnostic;
-            Loc        : constant LSP.Structures.Location :=
-              Self.To_LSP_Location (Name_Node);
+            URI        : constant LSP.Structures.DocumentUri :=
+              LSP.Utils.To_URI (Name_Node);
+            A_Range    : constant LSP.Structures.A_Range :=
+              Self.To_LSP_Range (Name_Node);
             Document   : constant LSP.Ada_Documents.Document_Access :=
-              Get_Open_Document (Self, Loc.uri);
+              Get_Open_Document (Self, URI);
          begin
             if Document /= null then
                --  Internal tracing of failed resolution with context info
@@ -4141,7 +4280,7 @@ package body LSP.Ada_Handlers is
                   & Id_Image);
 
                --  Send a diagnostic for the user
-               Diagnostic.a_range := Loc.a_range;
+               Diagnostic.a_range := A_Range;
                Diagnostic.severity := LSP.Constants.Error;
                Diagnostic.source := "Ada";
                --  Diagnostics are shown to the user so show a simple
@@ -4161,7 +4300,7 @@ package body LSP.Ada_Handlers is
                            .Path_Name
                            .Filesystem_String)
                     & " --all --only-show-failures "
-                    & VSS.Strings.Conversions.To_UTF_8_String (Loc.uri));
+                    & VSS.Strings.Conversions.To_UTF_8_String (URI));
 
                Self.Publish_Diagnostics
                  (Document          => Document,
@@ -4268,6 +4407,132 @@ package body LSP.Ada_Handlers is
    begin
       return Self.Configuration.Source_Info_Diagnostics_Enabled;
    end Source_Info_Diagnostics_Enabled;
+
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   function To_LSP_Range
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      File    : String;
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI : constant LSP.Structures.DocumentUri := LSP.Utils.To_URI (File);
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+   begin
+      if Doc /= null then
+         return Doc.To_A_Range (Sloc);
+
+      else
+         return To_LSP_Range
+           (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc);
+      end if;
+   end To_LSP_Range;
+
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   function To_LSP_Range
+     (Self : in out Message_Handler'Class;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI : constant LSP.Structures.DocumentUri :=
+        LSP.Utils.To_URI (Unit.Get_Filename);
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+   begin
+      return
+        (if Doc /= null then Doc.To_A_Range (Sloc)
+         else To_LSP_Range (Unit, Sloc));
+   end To_LSP_Range;
+
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   overriding
+   function To_LSP_Range
+     (Self  : in out Message_Handler;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Token : Libadalang.Common.Token_Reference) return LSP.Structures.A_Range
+   is (Self.To_LSP_Range
+        (Unit,
+         Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token))));
+
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   function To_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location_Range)
+        return LSP.Structures.A_Range
+   is
+      Result : LSP.Structures.A_Range :=
+        (start  => (line      => Positive (Sloc.Start_Line) - 1,
+                    character => 0),
+         an_end => (line      => Positive (Sloc.End_Line) - 1,
+                    character => 0));
+   begin
+      declare
+         use type Langkit_Support.Slocs.Column_Number;
+
+         Line   : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Positive (Sloc.Start_Line)));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+
+      begin
+         for J in 1 .. Sloc.Start_Column loop
+            exit when not Cursor.Forward;
+         end loop;
+
+         Result.start.character := Natural (Cursor.First_UTF16_Offset);
+
+         if Result.start.line = Result.an_end.line then
+            for J in Sloc.Start_Column .. Sloc.End_Column - 1 loop
+               exit when not Cursor.Forward;
+            end loop;
+
+            Result.an_end.character :=
+              Natural (Cursor.First_UTF16_Offset);
+
+            return Result;
+         end if;
+      end;
+
+      declare
+         Line : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Positive (Sloc.End_Line)));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+
+      begin
+         for J in 1 .. Sloc.End_Column loop
+            exit when not Cursor.Forward;
+         end loop;
+
+         Result.an_end.character := Natural (Cursor.First_UTF16_Offset);
+
+         return Result;
+      end;
+   end To_LSP_Range;
 
    -----------------------
    -- To_Workspace_Edit --

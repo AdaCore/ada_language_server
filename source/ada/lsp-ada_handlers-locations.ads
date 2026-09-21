@@ -20,86 +20,19 @@
 --  to do conversion. Otherwise we use Libadalang to get corresponding lines
 --  and compute character offsets.
 
-with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
-with LSP.Ada_Contexts;
-with LSP.Constants;
-with LSP.Locations;
-
 package LSP.Ada_Handlers.Locations is
 
-   function To_LSP_Location
-     (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class;
-      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
-      return LSP.Structures.Location;
-   --  Convert LAL's Node to a LSP location
-
-   function To_LSP_Location
+   function Get_Node_At
      (Self    : in out Message_Handler'Class;
       Context : LSP.Ada_Contexts.Context;
-      File    : String;
-      Sloc    : Langkit_Support.Slocs.Source_Location_Range;
-      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
-      return LSP.Structures.Location;
-
-   function To_LSP_Range
-     (Self  : in out Message_Handler'Class;
-      Unit  : Libadalang.Analysis.Analysis_Unit;
-      Token : Libadalang.Common.Token_Reference)
-      return LSP.Structures.A_Range;
-
-   function To_LSP_Range
-     (Self  : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class)
-      return LSP.Structures.A_Range;
-
-   function From_LSP_Range
-     (Self : in out Message_Handler'Class;
-      Unit : Libadalang.Analysis.Analysis_Unit;
-      Sloc : LSP.Structures.A_Range)
-      return Langkit_Support.Slocs.Source_Location_Range;
-
-   function Get_Node_At
-     (Self     : in out Message_Handler'Class;
-      Context  : LSP.Ada_Contexts.Context;
-      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+      Value   : LSP.Structures.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node;
 
    function Start_Position
      (Token : Libadalang.Common.Token_Reference) return LSP.Structures.Position;
-
-   procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Token  : Libadalang.Common.Token_Reference);
-   --  Append the location corresponding to the given token to the Result.
-
-   procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
-   --  Append given Node location to the Result.
-   --  Do nothing if the item inside of an synthetic file (like __standard).
-
-   procedure Append_Location
-     (Result   : in out LSP.Structures.DocumentHighlight_Vector;
-      Document : not null access LSP.Ada_Documents.Document'Class;
-      File     : GNATCOLL.VFS.Virtual_File;
-      Node     : Libadalang.Analysis.Ada_Node'Class;
-      Kind     : LSP.Structures.DocumentHighlightKind_Optional);
-   --  The same for DocumentHighlight_Vector.
-   --  File is used to filter out the location not in the Document.
-   --  Note, File and Document must be same document.
-   --  XXX File parameter can be removed when whether Document can return
-   --  associated Virtual_File or Node can able to return URI of the enclosing
-   --  file.
 
    procedure Sort (Result : in out LSP.Structures.Location_Vector);
    --  Sort Result using next rules:

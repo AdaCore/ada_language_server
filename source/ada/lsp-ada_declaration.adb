@@ -28,7 +28,7 @@ with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
-with LSP.Locations;
+with LSP.File_Source_Locations;
 with LSP.Server_Requests.Declaration;
 with LSP.Structures;
 
@@ -48,7 +48,7 @@ package body LSP.Ada_Declaration is
      (Priority => LSP.Server_Jobs.High)
    with record
       Response : LSP.Structures.Location_Vector;
-      Filter   : LSP.Locations.File_Span_Sets.Set;
+      Filter   : LSP.File_Source_Locations.File_Source_Location_Sets.Set;
       Contexts : LSP.Ada_Context_Sets.Context_Lists.List;
    end record;
 
@@ -216,13 +216,15 @@ package body LSP.Ada_Declaration is
       if not Prev_Part.Is_Null then
          --  We have found previous part, return it.
          Self.Parent.Context.Append_Location
-           (Self.Response,
+           (Context.all,
+            Self.Response,
             Self.Filter,
             Prev_Part);
       elsif not Definition.Is_Null then
          --  No previous part, return definition itself.
          Self.Parent.Context.Append_Location
-           (Self.Response,
+           (Context.all,
+            Self.Response,
             Self.Filter,
             Definition);
       end if;
@@ -241,7 +243,8 @@ package body LSP.Ada_Declaration is
          begin
             for Subp of Bases loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context.all,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Parent);
@@ -249,7 +252,8 @@ package body LSP.Ada_Declaration is
 
             for Subp of Overridings loop
                Self.Parent.Context.Append_Location
-                 (Self.Response,
+                 (Context.all,
+                  Self.Response,
                   Self.Filter,
                   Subp.P_Defining_Name,
                   Is_Child);
