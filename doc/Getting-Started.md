@@ -117,13 +117,19 @@ other views in the VS Code
 
 ### Current project file configuration
 
-It's important to configure the current project file setting. Open
+It's important to configure the current project file setting. The easiest way to do this is to run the `Ada: Open Project File` command from the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac OS) and browse to and select `hello_world.gpr`. This sets the `ada.projectFile` setting for you and reloads the project.
+
+Alternatively, you can set it manually: open
 **Settings View** with menu **File** > **Preferences** > **Settings**
 (`Ctrl+Comma`), select **Workspace** tab, click **Extensions/Ada & SPARK**
 and find the **Project File** input field. Type `hello_world.gpr`
 value.
 
 ![Ada Settings View](media/settings.png)
+
+The extension also contributes a **Project View** panel in the Explorer sidebar, showing the structure of the loaded GPR project as a tree. Its toolbar also gives access to the `Ada: Open Project File` command:
+
+![Project View Toolbar](media/project-view-toolbar.png)
 
 ### Environment configuration
 
@@ -298,7 +304,7 @@ procedure Hello_World is
    begin
       Ada.Text_IO.Put_Line (Text);
    end Print;
-   
+
    Text : String := "Hello Ada World!";
 begin
    Print (Text);
