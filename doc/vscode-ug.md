@@ -707,7 +707,7 @@ formatting might no succeed on incomplete/illegal code.
   value (whichever of the `ada.scenarioVariables` setting, the
   [`.als.json`](./settings.md#configuration-sources)
   file, or the OS environment set it); a variable with no resolved value is
-  shown as `(default)}`, since the language server does not currently expose a
+  shown as `(default)`, since the language server does not currently expose a
   project's literal default value text. Clicking a variable opens a picker
   constrained to its legal values if it is typed, or a free-text input box
   otherwise. Picking a value writes it, together with every other
