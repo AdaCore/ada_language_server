@@ -416,6 +416,21 @@ The GNATtest integration in VS Code also supports running tests in coverage mode
 
 Integrating the steps of source instrumentation and test harness build into the test execution workflow allows for a quick feedback loop: run a test, observe results and coverage, edit the test or the tested code, repeat... In this context invoking the VS Code commands `Test: Rerun Last Run` and `Test: Rerun Last Run with Coverage` with their respective keyboard shortcuts can be valuable.
 
+### Running GNATcoverage Analysis on a Main
+
+As an alternative to running tests in coverage mode via the Test Explorer, the `Ada: Run GNATcoverage analysis...` command (also available from the editor toolbar, via the run-coverage icon) runs the full instrumentation-based coverage workflow directly on a Main you pick from the list of Mains defined in the project:
+
+1. Instrument the project
+2. Build the instrumented project
+3. Run the Main
+4. Generate the coverage report, in the project's object directory
+
+As with the GNATtest integration, run the task `ada: GNATcoverage - Setup runtime library` once beforehand to set up the GNATcoverage runtime library. If the instrumented project fails to build, VS Code prompts to run that setup task, since a missing or outdated runtime library is a common cause of failure.
+
+Unlike the GNATtest integration, the resulting report is not loaded into VS Code automatically: use the `ada: GNATcoverage - Load an existing coverage report` command described above to visualize it.
+
+Each step is also available as an individual task (`ada: GNATcoverage - Instrument project`, `ada: GNATcoverage - Build instrumented project`, `ada: GNATcoverage - Generate report - <main>`), so the workflow can be customized or run step by step if needed. See [Task Customization](#task-customization).
+
 ## GNAT Metrics Support
 
 The extension provides a predefined task called `Compute metrics for current file`, which runs `gnatmetric` and displays file metrics directly in the editor using CodeLenses.
