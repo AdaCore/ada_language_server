@@ -1573,7 +1573,7 @@
                 "category": "Ada"
             },
             {
-                "command": "ada.projectView.goToFile",
+                "command": "ada.project.goToFile",
                 "title": "Go to File in Project...",
                 "category": "Ada",
                 "icon": "$(go-to-file)"
@@ -1643,7 +1643,7 @@
                 "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
             },
             {
-                "command": "ada.projectView.goToFile",
+                "command": "ada.project.goToFile",
                 "key": "ctrl+alt+p",
                 "mac": "cmd+alt+p",
                 "when": "ADA_PROJECT_CONTEXT"
@@ -1668,7 +1668,7 @@
                     "when": "ADA_PROJECT_CONTEXT"
                 },
                 {
-                    "command": "ada.projectView.goToFile",
+                    "command": "ada.project.goToFile",
                     "when": "ADA_PROJECT_CONTEXT"
                 },
                 {
@@ -1797,7 +1797,7 @@
                     "icon": "$(folder-opened)"
                 },
                 {
-                    "command": "ada.projectView.goToFile",
+                    "command": "ada.project.goToFile",
                     "group": "navigation",
                     "when": "view == projectView && ADA_PROJECT_CONTEXT",
                     "icon": "$(go-to-file)"

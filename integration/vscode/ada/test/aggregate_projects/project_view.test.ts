@@ -5,7 +5,7 @@ import {
     CMD_OPEN_PROJECT_FILE,
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_SET_PROJECT_VIEW_FILTER,
-    CMD_PROJECT_VIEW_GO_TO_FILE,
+    CMD_PROJECT_GO_TO_FILE,
 } from '../../src/constants';
 import { adaExtState } from '../../src/extension';
 import { ProjectViewItemKind, ProjectViewProvider } from '../../src/projectViewProvider';
@@ -894,8 +894,8 @@ suite('Project View', function () {
     test('Go to File command is registered', async function () {
         const commands = await vscode.commands.getCommands(true);
         assert.ok(
-            commands.includes(CMD_PROJECT_VIEW_GO_TO_FILE),
-            `Expected command ${CMD_PROJECT_VIEW_GO_TO_FILE} to be registered`,
+            commands.includes(CMD_PROJECT_GO_TO_FILE),
+            `Expected command ${CMD_PROJECT_GO_TO_FILE} to be registered`,
         );
     });
     test('Runtime visibility stays consistent between Go to File and the tree', function () {
@@ -1007,7 +1007,7 @@ suite('Project View', function () {
             );
 
             // And the command must report it, not throw.
-            await vscode.commands.executeCommand(CMD_PROJECT_VIEW_GO_TO_FILE);
+            await vscode.commands.executeCommand(CMD_PROJECT_GO_TO_FILE);
             assert.ok(
                 infoMessage?.includes('No GPR project'),
                 `Expected the 'no project' message, got: ${String(infoMessage)}`,

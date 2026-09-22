@@ -35,7 +35,7 @@ import {
     CMD_PROJECT_VIEW_OPTIONS,
     CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
-    CMD_PROJECT_VIEW_GO_TO_FILE,
+    CMD_PROJECT_GO_TO_FILE,
     CMD_PROJECT_VIEW_VISUALIZE_FILES,
     CMD_PROJECT_VIEW_VISUALIZE_GPR,
     CMD_SCENARIO_VARIABLES_INFORMATION,
@@ -190,7 +190,7 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_PROJECT_VIEW_GO_TO_FILE, goToFileInProject),
+        vscode.commands.registerCommand(CMD_PROJECT_GO_TO_FILE, goToFileInProject),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_PROJECT_VIEW_VISUALIZE_FILES, (item: ProjectViewItem) =>
