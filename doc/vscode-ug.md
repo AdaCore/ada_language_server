@@ -283,12 +283,10 @@ currently resolved value.
 A variable's resolved value comes from whichever of the `ada.scenarioVariables`
 setting, the [`.als.json`](./settings.md#configuration-sources) file, or the OS
 environment sets it; a variable with no resolved value is shown as `(default)`,
-since the language server does not currently expose a project's literal
-default value text.
+and its value is what is defined in the project file.
 
 If the same variable is declared with conflicting types across the project
-tree, it is shown with a warning icon and an explanatory tooltip, since GPR2
-cannot resolve a single authoritative type for it in that case.
+tree, it is shown with a warning icon and an explanatory tooltip.
 
 ### Editing Values
 
@@ -296,20 +294,16 @@ Clicking a variable, or using its **Edit Value…** action, opens a picker
 constrained to its legal values if it is typed, or a free-text input box
 otherwise. Picking a value writes it, together with every other variable's
 currently resolved value, to the `ada.scenarioVariables` setting (see the
-[settings list](./settings.md)) — so no `.als.json`-defined variable is lost,
-though from that point on all of them are pinned in `ada.scenarioVariables`
-rather than falling back to `.als.json`. This automatically reloads the
+[settings list](./settings.md)). This automatically reloads the
 project and updates the predefined [Tasks](#tasks) to take the new scenario
-values into account, exactly as if the setting had been hand-edited.
+values into account, exactly as if the setting had been selected manually.
 
 A **Reset to Default** action is available for any variable that currently
-has a resolved value, whether or not that value was set from the Scenario
-View — a variable resolved purely from `.als.json` or the environment offers
-it too. It only clears the variable from the Workspace-scoped
-`ada.scenarioVariables` setting; if the variable is still resolved
-afterwards, for example because it is also set at the User or Remote level,
-that value takes effect instead of falling back to `.als.json`, the
-environment, or the project's default.
+has a resolved value. Calling it clears the variable from the
+`ada.scenarioVariables` setting associated with the Workspace; if the variable 
+is still resolved afterwards, for example because it is also set at the 
+User or Remote scope, that value takes effect instead of falling back to
+`.als.json`, the environment, or the project's default value.
 
 ## Alire Support
 
