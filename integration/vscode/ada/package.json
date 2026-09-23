@@ -1573,6 +1573,12 @@
                 "category": "Ada"
             },
             {
+                "command": "ada.project.goToFile",
+                "title": "Go to File in Project...",
+                "category": "Ada",
+                "icon": "$(go-to-file)"
+            },
+            {
                 "command": "ada.projectView.visualizeFiles",
                 "title": "Show File Dependencies Graph",
                 "category": "Ada"
@@ -1635,6 +1641,12 @@
                 "command": "references-view.findReferences",
                 "key": "shift+f12",
                 "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
+            },
+            {
+                "command": "ada.project.goToFile",
+                "key": "ctrl+alt+p",
+                "mac": "cmd+alt+p",
+                "when": "ADA_PROJECT_CONTEXT"
             }
         ],
         "menus": {
@@ -1653,6 +1665,10 @@
                 },
                 {
                     "command": "ada.projectView.revealActiveFile",
+                    "when": "ADA_PROJECT_CONTEXT"
+                },
+                {
+                    "command": "ada.project.goToFile",
                     "when": "ADA_PROJECT_CONTEXT"
                 },
                 {
@@ -1779,6 +1795,12 @@
                     "group": "navigation",
                     "when": "view == projectView && ADA_PROJECT_CONTEXT",
                     "icon": "$(folder-opened)"
+                },
+                {
+                    "command": "ada.project.goToFile",
+                    "group": "navigation",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT",
+                    "icon": "$(go-to-file)"
                 },
                 {
                     "command": "ada.setProjectViewFilter",

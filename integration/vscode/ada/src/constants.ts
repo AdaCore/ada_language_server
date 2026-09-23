@@ -144,6 +144,12 @@ export const CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER = 'ada.projectView.revealInExpl
 export const CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE = 'ada.projectView.revealActiveFile';
 
 /**
+ * Identifier for the command that opens a quick-pick listing the source files of the
+ * loaded GPR project, allowing to open one of them directly.
+ */
+export const CMD_PROJECT_GO_TO_FILE = 'ada.project.goToFile';
+
+/**
  * Identifier for the command that shows the file dependencies graph for a source file
  * selected in the Project View.
  */

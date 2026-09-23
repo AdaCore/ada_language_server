@@ -459,7 +459,8 @@ export class ExtensionState {
             // the project may still have been located and loaded through Alire.
             alireProjectLoaded = alsDiagnostics.some(
                 (diagnostic) =>
-                    diagnostic.source == PROJECT_DIAGS_SOURCE && diagnostic.message.includes('Alire'),
+                    diagnostic.source == PROJECT_DIAGS_SOURCE &&
+                    diagnostic.message.includes('Alire'),
             );
 
             switch (statusBarSeverity) {
@@ -599,6 +600,15 @@ export class ExtensionState {
             );
             void this.refreshProjectView();
             void this.refreshScenarioView();
+        }
+
+        //  The Project View caches its display preferences, so they must be
+        //  re-read when they are changed outside of the View Options
+        //  quick-pick, e.g. through the Settings UI. Without this the tree and
+        //  everything keyed on these flags, such as the runtime files listed by
+        //  'Go to File in Project', would disagree with the settings.
+        if (e.affectsConfiguration('ada.projectView')) {
+            this.projectViewProvider?.applyViewSettingsFromConfig();
         }
 
         //  React to changes made in the environment variables, showing
@@ -815,6 +825,49 @@ export class ExtensionState {
     }
 
     /**
+     * Returns the project view information last obtained from the ALS, or
+     * undefined if no project is loaded or the information could not be
+     * fetched. Call `refreshProjectView()` first if a fresh view is required.
+     */
+    public getProjectViewInfo(): ProjectViewInformation | undefined {
+        return this.cachedProjectViewInfo;
+    }
+
+    /**
+     * Locates the given file in the Project View tree and selects it.
+     *
+     * Shows an information message and returns false when the file does not
+     * belong to the loaded project, or when the tree could not reveal it.
+     *
+     * @param uri - the URI of the file to reveal
+     * @returns whether the file could be revealed
+     */
+    public async revealUriInProjectView(uri: vscode.Uri): Promise<boolean> {
+        const provider = this.projectViewProvider;
+        const treeView = this.projectTreeView;
+        if (!provider || !treeView) return false;
+
+        const item = provider.findSourceFileItem(uri);
+
+        if (!item) {
+            void vscode.window.showInformationMessage(
+                `'${path.basename(uri.fsPath)}' is not found in the Project View.`,
+            );
+            return false;
+        }
+
+        try {
+            await treeView.reveal(item, { select: true, focus: true, expand: true });
+            return true;
+        } catch {
+            void vscode.window.showInformationMessage(
+                `'${path.basename(uri.fsPath)}' could not be found in the Project View.`,
+            );
+            return false;
+        }
+    }
+
+    /**
      * Iterates over all currently open text documents and overrides the
      * VS Code language ID for any document whose language is known from
      * the GPR project metadata but does not yet match.
@@ -835,31 +888,37 @@ export class ExtensionState {
      *
      * This runs unconditionally so that the language-override feature works
      * even when the Project View panel is closed or has never been opened.
+     *
+     * This never rejects: any failure to reach the ALS is logged and leaves an
+     * empty project state. Callers can therefore await it and then inspect
+     * `getProjectViewInfo()` to tell whether a project is available.
      */
     public async refreshProjectView(): Promise<void> {
         // Clear the cached project URI to fetch a fresh one
         this.cachedProjectUri = undefined;
-        const projectUri = await this.getProjectUri();
 
-        if (projectUri) {
-            try {
-                const raw = await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
-                    CMD_PROJECT_VIEW_INFORMATION,
-                );
-                if (raw?.projects) {
-                    this.cachedProjectViewInfo = parseProjectViewResponse(raw);
-                    this.buildFileLanguageMap();
-                    await this.applyLanguageOverridesToOpenDocuments();
-                } else {
-                    this.cachedProjectViewInfo = undefined;
-                    this.fileLanguageMap = new Map();
-                }
-            } catch (error) {
-                logger.error(`Failed to fetch project view information: ${String(error)}`);
+        try {
+            //  getProjectUri() queries the ALS, so it rejects when the server
+            //  is restarting or otherwise unavailable. It has to stay inside
+            //  the try, so that such a failure yields an empty project state
+            //  like any other failure to fetch the project information.
+            const projectUri = await this.getProjectUri();
+            const raw = projectUri
+                ? await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
+                      CMD_PROJECT_VIEW_INFORMATION,
+                  )
+                : null;
+
+            if (raw?.projects) {
+                this.cachedProjectViewInfo = parseProjectViewResponse(raw);
+                this.buildFileLanguageMap();
+                await this.applyLanguageOverridesToOpenDocuments();
+            } else {
                 this.cachedProjectViewInfo = undefined;
                 this.fileLanguageMap = new Map();
             }
-        } else {
+        } catch (error) {
+            logger.error(`Failed to fetch project view information: ${String(error)}`);
             this.cachedProjectViewInfo = undefined;
             this.fileLanguageMap = new Map();
         }

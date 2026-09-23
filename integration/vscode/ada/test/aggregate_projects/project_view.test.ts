@@ -5,9 +5,11 @@ import {
     CMD_OPEN_PROJECT_FILE,
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_SET_PROJECT_VIEW_FILTER,
+    CMD_PROJECT_GO_TO_FILE,
 } from '../../src/constants';
 import { adaExtState } from '../../src/extension';
 import { ProjectViewItemKind, ProjectViewProvider } from '../../src/projectViewProvider';
+import { buildProjectFileItems, shouldIncludeRuntimeFiles } from '../../src/projectGoToFile';
 import { activate } from '../utils';
 
 suite('Project View', function () {
@@ -838,5 +840,188 @@ suite('Project View', function () {
         assert.strictEqual(selection.length, 1, 'Runtime: expected one selected item');
         assert.strictEqual(selection[0].itemKind, ProjectViewItemKind.SOURCE_FILE);
         assert.strictEqual(selection[0].uri.fsPath, runtimeFileUri.fsPath);
+    });
+
+    test('Go to File lists each project source exactly once', function () {
+        const info = adaExtState.getProjectViewInfo();
+        assert.ok(info, 'Expected project view information to be available');
+
+        const items = buildProjectFileItems(info, false);
+
+        // project_1.gpr and project_2.gpr both use the 'src' directory, so every
+        // source is reported by two projects. They must appear only once.
+        const labels = items.map((i) => i.label).sort();
+        assert.deepStrictEqual(labels, ['main_1.adb', 'main_2.adb', 'main_3.adb']);
+
+        const paths = items.map((i) => i.uri.fsPath);
+        assert.strictEqual(
+            new Set(paths).size,
+            paths.length,
+            'Expected no duplicate files in the quick-pick items',
+        );
+
+        for (const item of items) {
+            assert.ok(item.uri.fsPath.endsWith(item.label), `URI of ${item.label} should match`);
+            assert.ok(item.description, `Expected an owning project name for ${item.label}`);
+            assert.ok(item.detail !== undefined, `Expected a directory for ${item.label}`);
+        }
+    });
+
+    test('Go to File excludes runtime sources unless requested', function () {
+        const info = adaExtState.getProjectViewInfo();
+        assert.ok(info, 'Expected project view information to be available');
+        assert.ok(info.runtime_project, 'Expected a runtime project in this workspace');
+
+        const withoutRuntime = buildProjectFileItems(info, false);
+        const withRuntime = buildProjectFileItems(info, true);
+
+        assert.ok(
+            withRuntime.length > withoutRuntime.length,
+            'Expected more items when runtime sources are included',
+        );
+
+        const runtimeName = info.runtime_project.project.name;
+        assert.ok(
+            !withoutRuntime.some((i) => i.description === runtimeName),
+            'Did not expect runtime entries when includeRuntime is false',
+        );
+        assert.ok(
+            withRuntime.some((i) => i.description === runtimeName),
+            'Expected runtime entries when includeRuntime is true',
+        );
+    });
+
+    test('Go to File command is registered', async function () {
+        const commands = await vscode.commands.getCommands(true);
+        assert.ok(
+            commands.includes(CMD_PROJECT_GO_TO_FILE),
+            `Expected command ${CMD_PROJECT_GO_TO_FILE} to be registered`,
+        );
+    });
+    test('Runtime visibility stays consistent between Go to File and the tree', function () {
+        const provider = adaExtState.projectViewProvider;
+        assert.ok(provider, 'Expected a Project View provider');
+
+        const info = adaExtState.getProjectViewInfo();
+        assert.ok(info, 'Expected project view information to be available');
+        assert.ok(info.runtime_project, 'Expected a runtime project in this workspace');
+
+        const workspaceWithPatch = vscode.workspace as typeof vscode.workspace & {
+            getConfiguration: typeof vscode.workspace.getConfiguration;
+        };
+        const originalGetConfiguration = vscode.workspace.getConfiguration;
+
+        // Simulate 'ada.projectView.showRuntimeFiles' being enabled through the
+        // Settings UI rather than through the View Options quick-pick.
+        const patchConfig = (showRuntimeFiles: boolean) => {
+            workspaceWithPatch.getConfiguration = ((section?: string) => {
+                if (section === 'ada') {
+                    return {
+                        get: (key: string, defaultValue: boolean) =>
+                            key === 'projectView.showRuntimeFiles'
+                                ? showRuntimeFiles
+                                : defaultValue,
+                    };
+                }
+                return originalGetConfiguration(section);
+            }) as typeof vscode.workspace.getConfiguration;
+        };
+
+        try {
+            // Before the provider is synced, the setting and the provider's
+            // cached flag disagree. The quick-pick must follow the provider,
+            // otherwise it would offer runtime files that the reveal path,
+            // gated on that same cached flag, cannot resolve.
+            patchConfig(true);
+            assert.strictEqual(
+                shouldIncludeRuntimeFiles(),
+                provider.showRuntimeFiles,
+                'Go to File must follow the Project View flag, not the raw setting',
+            );
+
+            provider.applyViewSettingsFromConfig();
+            assert.strictEqual(
+                provider.showRuntimeFiles,
+                true,
+                'Expected the provider to pick up the setting change',
+            );
+
+            // Every runtime file the picker offers must be resolvable by the
+            // reveal path, which is gated on the provider's own flag.
+            const items = buildProjectFileItems(info, provider.showRuntimeFiles);
+            const runtimeName = info.runtime_project.project.name;
+            const runtimeItem = items.find((i) => i.description === runtimeName);
+            assert.ok(runtimeItem, 'Expected runtime entries once the setting is enabled');
+            assert.ok(
+                provider.findSourceFileItem(runtimeItem.uri),
+                'A runtime file listed by Go to File must be revealable in the Project View',
+            );
+
+            // And with the setting disabled, neither path exposes runtime files.
+            patchConfig(false);
+            provider.applyViewSettingsFromConfig();
+            assert.strictEqual(provider.showRuntimeFiles, false);
+            assert.strictEqual(shouldIncludeRuntimeFiles(), false);
+            assert.ok(
+                !buildProjectFileItems(info, provider.showRuntimeFiles).some(
+                    (i) => i.description === runtimeName,
+                ),
+                'Did not expect runtime entries once the setting is disabled',
+            );
+            assert.ok(
+                !provider.findSourceFileItem(runtimeItem.uri),
+                'Did not expect a runtime file to be revealable once the setting is disabled',
+            );
+        } finally {
+            workspaceWithPatch.getConfiguration = originalGetConfiguration;
+        }
+    });
+    test('Go to File reports no project when the ALS is unreachable', async function () {
+        const stateWithPatch = adaExtState as typeof adaExtState & {
+            getProjectUri: typeof adaExtState.getProjectUri;
+        };
+        const originalGetProjectUri = adaExtState.getProjectUri.bind(adaExtState);
+
+        const windowWithPatch = vscode.window as typeof vscode.window & {
+            showInformationMessage: typeof vscode.window.showInformationMessage;
+        };
+        const originalShowInformationMessage = vscode.window.showInformationMessage;
+
+        let infoMessage: string | undefined;
+        windowWithPatch.showInformationMessage = ((message: string) => {
+            infoMessage = message;
+            return Promise.resolve(undefined);
+        }) as typeof vscode.window.showInformationMessage;
+
+        // Simulate the ALS being restarted or otherwise unavailable: the
+        // 'als-project-file' request rejects.
+        stateWithPatch.getProjectUri = () => Promise.reject(new Error('ALS is not available'));
+
+        try {
+            // The refresh must absorb the failure rather than propagate it.
+            await adaExtState.refreshProjectView();
+            assert.strictEqual(
+                adaExtState.getProjectViewInfo(),
+                undefined,
+                'Expected an empty project state after a failed refresh',
+            );
+
+            // And the command must report it, not throw.
+            await vscode.commands.executeCommand(CMD_PROJECT_GO_TO_FILE);
+            assert.ok(
+                infoMessage?.includes('No GPR project'),
+                `Expected the 'no project' message, got: ${String(infoMessage)}`,
+            );
+        } finally {
+            stateWithPatch.getProjectUri = originalGetProjectUri;
+            windowWithPatch.showInformationMessage = originalShowInformationMessage;
+            // Restore a valid project state for the remaining tests.
+            await adaExtState.refreshProjectView();
+        }
+
+        assert.ok(
+            adaExtState.getProjectViewInfo(),
+            'Expected the project view information to be restored',
+        );
     });
 });
