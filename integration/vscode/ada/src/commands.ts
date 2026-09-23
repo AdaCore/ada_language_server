@@ -52,6 +52,7 @@ import {
     findAdaMain,
     gprScenarioArgs,
     getProjectFileRelPath,
+    getProjectFileSettingValue,
     getSymbols,
     isExtensionInstalled,
     isRunningOnRemote,
@@ -853,7 +854,7 @@ async function openProjectFile(projectFileURI?: vscode.Uri) {
               });
 
     if (selection && selection.length > 0 && selection[0]) {
-        const selectedFile = vscode.workspace.asRelativePath(selection[0]);
+        const selectedFile = getProjectFileSettingValue(selection[0].fsPath);
         await vscode.workspace
             .getConfiguration('ada')
             .update('projectFile', selectedFile, vscode.ConfigurationTarget.Workspace);

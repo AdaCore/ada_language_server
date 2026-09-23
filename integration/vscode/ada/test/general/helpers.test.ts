@@ -1,10 +1,13 @@
 import assert from 'assert';
+import * as path from 'path';
 import {
     envHasExec,
     findAdaMain,
     getLengthCommonSuffix,
     getMatchingPrefixes,
+    getProjectFileSettingValue,
     getSymbols,
+    getWorkspaceRootPath,
     parallelize,
     slugify,
     staggerProgress,
@@ -411,6 +414,62 @@ suite('getMatchingPrefixes', function () {
         );
         assert.deepStrictEqual(getMatchingPrefixes('', ''), [undefined, undefined]);
         assert.deepStrictEqual(getMatchingPrefixes('a', 'a'), ['', '']);
+    });
+});
+
+suite('getProjectFileSettingValue', function () {
+    /**
+     * The root directory of a hypothetical workspace. It is only used to build
+     * paths, so it doesn't need to exist on the filesystem.
+     */
+    const root = path.join(path.sep === '\\' ? 'C:\\ws' : '/ws', 'first_folder');
+
+    test('Project file at the root', function () {
+        assert.strictEqual(getProjectFileSettingValue(path.join(root, 'prj.gpr'), root), 'prj.gpr');
+    });
+
+    test('Project file in a subdirectory', function () {
+        /**
+         * The separators of the resulting path are normalized to '/' so that
+         * the setting remains portable across platforms.
+         */
+        assert.strictEqual(
+            getProjectFileSettingValue(path.join(root, 'gnat', 'prj.gpr'), root),
+            'gnat/prj.gpr',
+        );
+    });
+
+    test('Project file outside of the root', function () {
+        /**
+         * This is the case of a multi-root workspace where the project file
+         * belongs to a folder other than the first one. Such a project can't
+         * be denoted by a path relative to the root directory of the server,
+         * so the full path must be used.
+         */
+        const fullPath = path.join(root, '..', 'second_folder', 'prj.gpr');
+
+        assert.strictEqual(getProjectFileSettingValue(fullPath, root), fullPath);
+    });
+
+    test('No workspace folder', function () {
+        const fullPath = path.join(root, 'prj.gpr');
+
+        assert.strictEqual(getProjectFileSettingValue(fullPath, undefined), fullPath);
+    });
+
+    test('Root defaulting to the first workspace folder', function () {
+        const workspaceRoot = getWorkspaceRootPath();
+        assert.ok(workspaceRoot, 'Expected a workspace folder for this test');
+
+        /**
+         * Check that no workspace folder name is prepended to the result, which
+         * is what vscode.workspace.asRelativePath would do in a multi-root
+         * workspace.
+         */
+        assert.strictEqual(
+            getProjectFileSettingValue(path.join(workspaceRoot, 'src', 'prj.gpr')),
+            'src/prj.gpr',
+        );
     });
 });
 
