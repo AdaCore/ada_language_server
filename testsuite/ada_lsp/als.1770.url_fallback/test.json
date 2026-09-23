@@ -72,7 +72,7 @@
             "wait":[{
                 "id": "defname-1",
                 "result":{
-                    "uri": "file://$FILE{source%20code/aaa.adb}",
+                    "uri": "$URI{source code/aaa.adb}",
                     "range": {
                         "start": {
                             "line": 1,

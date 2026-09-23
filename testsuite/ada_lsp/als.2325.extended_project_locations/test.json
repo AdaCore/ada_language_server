@@ -75,7 +75,7 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "file://$FILE{extending/hello.adb}",
+                  "uri": "$URI{extending/hello.adb}",
                   "languageId": "Ada",
                   "version": 0,
                   "text": "\nwith Ada.Text_IO;\nwith Decl.A;\nwith Decl.B;\n\nprocedure Hello\nis\n   T : Decl.Kind := Decl.A.Do_Get;\nbegin\n   Ada.Text_IO.Put_Line (T'Img);\n   Ada.Text_IO.Put_Line (Decl.B.Do_Get_B'Img);\nend;\n"
@@ -93,7 +93,7 @@
             "method": "textDocument/references",
             "params": {
                "textDocument": {
-                  "uri": "file://$FILE{extending/hello.adb}"
+                  "uri": "$URI{extending/hello.adb}"
                },
                "position": {
                   "line": 7,
@@ -109,7 +109,7 @@
                "id": 16,
                "result": [
                   {
-                     "uri": "file://$FILE{extended/decl.ads}",
+                     "uri": "$URI{extended/decl.ads}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -125,7 +125,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extended/decl-a.ads}",
+                     "uri": "$URI{extended/decl-a.ads}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -142,7 +142,7 @@
                      "hidden": true
                   },
                   {
-                     "uri": "file://$FILE{extended/decl-a.ads}",
+                     "uri": "$URI{extended/decl-a.ads}",
                      "range": {
                         "start": {
                            "line": 3,
@@ -159,7 +159,7 @@
                      "hidden": true
                   },
                   {
-                     "uri": "file://$FILE{extending/decl-a.ads}",
+                     "uri": "$URI{extending/decl-a.ads}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -175,7 +175,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extending/decl-a.ads}",
+                     "uri": "$URI{extending/decl-a.ads}",
                      "range": {
                         "start": {
                            "line": 3,
@@ -191,7 +191,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extended/decl-a.adb}",
+                     "uri": "$URI{extended/decl-a.adb}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -208,7 +208,7 @@
                      "hidden": true
                   },
                   {
-                     "uri": "file://$FILE{extending/decl-a.adb}",
+                     "uri": "$URI{extending/decl-a.adb}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -224,7 +224,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extended/decl-b.ads}",
+                     "uri": "$URI{extended/decl-b.ads}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -241,7 +241,7 @@
                      "hidden": true
                   },
                   {
-                     "uri": "file://$FILE{extended/decl-b.ads}",
+                     "uri": "$URI{extended/decl-b.ads}",
                      "range": {
                         "start": {
                            "line": 3,
@@ -258,7 +258,7 @@
                      "hidden": true
                   },
                   {
-                     "uri": "file://$FILE{extending/decl-b.ads}",
+                     "uri": "$URI{extending/decl-b.ads}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -274,7 +274,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extending/decl-b.ads}",
+                     "uri": "$URI{extending/decl-b.ads}",
                      "range": {
                         "start": {
                            "line": 3,
@@ -290,7 +290,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extended/decl-b.adb}",
+                     "uri": "$URI{extended/decl-b.adb}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -307,7 +307,7 @@
                      "hidden": true
                   },
                   {
-                     "uri": "file://$FILE{extending/decl-b.adb}",
+                     "uri": "$URI{extending/decl-b.adb}",
                      "range": {
                         "start": {
                            "line": 2,
@@ -323,7 +323,7 @@
                      ]
                   },
                   {
-                     "uri": "file://$FILE{extending/hello.adb}",
+                     "uri": "$URI{extending/hello.adb}",
                      "range": {
                         "start": {
                            "line": 7,
