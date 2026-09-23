@@ -851,7 +851,7 @@ export class ExtensionState {
 
         if (!item) {
             void vscode.window.showInformationMessage(
-                `'${path.basename(uri.fsPath)}' is not found in the Project View.`,
+                `'${path.basename(uri.fsPath)}' is not found in the Project view.`,
             );
             return false;
         }
@@ -861,7 +861,7 @@ export class ExtensionState {
             return true;
         } catch {
             void vscode.window.showInformationMessage(
-                `'${path.basename(uri.fsPath)}' could not be found in the Project View.`,
+                `'${path.basename(uri.fsPath)}' could not be found in the Project view.`,
             );
             return false;
         }
@@ -927,18 +927,15 @@ export class ExtensionState {
             this.projectViewProvider.setProjectViewInfo(this.cachedProjectViewInfo);
         }
 
-        // Update the project name in the tree view title. TreeView.description is only
-        // rendered for views in custom ViewContainers, not for views embedded in the
-        // Explorer panel, so we append the project name to the title instead.
+        // Show the root project's name as the view's description, next to its
+        // fixed title, like the Timeline view does with the current file name.
         if (this.projectTreeView) {
             const rootEntry = this.cachedProjectViewInfo
                 ? this.cachedProjectViewInfo.projects.get(
                       this.cachedProjectViewInfo.root_project_id,
                   )
                 : undefined;
-            this.projectTreeView.title = rootEntry
-                ? `Project View — ${rootEntry.project.name}`
-                : 'Project View';
+            this.projectTreeView.description = rootEntry?.project.name;
         }
 
         // Refresh the status bar to reflect the updated project name.

@@ -211,14 +211,14 @@ A status bar item displaying the project-loading status and various useful comma
 
 ## Project View
 
-The Ada & SPARK extension contributes a **Project View** panel in the VS Code Explorer sidebar. It shows the structure of the loaded GPR project as a tree, grouping source files by their project and source directory.
+The Ada & SPARK extension contributes a **Project** view in the VS Code Explorer sidebar. It shows the structure of the loaded GPR project as a tree, grouping source files by their project and source directory.
 
 ![Project View](media/project-view.png)
 
-The **Project View** also exposes a toolbar with the following buttons:
+The **Project** view also exposes a toolbar with the following buttons:
 
 * **Filter** — filters the tree view to show only projects, directories, and files whose names contain the filter string.
-* **Open Project File** — opens a dialog to select a new GPR project file to load.
+* **Open Project...** — opens a dialog to select a new GPR project file to load.
 * **Refresh** — reloads the project and updates the tree view.
 * **View Options** — toggles the display of object directories and runtime files, and allows to switch between flat and hierarchical view modes.
 
@@ -237,8 +237,8 @@ The tree reflects the GPR project hierarchy:
 
 ### Navigation
 
-* **Reveal Active File** (`Ada: Reveal in Project View`) — locates and selects the currently open editor file in the Project View tree. This command is also available as an editor context menu.
-* **Go to File in Project** (`Ada: Go to File in Project...`, `Ctrl+Alt+P` / `Cmd+Alt+P` on macOS) — opens a quick-pick search restricted to the source files of the loaded GPR project, and opens the selected file in the editor. Unlike the native `Go to File...` command, it lists exactly the files that the project declares, including sources located outside the workspace folders, and excluding files that do not belong to the project. Type part of a file name, of a directory, or of a project name to narrow the list; each entry also offers a button to reveal the file in the Project View tree. The command is available from the Command Palette and from the Project View toolbar. Runtime sources are listed only when the `ada.projectView.showRuntimeFiles` setting is enabled. Note that `Ctrl+Alt+P` coincides with `AltGr+P` on some keyboard layouts; the shortcut can be changed from `Preferences: Open Keyboard Shortcuts`.
+* **Reveal Active File** (`Ada: Reveal in Project View`) — locates and selects the currently open editor file in the Project view tree. This command is also available as an editor context menu.
+* **Go to File in Project** (`Ada: Go to File in Project...`, `Ctrl+Alt+P` / `Cmd+Alt+P` on macOS) — opens a quick-pick search restricted to the source files of the loaded GPR project, and opens the selected file in the editor. Unlike the native `Go to File...` command, it lists exactly the files that the project declares, including sources located outside the workspace folders, and excluding files that do not belong to the project. Type part of a file name, of a directory, or of a project name to narrow the list; each entry also offers a button to reveal the file in the Project view tree. The command is available from the Command Palette and from the Project view toolbar. Runtime sources are listed only when the `ada.projectView.showRuntimeFiles` setting is enabled. Note that `Ctrl+Alt+P` coincides with `AltGr+P` on some keyboard layouts; the shortcut can be changed from `Preferences: Open Keyboard Shortcuts`.
 * **Reveal in Explorer** — available via right-click on a source file or a project file node; opens the VS Code Explorer and selects the item there.
 
 ### File Management
@@ -247,11 +247,11 @@ Source files can be **moved between source directories** by dragging them from o
 
 ### Filtering
 
-The Project View toolbar provides a filter button (funnel icon). When active, only projects, directories, and files whose names contain the filter string are shown. Clear the filter by clicking the filled funnel icon that replaces it.
+The Project view toolbar provides a filter button (funnel icon). When active, only projects, directories, and files whose names contain the filter string are shown. Clear the filter by clicking the filled funnel icon that replaces it.
 
 ### View Options
 
-Click the **View Options** button (`···`) in the Project View toolbar to toggle the following display settings:
+Click the **View Options** button (`···`) in the Project view toolbar to toggle the following display settings:
 
 | Option | Setting | Description |
 |--------|---------|-------------|
@@ -263,7 +263,7 @@ These options can also be set permanently via the corresponding [VS Code setting
 
 ### Context Menu Commands
 
-Right-clicking a node in the Project View exposes additional commands:
+Right-clicking a node in the Project view exposes additional commands:
 
 * **Show File Dependencies Graph** — opens an interactive graph of Ada file dependencies for the selected file. Only available for source files.
 * **Show GPR Dependencies Graph** — opens an interactive graph of GPR project dependencies. Only available for GPR project files.
@@ -272,8 +272,8 @@ Project file items also have a context menu with commands to build, analyze, and
 
 ## Scenario View
 
-The Ada & SPARK extension contributes a **Scenario View** panel in the VS Code
-Explorer sidebar, next to the Project View. It lists the scenario (external)
+The Ada & SPARK extension contributes a **Scenario** view in the VS Code
+Explorer sidebar, next to the Project view. It lists the scenario (external)
 variables declared in the loaded project tree, along with each variable's
 currently resolved value.
 
@@ -738,7 +738,7 @@ formatting might no succeed on incomplete/illegal code.
   name from the crate description. [Tasks](#tasks) are also automatically
   invoked with Alire in this case.
 
-* **Project support**: the [Scenario View](#scenario-view) lets you inspect
+* **Project support**: the [Scenario view](#scenario-view) lets you inspect
   and edit the scenario (external) variables of the loaded project tree.
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.

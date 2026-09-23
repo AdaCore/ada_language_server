@@ -397,19 +397,19 @@
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
-                        "description": "Show all projects as a flat list instead of a hierarchy in the Project View."
+                        "description": "Show all projects as a flat list instead of a hierarchy in the Project view."
                     },
                     "ada.projectView.showObjectDirectories": {
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
-                        "description": "Show the object directory as a child of each project in the Project View."
+                        "description": "Show the object directory as a child of each project in the Project view."
                     },
                     "ada.projectView.showRuntimeFiles": {
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
-                        "description": "Show the Ada runtime project and its source files in the Project View."
+                        "description": "Show the Ada runtime project and its source files in the Project view."
                     }
                 }
             },
@@ -1361,7 +1361,7 @@
             },
             {
                 "command": "ada.openProjectFile",
-                "title": "Open Project File",
+                "title": "Open Project...",
                 "category": "Ada",
                 "icon": "$(folder-opened)"
             },
@@ -1680,12 +1680,12 @@
                     "when": "false"
                 },
                 {
-                    "comment": "These commands require a Scenario View tree item as their argument.",
+                    "comment": "These commands require a Scenario view tree item as their argument.",
                     "command": "ada.scenarioView.setVariable",
                     "when": "false"
                 },
                 {
-                    "comment": "This command requires a Scenario View tree item as its argument.",
+                    "comment": "This command requires a Scenario view tree item as its argument.",
                     "command": "ada.scenarioView.resetVariable",
                     "when": "false"
                 },
@@ -1955,7 +1955,7 @@
                     {
                         "id": "als-get-started-create-project",
                         "title": "Setup a project",
-                        "description": "If you don't already have a GPR project, create one!\n[Create a Hello World Project](command:toSide:ada.createHelloWorldProject)\nAlready have a project? [Open Project File](command:ada.openProjectFile)",
+                        "description": "If you don't already have a GPR project, create one!\n[Create a Hello World Project](command:toSide:ada.createHelloWorldProject)\nAlready have a project? [Open Project](command:ada.openProjectFile)",
                         "media": {
                             "markdown": "media/project.md"
                         }
@@ -2023,12 +2023,12 @@
             "explorer": [
                 {
                     "id": "projectView",
-                    "name": "Project View",
+                    "name": "Project",
                     "icon": "$(project)"
                 },
                 {
                     "id": "scenarioView",
-                    "name": "Scenario View",
+                    "name": "Scenario",
                     "icon": "$(list-selection)",
                     "when": "ADA_PROJECT_CONTEXT"
                 },

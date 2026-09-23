@@ -195,17 +195,17 @@ in the VS Code User's Guide for details and workarounds.
 
 ### projectView.flatMode
 
-Controls whether the Project View in VS Code displays projects in a flat list
+Controls whether the Project view in VS Code displays projects in a flat list
 rather than as a hierarchy. This is a VS Code-only setting.
 
 ### projectView.showObjectDirectories
 
-Controls whether the Project View in VS Code displays object directories.
+Controls whether the Project view in VS Code displays object directories.
 This is a VS Code-only setting.
 
 ### projectView.showRuntimeFiles
 
-Controls whether the Project View in VS Code displays runtime source files.
+Controls whether the Project view in VS Code displays runtime source files.
 This is a VS Code-only setting.
 
 ### externalAnnotations.showInEditor
