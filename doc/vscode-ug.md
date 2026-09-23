@@ -291,7 +291,7 @@ tree, it is shown with a warning icon and an explanatory tooltip.
 ### Editing Values
 
 Clicking a variable, or using its **Edit Value…** action, opens a picker
-constrained to its legal values if it is typed, or a free-text input box
+showing to possible values for typed variables, or a free-text input box
 otherwise. Picking a value writes it, together with every other variable's
 currently resolved value, to the `ada.scenarioVariables` setting (see the
 [settings list](./settings.md)). This automatically reloads the
