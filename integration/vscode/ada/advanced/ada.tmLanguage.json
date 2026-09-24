@@ -446,6 +446,44 @@
                 { "include": "#statement" }
             ]
         },
+       "entry_declaration": {
+            "begin": "(?i)\\b(?:(not)?\\s+(overriding)\\s+)?(entry)\\s+((?:\\w|\\d|_)+)\\b",
+            "end": ";",
+            "beginCaptures": {
+                "1": { "name": "storage.modifier.ada" },
+                "2": { "name": "storage.modifier.ada" },
+                "3": { "name": "keyword.ada" },
+                "4": { "name": "entity.name.entry.ada" }
+        "function_specification": {
+            "patterns": [{ "include": "#function_body" }]
+        },
+        "goto_statement": {
+            "name": "meta.statement.goto.ada",
+            "begin": "(?i)\\bgoto\\b",
+            "end": ";",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.goto.ada" }
+            },
+            "endCaptures": {
+                "0": { "name": "punctuation.ada" }
+            },
+            "patterns": [{}]
+        },
+        "guard": {
+            "begin": "(?i)\\bwhen\\b",
+            "end": "=>",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.ada" }
+            },
+            "endCaptures": {
+                "0": { "name": "keyword.other.ada" }
+            },
+            "patterns": [{ "include": "#expression" }]
+        },
+
+               
+            },
+
         "character_literal": {
             "name": "string.quoted.single.ada",
             "match": "'.'",
