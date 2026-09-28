@@ -902,12 +902,22 @@ export class ExtensionState {
             //  is restarting or otherwise unavailable. It has to stay inside
             //  the try, so that such a failure yields an empty project state
             //  like any other failure to fetch the project information.
-            const projectUri = await this.getProjectUri();
-            const raw = projectUri
-                ? await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
-                      CMD_PROJECT_VIEW_INFORMATION,
-                  )
-                : null;
+            //
+            //  The ALS answers these queries only once any pending project
+            //  reload is done, which can take several seconds on large
+            //  projects: show the view's progress bar meanwhile, so that the
+            //  view does not look up to date while it is not.
+            const raw = await vscode.window.withProgress(
+                { location: { viewId: 'projectView' } },
+                async () => {
+                    const projectUri = await this.getProjectUri();
+                    return projectUri
+                        ? await vscode.commands.executeCommand<Raw_ProjectViewResponse | null>(
+                              CMD_PROJECT_VIEW_INFORMATION,
+                          )
+                        : null;
+                },
+            );
 
             if (raw?.projects) {
                 this.cachedProjectViewInfo = parseProjectViewResponse(raw);
@@ -952,24 +962,30 @@ export class ExtensionState {
             return;
         }
 
-        const projectUri = await this.getProjectUri();
+        const provider = this.scenarioViewProvider;
 
-        if (!projectUri) {
-            this.scenarioViewProvider.setScenarioVariables([]);
-            return;
-        }
+        //  As in refreshProjectView, show the view's progress bar while the
+        //  ALS finishes any pending project reload, so that the previous
+        //  values are not mistaken for the new ones.
+        await vscode.window.withProgress({ location: { viewId: 'scenarioView' } }, async () => {
+            const projectUri = await this.getProjectUri();
 
-        try {
-            const raw = await vscode.commands.executeCommand<Raw_ScenarioVariablesResponse | null>(
-                CMD_SCENARIO_VARIABLES_INFORMATION,
-            );
-            this.scenarioViewProvider.setScenarioVariables(
-                raw ? parseScenarioVariablesResponse(raw) : [],
-            );
-        } catch (error) {
-            logger.error(`Failed to fetch scenario variables information: ${String(error)}`);
-            this.scenarioViewProvider.setScenarioVariables([]);
-        }
+            if (!projectUri) {
+                provider.setScenarioVariables([]);
+                return;
+            }
+
+            try {
+                const raw =
+                    await vscode.commands.executeCommand<Raw_ScenarioVariablesResponse | null>(
+                        CMD_SCENARIO_VARIABLES_INFORMATION,
+                    );
+                provider.setScenarioVariables(raw ? parseScenarioVariablesResponse(raw) : []);
+            } catch (error) {
+                logger.error(`Failed to fetch scenario variables information: ${String(error)}`);
+                provider.setScenarioVariables([]);
+            }
+        });
     }
 
     /**
