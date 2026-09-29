@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023, AdaCore                          --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -681,11 +681,11 @@ package body LSP.Utils is
    return LSP.Structures.DiagnosticSeverity_Optional
    is
      (case Level is
-         when GPR2.Message.Hint     => (True, LSP.Enumerations.Hint),
-         when GPR2.Message.Warning  => (True, LSP.Enumerations.Warning),
-         when GPR2.Message.Error    => (True, LSP.Enumerations.Error),
-         when GPR2.Message.Lint     => (True, LSP.Enumerations.Hint),
-         when GPR2.Message.End_User => (True, LSP.Enumerations.Information));
+         when GPR2.Message.Hint      => (True, LSP.Enumerations.Hint),
+         when GPR2.Message.Warning   => (True, LSP.Enumerations.Warning),
+         when GPR2.Message.Any_Error => (True, LSP.Enumerations.Error),
+         when GPR2.Message.Lint      => (True, LSP.Enumerations.Hint),
+         when GPR2.Message.End_User  => (True, LSP.Enumerations.Information));
 
    ----------------------
    -- To_Documentation --

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2024, AdaCore                          --
+--                     Copyright (C) 2024-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -190,7 +190,7 @@ package body LSP.Ada_Project_Loading is
          for Msg of GPR2_Messages loop
             --  Display a diagnostic only if we are dealing with an error or
             --  a warning, with a non-empty message attached to it.
-            if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error
+            if Msg.Level in GPR2.Message.Warning | GPR2.Message.Any_Error
               and then Msg.Message /= ""
             then
                declare
