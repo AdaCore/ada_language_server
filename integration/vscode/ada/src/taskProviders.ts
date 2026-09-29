@@ -22,6 +22,8 @@ import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import {
     CMD_GET_OBJECT_DIR,
+    CMD_GNATCOV_LEVEL_ARGS_COVERAGE,
+    CMD_GNATCOV_LEVEL_ARGS_INSTRUMENT,
     CMD_GPR_PROJECT_ARGS,
     CMD_SPARK_CURRENT_GNATPROVE_OPTIONS,
     CMD_SPARK_LIMIT_REGION_ARG,
@@ -128,7 +130,56 @@ export const TASK_GNATCOV_SETUP: PredefinedTask = {
     commandId: 'ada.tasks.gnatcovSetup',
 };
 
-export const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
+/**
+ * Instruments the project's sources so that running an executable built from
+ * them produces a source trace usable for coverage analysis.
+ *
+ * `--dump-filename-simple` makes the instrumented executable write its trace
+ * as `<exe-basename>.srctrace` in its current working directory (the
+ * workspace root, for tasks run by this extension), which is the convention
+ * relied upon by {@link getGnatcovGenerateReportTaskPlainName}'s task.
+ */
+export const TASK_GNATCOV_INSTRUMENT: PredefinedTask = {
+    label: 'GNATcoverage - Instrument project',
+    taskDef: {
+        type: TASK_TYPE_ADA,
+        command: 'gnatcov',
+        args: [
+            'instrument',
+            `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+            `\${command:${CMD_GNATCOV_LEVEL_ARGS_INSTRUMENT}}`,
+            '--dump-filename-simple',
+        ],
+    },
+    problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+    commandId: 'ada.tasks.gnatcovInstrument',
+};
+
+export const TASK_GNATCOV_BUILD_INSTRUMENTED: PredefinedTask = {
+    label: 'GNATcoverage - Build instrumented project',
+    taskDef: {
+        type: TASK_TYPE_ADA,
+        command: 'gprbuild',
+        args: [
+            '-m',
+            '-s',
+            `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+            '--src-subdirs=gnatcov-instr',
+            '--implicit-with=gnatcov_rts.gpr',
+            "'-cargs:ada'",
+            '-gnatef',
+        ],
+    },
+    problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+    taskGroup: vscode.TaskGroup.Build,
+    commandId: 'ada.tasks.gnatcovBuildInstrumented',
+};
+
+export const gnatCovTasks: PredefinedTask[] = [
+    TASK_GNATCOV_SETUP,
+    TASK_GNATCOV_INSTRUMENT,
+    TASK_GNATCOV_BUILD_INSTRUMENTED,
+];
 
 export const TASK_GNATSAS_REPORT: PredefinedTask = {
     label: 'Create a report after a GNAT SAS analysis',
@@ -564,7 +615,53 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         problemMatchers: [],
                     };
 
-                    const tasks = [buildTask, runTask, buildAndRunTask];
+                    /**
+                     * The report task reads the trace produced by `runTask`
+                     * above. `TASK_GNATCOV_INSTRUMENT` passes
+                     * `--dump-filename-simple`, so the instrumented
+                     * executable writes its trace as `<exe-basename>.srctrace`
+                     * in its working directory, which for tasks run by this
+                     * extension is the workspace root.
+                     */
+                    const gnatcovReportTask: PredefinedTask = {
+                        label: getGnatcovGenerateReportTaskPlainName(main),
+                        taskDef: {
+                            type: this.taskType,
+                            command: 'gnatcov',
+                            args: [
+                                'coverage',
+                                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                                `\${command:${CMD_GNATCOV_LEVEL_ARGS_COVERAGE}}`,
+                                '--annotate=xml',
+                                `--output-dir=\${command:${CMD_GET_OBJECT_DIR}}`,
+                                '-T',
+                                `\${workspaceFolder}/${path.basename(execRelPath)}.srctrace`,
+                            ],
+                        },
+                        problemMatchers: [],
+                    };
+
+                    const gnatcovRunAllActionsTask: PredefinedTask = {
+                        label: getGnatcovRunAllActionsTaskPlainName(main),
+                        taskDef: {
+                            type: this.taskType,
+                            compound: [
+                                getConventionalTaskLabel(TASK_GNATCOV_INSTRUMENT),
+                                getConventionalTaskLabel(TASK_GNATCOV_BUILD_INSTRUMENTED),
+                                getConventionalTaskLabel(runTask),
+                                getConventionalTaskLabel(gnatcovReportTask),
+                            ],
+                        },
+                        problemMatchers: [],
+                    };
+
+                    const tasks = [
+                        buildTask,
+                        runTask,
+                        buildAndRunTask,
+                        gnatcovReportTask,
+                        gnatcovRunAllActionsTask,
+                    ];
 
                     if (!isNativeProject) {
                         const gnatemulatorExe = targetPrefix
@@ -1008,6 +1105,23 @@ export function getBuildAndRunTaskName(main?: AdaMain) {
 
 export function getBuildAndRunGNATemulatorTaskName(main?: AdaMain, forDebug = false) {
     return `${TASK_TYPE_ADA}: ${getBuildAndRunGNATemulatorTaskPlainName(main, forDebug)}`;
+}
+
+function getGnatcovGenerateReportTaskPlainName(main?: AdaMain) {
+    return `GNATcoverage - Generate report - ${main?.mainRelPath() ?? ''}`;
+}
+
+function getGnatcovRunAllActionsTaskPlainName(main?: AdaMain) {
+    return `GNATcoverage - Run all actions - ${main?.mainRelPath() ?? ''}`;
+}
+
+/**
+ * The full name of the compound task that runs the whole GNATcoverage
+ * instrumentation-based analysis workflow for a given Main, including the
+ * task type.
+ */
+export function getGnatcovRunAllActionsTaskName(main?: AdaMain) {
+    return `${TASK_TYPE_ADA}: ${getGnatcovRunAllActionsTaskPlainName(main)}`;
 }
 
 export function createSparkTaskProvider(): SimpleTaskProvider {

@@ -13,6 +13,7 @@ section below it for the last release. -->
 * In Ada files, `Shift+F12` now runs `Find All References`, which displays the results in VS Code's `References` view instead of the editor's peek widget, so that they can be navigated with `F4`/`Shift+F4` and run again later from the view's history. See [Navigating references](./doc/vscode-ug.md#navigating-references)
 * Fixed a crash when renaming a subprogram that has no body, such as an imported subprogram
 * VS Code: renamed the `Project View` and `Scenario View` panels to `Project` and `Scenario`, and the `Ada: Open Project File` command to `Ada: Open Project...`, following the VS Code naming conventions
+* Add a default GNATcoverage workflow for project Mains: instrument, build, run and analyze coverage in one go via the `Ada: Run GNATcoverage analysis...` command. See [Running GNATcoverage Analysis on a Main](./doc/vscode-ug.md#running-gnatcoverage-analysis-on-a-main)
 
 ## 2026.3.202607051
 
