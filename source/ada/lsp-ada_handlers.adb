@@ -2813,6 +2813,7 @@ package body LSP.Ada_Handlers is
       procedure Compute_Response is
 
          use type LSP.Ada_Documents.Document_Access;
+         use type GNATCOLL.VFS.Virtual_File;
 
          Context       : constant LSP.Ada_Context_Sets.Context_Access :=
            Self.Contexts.Get_Best_Context (Value.textDocument.uri);
@@ -2839,8 +2840,6 @@ package body LSP.Ada_Handlers is
             Kind   : Libadalang.Common.Ref_Result_Kind;
             Cancel : in out Boolean)
          is
-            use type GNATCOLL.VFS.Virtual_File;
-
             pragma Unreferenced (Kind);
             pragma Unreferenced (Cancel);
 
@@ -2872,12 +2871,16 @@ package body LSP.Ada_Handlers is
             Definition => Defining_Name,
             Callback   => Append_To_Response'Access);
 
-         --  ... add it manually
+         --  ... add it manually, but only if it belongs to the open document.
 
-         Append_Location
-           (Document => Document,
-            Node     => Defining_Name,
-            Kind     => Get_Highlight_Kind (Defining_Name.As_Ada_Node));
+         if File = GNATCOLL.VFS.Create_From_UTF8
+           (Defining_Name.Unit.Get_Filename)
+         then
+            Append_Location
+              (Document => Document,
+               Node     => Defining_Name,
+               Kind     => Get_Highlight_Kind (Defining_Name.As_Ada_Node));
+         end if;
       end Compute_Response;
 
       ------------------------
