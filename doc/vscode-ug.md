@@ -311,8 +311,13 @@ User or Remote scope, that value takes effect instead of falling back to
 When the workspace is an Alire crate (i.e. it contains an `alire.toml` file), the extension uses Alire to determine the GPR project that should be loaded and to obtain an environment where the crate's dependencies have been provisioned.
 
 Moreover when working with an Alire crate, VS Code tasks automatically use standard Alire commands. For example, the `ada: Build current project` task uses the command `alr build` and the `ada: Clean current project` task uses the command `alr clean`.
+The `Debug` command will search the crate's environment PATH variable for an Alire-specified toolchain.
 
 All other tasks use `alr exec -- ...` to execute the command in the environment provided by Alire.
+
+When opening an `alire.toml` file in VS Code, basic hover and completion support
+will be offered for Alire properties
+(see the [Alire specification](https://alire.ada.dev/docs/#catalog-format-specification)).
 
 ## Code Visualizer
 
@@ -748,7 +753,7 @@ formatting might no succeed on incomplete/illegal code.
 * **Tooling support**: we currently provide support for some _SPARK_, _GNATtest_, _GNATcoverage_, _GNAT SAS_, _GNATmetric_ and _GNATemulator_ [Tasks](#tasks), but some workflows may not be supported yet.
 
 * **Alire support**: if the root folder contains an `alire.toml` file and
-  there is `alr` executable in the `PATH`, then the language server fetches
+  an `alr` executable is found in the `PATH`, then the language server fetches
   the project's search path, environment variables and the project's file
   name from the crate description. [Tasks](#tasks) are also automatically
   invoked with Alire in this case.

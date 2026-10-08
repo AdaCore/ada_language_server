@@ -1,0 +1,4 @@
+project Empty is
+
+   for Source_Dirs use (".");
+end Empty;

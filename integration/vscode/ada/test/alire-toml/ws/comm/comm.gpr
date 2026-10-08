@@ -1,0 +1,3 @@
+project Comm is
+   for Source_Dirs use (".");
+end Comm;
