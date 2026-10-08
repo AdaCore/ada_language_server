@@ -70,7 +70,12 @@ import {
 } from './taskProviders';
 import { isGNATmetricTask } from '../test/utils';
 import { findMetricsXmlForSource, parseMetricsXml, getMetricsThresholds } from './metricsUtils';
-import { AlireCompletionProvider, AlireTomlSelector } from './alireProviders';
+import {
+    getAlireData,
+    AlireCompletionProvider,
+    AlireTomlSelector,
+    AlireHoverProvider,
+} from './alireProviders';
 
 /**
  * Return type of the 'als-source-dirs' LSP request.
@@ -104,7 +109,8 @@ export class ExtensionState {
 
     public readonly adaCodelensProvider = new AdaCodeLensProvider();
     public readonly gprCodeLensProvider = new GprCodeLensProvider();
-    public readonly alireCompletionProvider = new AlireCompletionProvider();
+    public alireCompletionProvider: vscode.CompletionItemProvider | null = null;
+    public alireHoverProvider: vscode.HoverProvider | null = null;
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
@@ -206,13 +212,10 @@ export class ExtensionState {
         this.context.subscriptions.push(
             vscode.languages.registerCodeLensProvider('gpr', this.gprCodeLensProvider),
         );
-        this.context.subscriptions.push(
-            vscode.languages.registerCompletionItemProvider(
-                AlireTomlSelector,
-                this.alireCompletionProvider,
-                AlireCompletionProvider.SnippetTrigger, // for snippets
-            ),
-        );
+
+        /* Set completion and hover providers if Alire schema parsed successfully */
+        this.registerAlireProviders(this.context.extensionPath);
+
         this.updateStatusBarVisibility(undefined);
 
         // Update metrics diagnostics when a document is opened,
@@ -382,6 +385,41 @@ export class ExtensionState {
             vscode.tasks.onDidStartTaskProcess(closeSARIFViewerIfNeeded),
         ];
     };
+
+    /**
+     * Try parsing Alire schema.
+     * On success, initialize completion and hover providers for Alire manifest files
+     * @param extDir - Extension directory where Alire schema is stored
+     */
+    public registerAlireProviders(extDir: string) {
+        const schemaPath = path.join(extDir, 'schemas', 'alire-manifest.yaml');
+        try {
+            const dbParser = getAlireData(schemaPath);
+            if (dbParser) {
+                logger.debug('Initializing Alire completion support');
+                this.alireCompletionProvider = new AlireCompletionProvider(dbParser.propCache);
+                logger.debug('Initializing Alire hover support');
+                this.alireHoverProvider = new AlireHoverProvider(dbParser.propCache);
+
+                this.context.subscriptions.push(
+                    vscode.languages.registerCompletionItemProvider(
+                        AlireTomlSelector,
+                        this.alireCompletionProvider,
+                        ' ',
+                    ),
+                );
+                this.context.subscriptions.push(
+                    vscode.languages.registerHoverProvider(
+                        AlireTomlSelector,
+                        this.alireHoverProvider,
+                    ),
+                );
+            }
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            logger.error(`Failed to initialize Alire providers. Error: "${msg}"`);
+        }
+    }
 
     /**
      * Update the status bar item's visibility according to the current context.

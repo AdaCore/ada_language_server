@@ -1,0 +1,9 @@
+name = "hover_crate"
+version = "0.1"
+# name of the crate
+description = "version tags"
+maintainers = ["Me <me@example.com>"]
+maintainers-logins = ["me"]
+
+[depends-on]
+gnat = ">=13"

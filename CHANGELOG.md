@@ -14,6 +14,7 @@ section below it for the last release. -->
 * Fixed a crash when renaming a subprogram that has no body, such as an imported subprogram
 * VS Code: renamed the `Project View` and `Scenario View` panels to `Project` and `Scenario`, and the `Ada: Open Project File` command to `Ada: Open Project...`, following the VS Code naming conventions
 * Add a default GNATcoverage workflow for project Mains: instrument, build, run and analyze coverage in one go via the `Ada: Run GNATcoverage analysis...` command. See [Running GNATcoverage Analysis on a Main](./doc/vscode-ug.md#running-gnatcoverage-analysis-on-a-main)
+* VS Code now offers basic hover and completion support for alire.toml crate manifests.
 
 ## 2026.3.202607051
 
