@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                    Copyright (C) 2023-2024, AdaCore                      --
+--                    Copyright (C) 2023-2026, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -246,7 +246,7 @@ package body LSP.GPR_Documents is
          Update_Diagnostics;
          Self.Messages.Append
            (GPR2.Message.Create
-              (Level   => GPR2.Message.Error,
+              (Level   => GPR2.Message.Critical_Error,
                Message => "GPR parser unexpected " &
                  Ada.Exceptions.Exception_Information (E),
                Sloc    => GPR2.Source_Reference.Create

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023-2024, AdaCore                     --
+--                     Copyright (C) 2023-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -120,7 +120,7 @@ package body LSP.GPR_File_Readers is
          if not Error.Is_Empty then
             Diagnostics.Append
               (GPR2.Message.Create
-                 (Level   => GPR2.Message.Error,
+                 (Level   => GPR2.Message.Critical_Error,
                   Message => Ada.Strings.Unbounded.To_String
                     (VSS.Strings.Conversions.To_Unbounded_UTF_8_String
                          (Error)),
