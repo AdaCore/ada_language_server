@@ -2126,12 +2126,7 @@ package body LSP.Ada_Handlers is
 
             Default_URI : constant LSP.Structures.DocumentUri :=
               Self.To_URI
-                (GNATCOLL.VFS.Create_From_UTF8
-                   (URIs.Conversions.To_File
-                      (VSS.Strings.Conversions.To_UTF_8_String
-                         (Self.Client.Root),
-                       Normalize => True))
-                   .Join ("default.gpr")
+                (Self.Client.Root_Directory.Join ("default.gpr")
                    .Display_Full_Name);
          begin
             for Item of Value.context.diagnostics loop
