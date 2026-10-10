@@ -1264,8 +1264,17 @@ async function loadDetailedCoverage(
  * Load an external GNATcoverage XML report in the VS Code UI.
  *
  * @param indexXmlPath - path of the index.xml file of a GNATcoverage XML report
+ * @param name - optional display name for the coverage run
+ * @param token - optional cancellation token to stop report loading
  */
-export async function loadGnatCoverageReport(indexXmlPath: string) {
+export async function loadGnatCoverageReport(
+    indexXmlPath: string,
+    name?: string,
+    token?: vscode.CancellationToken,
+) {
+    if (token?.isCancellationRequested) {
+        throw new vscode.CancellationError();
+    }
     const request = new vscode.TestRunRequest(
         undefined,
         undefined,
@@ -1275,11 +1284,18 @@ export async function loadGnatCoverageReport(indexXmlPath: string) {
          */
         testCoverageProfile,
     );
-    const run = fileLoadController.createTestRun(request, path.basename(indexXmlPath), false);
+    const run = fileLoadController.createTestRun(
+        request,
+        name ?? path.basename(indexXmlPath),
+        false,
+    );
 
     const covDir = path.dirname(indexXmlPath);
-    await addCoverageData(run, covDir);
-    run.end();
+    try {
+        await addCoverageData(run, covDir, token);
+    } finally {
+        run.end();
+    }
 }
 
 /**

@@ -67,6 +67,7 @@ import {
     createAdaTaskProvider,
     createSparkTaskProvider,
     getConventionalTaskLabel,
+    showTaskError,
 } from './taskProviders';
 import { isGNATmetricTask } from '../test/utils';
 import { findMetricsXmlForSource, parseMetricsXml, getMetricsThresholds } from './metricsUtils';
@@ -1384,16 +1385,18 @@ async function updateMetricsIfNeeded(e: vscode.TaskProcessEndEvent) {
 async function hintGnatcovSetupIfNeeded(e: vscode.TaskProcessEndEvent) {
     const task = e.execution.task;
     if (
+        e.exitCode !== undefined &&
         e.exitCode !== 0 &&
         getConventionalTaskLabel(task) == getConventionalTaskLabel(TASK_GNATCOV_BUILD_INSTRUMENTED)
     ) {
-        const action = await vscode.window.showErrorMessage(
+        const action = await showTaskError(
+            task,
             'Failed to build the instrumented project for coverage analysis. ' +
                 'If the failure relates to the GNATcoverage runtime library ' +
                 "(e.g. 'gnatcov_rts.gpr' not found), make sure it has been set up first.",
             'Run Setup Task',
         );
-        if (action) {
+        if (action === 'Run Setup Task') {
             void vscode.commands.executeCommand(
                 'workbench.action.tasks.runTask',
                 getConventionalTaskLabel(TASK_GNATCOV_SETUP),
