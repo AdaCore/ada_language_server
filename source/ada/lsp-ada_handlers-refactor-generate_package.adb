@@ -17,6 +17,8 @@
 
 with VSS.JSON.Streams;
 
+with GPR2;
+
 with Libadalang.Analysis;
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
@@ -37,14 +39,13 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
       Context         : LSP.Ada_Context_Sets.Context_Access;
       Commands_Vector : in out LSP.Structures.Command_Or_CodeAction_Vector;
       Spec_Loc        : LSP.Structures.Location;
-      Body_Path       : VSS.Strings.Virtual_String;
       New_File        : Boolean)
    is
       Code_Action : LSP.Structures.CodeAction;
       Command_Title : constant String :=
         (if New_File then Self.Name else "Update Package Body");
    begin
-      Self.Initialize (Context.all, Spec_Loc, Body_Path);
+      Self.Initialize (Context.all, Spec_Loc);
 
       Code_Action :=
         (title       =>
@@ -101,8 +102,6 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
                   Self.Context_Id := Element (C).String_Value;
                elsif Key = "spec_loc" then
                   Self.Spec_Loc := From_Any (C);
-               elsif Key = "body_path" then
-                  Self.Body_Path := Element (C).String_Value;
                else
                   Skip_Value (C);
                end if;
@@ -126,16 +125,33 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
       use Libadalang.Analysis;
       use LAL_Refactor.Generate_Package;
 
-      Context   : LSP.Ada_Contexts.Context renames
+      Context  : LSP.Ada_Contexts.Context renames
         Handler.Contexts.Get (Self.Context_Id).all;
-      Document  : constant LSP.Ada_Documents.Document_Access :=
+      Document : constant LSP.Ada_Documents.Document_Access :=
         Handler.Get_Open_Document (Self.Spec_Loc.uri);
-      Node      : constant Ada_Node :=
+      Node     : constant Ada_Node :=
         Document.Get_Node_At (Context, Self.Spec_Loc.a_range.start);
-      Spec      : constant Base_Package_Decl := To_Package_Decl (Node);
+      Spec     : constant Base_Package_Decl := To_Package_Decl (Node);
 
       function Analysis_Units return Analysis_Unit_Array
       is (Context.Analysis_Units);
+
+      function Project_Attribute_Cbk
+        (Attribute : GPR2.Q_Attribute_Id; Default : String := "")
+         return String;
+      --  Provide project attribute lookup to refactoring tool
+
+      ---------------------------
+      -- Project_Attribute_Cbk --
+      ---------------------------
+
+      function Project_Attribute_Cbk
+        (Attribute : GPR2.Q_Attribute_Id; Default : String := "") return String
+      is
+         Idx : constant String := "Ada";
+      begin
+         return Context.Project_Attribute_Value (Attribute, Idx, Default);
+      end Project_Attribute_Cbk;
    begin
       if Spec.Is_Null then
          Edits.Diagnostics.Append
@@ -145,8 +161,9 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
                Handler.From_LSP_Range (Node.Unit, Self.Spec_Loc.a_range)));
       else
          Edits :=
-           Create_Package_Generator (Spec).Refactor
-             (Analysis_Units'Access);
+           Create_Package_Generator
+             (Spec, Project_Attribute_Cbk'Unrestricted_Access)
+             .Refactor (Analysis_Units'Access);
       end if;
    end Refactor;
 
@@ -155,14 +172,12 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
    ----------------
 
    procedure Initialize
-     (Self      : in out Command'Class;
-      Context   : LSP.Ada_Contexts.Context;
-      Spec_Loc  : LSP.Structures.Location;
-      Body_Path : VSS.Strings.Virtual_String) is
+     (Self        : in out Command'Class;
+      Context     : LSP.Ada_Contexts.Context;
+      Spec_Loc    : LSP.Structures.Location) is
    begin
       Self.Context_Id := Context.Id;
       Self.Spec_Loc := Spec_Loc;
-      Self.Body_Path := Body_Path;
    end Initialize;
 
    -------------------
@@ -185,10 +200,6 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
       --  "spec_loc"
       Add_Key ("spec_loc", Result);
       To_Any (Self.Spec_Loc, Result);
-
-      --  "body_path"
-      Add_Key ("body_path", Result);
-      To_Any (Self.Body_Path, Result);
 
       Result.Append (JSON_Stream_Element'(Kind => End_Object));
       Result.Append (JSON_Stream_Element'(Kind => End_Array));

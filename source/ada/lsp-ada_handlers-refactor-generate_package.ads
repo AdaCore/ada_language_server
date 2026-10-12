@@ -34,16 +34,14 @@ package LSP.Ada_Handlers.Refactor.Generate_Package is
       Context         : LSP.Ada_Context_Sets.Context_Access;
       Commands_Vector : in out LSP.Structures.Command_Or_CodeAction_Vector;
       Spec_Loc        : LSP.Structures.Location;
-      Body_Path       : VSS.Strings.Virtual_String;
       New_File        : Boolean);
    --  Initializes Self and appends it to Commands_Vector
 
 private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
-      Context_Id : VSS.Strings.Virtual_String;
-      Spec_Loc   : LSP.Structures.Location;
-      Body_Path  : VSS.Strings.Virtual_String;
+      Context_Id  : VSS.Strings.Virtual_String;
+      Spec_Loc    : LSP.Structures.Location;
    end record;
 
    overriding
@@ -63,10 +61,9 @@ private
    is (LSP.Server_Jobs.Low);
 
    procedure Initialize
-     (Self      : in out Command'Class;
-      Context   : LSP.Ada_Contexts.Context;
-      Spec_Loc  : LSP.Structures.Location;
-      Body_Path : VSS.Strings.Virtual_String);
+     (Self        : in out Command'Class;
+      Context     : LSP.Ada_Contexts.Context;
+      Spec_Loc    : LSP.Structures.Location);
    --  Initializes Self
 
    function Write_Command (Self : Command) return LSP.Structures.LSPAny_Vector;
