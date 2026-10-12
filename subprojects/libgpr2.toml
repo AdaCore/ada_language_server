@@ -33,7 +33,8 @@ command = [
   "-e", '''
   /package Compiler/a\
    for Switches ("gpr2-build-actions-post_bind.adb") use Compiler'Default_Switches ("Ada") & ("-O0");\
-   for Switches ("gpr2-build-actions-compile-ada.adb") use Compiler'Default_Switches ("Ada") & ("-O0");''',
+   for Switches ("gpr2-build-actions-compile-ada.adb") use Compiler'Default_Switches ("Ada") & ("-O0");\
+   for Switches ("gpr2-view_internal.adb") use Compiler'Default_Switches ("Ada") & ("-O0");''',
   "gpr2.gpr"]
 
 [[actions]]
