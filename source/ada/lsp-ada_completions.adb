@@ -594,6 +594,7 @@ package body LSP.Ada_Completions is
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
       Context                   : in out LSP.Ada_Contexts.Context;
       Document                  : LSP.Ada_Documents.Document;
+      Position                  : LSP.Structures.Position;
       Token                     : Libadalang.Common.Token_Reference;
       Node                      : Libadalang.Analysis.Ada_Node;
       Names                     : Completion_Maps.Map;
@@ -603,6 +604,9 @@ package body LSP.Ada_Completions is
       Result                    : in out LSP.Structures.CompletionItem_Vector)
    is
       use all type Libadalang.Common.Ada_Node_Kind_Type;
+
+      use type Libadalang.Common.Token_Kind;
+      use type Libadalang.Common.Token_Reference;
 
       Use_Auto_Import_Command : constant Boolean :=
         Handler.Get_Configuration.Insert_With_Clauses
@@ -672,22 +676,53 @@ package body LSP.Ada_Completions is
                end if;
 
                if Append then
-                  Result.Append
-                    (Compute_Completion_Item
-                       (Handler                   => Handler,
-                        Context                   => Context,
-                        Name                      => Name,
-                        Label                     => Label,
-                        Command                   =>
-                          Auto_Import_Command (Name, Info.Is_Visible),
-                        Use_Snippets              => Info.Use_Snippets,
-                        Has_Label_Details_Support => Has_Label_Details_Support,
-                        Compute_Doc_And_Details   => Compute_Doc_And_Details,
-                        Named_Notation_Threshold  => Named_Notation_Threshold,
-                        Is_Dot_Call               => Info.Is_Dot_Call,
-                        Is_Visible                => Info.Is_Visible,
-                        Pos                       => Info.Pos,
-                        Weight                    => Info.Weight));
+                  declare
+                     Item : LSP.Structures.CompletionItem :=
+                       Compute_Completion_Item
+                         (Handler                   => Handler,
+                          Context                   => Context,
+                          Name                      => Name,
+                          Label                     => Label,
+                          Command                   =>
+                            Auto_Import_Command (Name, Info.Is_Visible),
+                          Use_Snippets              => Info.Use_Snippets,
+                          Has_Label_Details_Support => Has_Label_Details_Support,
+                          Compute_Doc_And_Details   => Compute_Doc_And_Details,
+                          Named_Notation_Threshold  => Named_Notation_Threshold,
+                          Is_Dot_Call               => Info.Is_Dot_Call,
+                          Is_Visible                => Info.Is_Visible,
+                          Pos                       => Info.Pos,
+                          Weight                    => Info.Weight);
+
+                     --  Destination range for pretty printed snippet's
+                     --  textEdit:  replace the typed name with the formatted
+                     --  snippet, or insert at the cursor after a dot or
+                     --  whitespace.
+                     --  Its start column also determines the snippet's
+                     --  indentation.
+                     Span : constant LSP.Structures.A_Range :=
+                       (if Token /= Libadalang.Common.No_Token
+                          and then not Libadalang.Common.Is_Trivia (Token)
+                          and then Libadalang.Common.Kind
+                            (Libadalang.Common.Data (Token))
+                              /= Libadalang.Common.Ada_Dot
+                        then Document.To_A_Range
+                          (Libadalang.Common.Sloc_Range
+                             (Libadalang.Common.Data (Token)))
+                        else (start => Position, an_end => Position));
+                  begin
+                     --  Pretty print the snippet to be inserted in the document
+                     Pretty_Print_Snippet
+                       (Context  => Context,
+                        Document => Document,
+                        Prefix   => "",  --  The snippet includes the callee.
+                        Offset   => Natural
+                          (Document.To_Source_Location (Span.start).Column) - 1,
+                        Span     => Span,
+                        Rule     => Libadalang.Common.Param_Assoc_Rule,
+                        Result   => Item);
+                     Result.Append (Item);
+                  end;
                end if;
             end;
          end loop;
@@ -1004,9 +1039,11 @@ package body LSP.Ada_Completions is
                  (Is_Set => True,
                   Value  => LSP.Enumerations.asIs);
 
-               --  Label is too verbose and can conflict with client filtering
-               --  set filterText to the content of the span we are replacing.
-               Result.filterText := Prefix;
+               --  A parameter completion's label is too verbose for client
+               --  filtering. Name completions already have a suitable label.
+               if not Prefix.Is_Empty then
+                  Result.filterText := Prefix;
+               end if;
 
                Result.textEdit :=
                  (Is_Set => True,

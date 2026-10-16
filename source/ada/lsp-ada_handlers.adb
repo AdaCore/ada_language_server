@@ -2258,6 +2258,7 @@ package body LSP.Ada_Handlers is
         (Handler                   => Self,
          Context                   => Context.all,
          Document                  => Document.all,
+         Position                  => Value.position,
          Token                     => Token,
          Node                      => Node,
          Names                     => Names,

@@ -117,6 +117,7 @@ package LSP.Ada_Completions is
      (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
       Context                   : in out LSP.Ada_Contexts.Context;
       Document                  : LSP.Ada_Documents.Document;
+      Position                  : LSP.Structures.Position;
       Token                     : Libadalang.Common.Token_Reference;
       Node                      : Libadalang.Analysis.Ada_Node;
       Names                     : Completion_Maps.Map;
@@ -125,6 +126,7 @@ package LSP.Ada_Completions is
       Has_Label_Details_Support : Boolean;
       Result                    : in out LSP.Structures.CompletionItem_Vector);
    --  Convert Names completions into LSP completion items' results.
+   --  Position is the cursor location for completions after a dot or whitespace.
    --  Named_Notation_Threshold defines the number of parameters/components at
    --  which point named notation is used for subprogram/aggregate completion
    --  snippets.
@@ -144,6 +146,7 @@ package LSP.Ada_Completions is
       Result   : in out LSP.Structures.CompletionItem);
    --  If Result is a snippet then generate a textEdit over span using
    --  GNATformat.
+   --  Prefix is empty when the snippet already includes the complete call.
    --  Rule must match the content of "Prefix & Result.insertText.Value".
 
    procedure Set_Completion_Item_Documentation
