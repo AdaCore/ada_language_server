@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+## 2027.0.202610121
+
 * Add a `Scenario` view to the Explorer sidebar, letting users see and change the values of a GPR project's scenario (external) variables without hand-editing the `ada.scenarioVariables` setting
 * CodeLenses for opening the documentation associated to a given project package are now available in GPR files
 * GPR files: keywords are now proposed by completion, according to the syntactic context (project qualifiers, declarations, case constructs)
