@@ -836,8 +836,16 @@ export async function addCoverageDataFromCobertura(run: vscode.TestRun, cobertur
  * directly or inside an 'xml/' subdirectory (which GNATcoverage creates when
  * multiple --annotate formats are used simultaneously, e.g. when the project
  * file defines Coverage.Switches with additional annotate types).
+ * @param token - optional cancellation token, combined with progress cancellation
  */
-export async function addCoverageData(run: vscode.TestRun, covDir: string) {
+export async function addCoverageData(
+    run: vscode.TestRun,
+    covDir: string,
+    token?: vscode.CancellationToken,
+) {
+    if (token?.isCancellationRequested) {
+        throw new vscode.CancellationError();
+    }
     // When GNATcoverage is invoked with multiple --annotate formats (e.g. via
     // Coverage.Switches in the project file), it places each format in its own
     // subdirectory. For XML that subdirectory is named 'xml/'. Fall back to
@@ -864,122 +872,143 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
             location: vscode.ProgressLocation.Notification,
             title: 'Loading GNATcoverage report',
         },
-        async (progress, token) => {
-            const array = data.coverage_report.coverage_summary?.file ?? [];
-            let done: number = 0;
-            let lastProgress = 0;
-            const totalFiles = array.length;
-            progress.report({
-                message: `${done} / ${totalFiles} source files`,
-            });
+        async (progress, progressToken) => {
+            const cancellation = new vscode.CancellationTokenSource();
+            const parentCancellation = token?.onCancellationRequested(() => cancellation.cancel());
+            const progressCancellation = progressToken.onCancellationRequested(() =>
+                cancellation.cancel(),
+            );
+            const importToken = cancellation.token;
+            try {
+                if (token?.isCancellationRequested || progressToken.isCancellationRequested) {
+                    cancellation.cancel();
+                    throw new vscode.CancellationError();
+                }
+                const array = data.coverage_report.coverage_summary?.file ?? [];
+                let done: number = 0;
+                let lastProgress = 0;
+                const totalFiles = array.length;
+                progress.report({
+                    message: `${done} / ${totalFiles} source files`,
+                });
 
-            const resolver = new ForeignPathResolver(token);
+                const resolver = new ForeignPathResolver(importToken);
 
-            const fileCovs = (
-                await parallelize(
-                    array,
-                    getConcurrencyLevel(),
-                    async (file) => {
-                        if (token.isCancellationRequested) {
-                            throw new vscode.CancellationError();
-                        }
+                const fileCovs = (
+                    await parallelize(
+                        array,
+                        getConcurrencyLevel(),
+                        async (file) => {
+                            if (importToken.isCancellationRequested) {
+                                throw new vscode.CancellationError();
+                            }
 
-                        assert(file['@_name']);
-                        const srcUri = await resolver.resolve(file['@_name']);
+                            assert(file['@_name']);
+                            const srcUri = await resolver.resolve(file['@_name']);
+                            if (importToken.isCancellationRequested) {
+                                throw new vscode.CancellationError();
+                            }
 
-                        assert(
-                            srcUri,
-                            `Could not find the file in the workspace: ${file['@_name']}`,
-                        );
-
-                        const fileReportBasename = data.coverage_report.sources?.[
-                            'xi:include'
-                        ]?.find(
-                            (inc) => inc['@_href'] == `${path.posix.basename(srcUri.path)}.xml`,
-                        )?.['@_href'];
-
-                        if (!fileReportBasename) {
-                            const msg = `Malformed GNATcoverage report ${indexPath}`;
-                            void showErrorMessageWithOpenLogButton(msg);
-                            logger.warn(
-                                `${msg}: cannot find <xi:include> element for source file ` +
-                                    `${path.posix.basename(srcUri.path)}`,
+                            assert(
+                                srcUri,
+                                `Could not find the file in the workspace: ${file['@_name']}`,
                             );
-                            return undefined;
-                        }
 
-                        const fileReportPath = path.join(reportDir, fileReportBasename);
+                            const fileReportBasename = data.coverage_report.sources?.[
+                                'xi:include'
+                            ]?.find(
+                                (inc) => inc['@_href'] == `${path.posix.basename(srcUri.path)}.xml`,
+                            )?.['@_href'];
 
-                        const stmtStats = getStats(file, 'Stmt') ?? { covered: 0, total: 0 };
-                        const decisionStats = getStats(file, 'Decision');
-                        const mcdcStats = getStats(file, 'MCDC');
+                            if (!fileReportBasename) {
+                                const msg = `Malformed GNATcoverage report ${indexPath}`;
+                                void showErrorMessageWithOpenLogButton(msg);
+                                logger.warn(
+                                    `${msg}: cannot find <xi:include> element for source file ` +
+                                        `${path.posix.basename(srcUri.path)}`,
+                                );
+                                return undefined;
+                            }
 
-                        let branchCoverage: vscode.TestCoverageCount | undefined = undefined;
-                        if (decisionStats || mcdcStats) {
+                            const fileReportPath = path.join(reportDir, fileReportBasename);
+
+                            const stmtStats = getStats(file, 'Stmt') ?? { covered: 0, total: 0 };
+                            const decisionStats = getStats(file, 'Decision');
+                            const mcdcStats = getStats(file, 'MCDC');
+
+                            let branchCoverage: vscode.TestCoverageCount | undefined = undefined;
+                            if (decisionStats || mcdcStats) {
+                                /**
+                                 * The VS Code API doesn't have a kind of coverage
+                                 * dedicated to MC/DC, so we report the stats along
+                                 * with the decision level coverage.
+                                 */
+                                branchCoverage = {
+                                    covered:
+                                        (decisionStats?.covered ?? 0) + (mcdcStats?.covered ?? 0),
+                                    total: (decisionStats?.total ?? 0) + (mcdcStats?.total ?? 0),
+                                };
+                            }
+
+                            const fileCov = new GnatcovFileCoverage(
+                                fileReportPath,
+                                srcUri,
+                                stmtStats,
+                                branchCoverage,
+                            );
+
                             /**
-                             * The VS Code API doesn't have a kind of coverage
-                             * dedicated to MC/DC, so we report the stats along
-                             * with the decision level coverage.
+                             * Do we need a lock to increment this counter given
+                             * that we are processing with threads?
+                             *
+                             * The answer is no.
+                             *
+                             * In JavaScript semantics each function runs to
+                             * completion uninterrupted. 'async' doesn't mean that
+                             * functions run concurrently. It means that something
+                             * will be executed later.
+                             *
+                             * When a function flow encounters 'await', it hands
+                             * off processing to another async operation.
+                             *
+                             * So at any one time, only one function is executing
+                             * and accessing the counter. It is safe to increment
+                             * without locking.
                              */
-                            branchCoverage = {
-                                covered: (decisionStats?.covered ?? 0) + (mcdcStats?.covered ?? 0),
-                                total: (decisionStats?.total ?? 0) + (mcdcStats?.total ?? 0),
-                            };
-                        }
+                            ++done;
 
-                        const fileCov = new GnatcovFileCoverage(
-                            fileReportPath,
-                            srcUri,
-                            stmtStats,
-                            branchCoverage,
-                        );
+                            /**
+                             * Reporting progress too often can cause the UI to freeze.
+                             * Instead we use staggerProgress to report progress only
+                             * when the percentage has increased by 1%.
+                             */
+                            lastProgress = staggerProgress(
+                                done,
+                                totalFiles,
+                                lastProgress,
+                                (increment) => {
+                                    progress.report({
+                                        message: `${done} / ${totalFiles} source files`,
+                                        increment: increment,
+                                    });
+                                },
+                            );
 
-                        /**
-                         * Do we need a lock to increment this counter given
-                         * that we are processing with threads?
-                         *
-                         * The answer is no.
-                         *
-                         * In JavaScript semantics each function runs to
-                         * completion uninterrupted. 'async' doesn't mean that
-                         * functions run concurrently. It means that something
-                         * will be executed later.
-                         *
-                         * When a function flow encounters 'await', it hands
-                         * off processing to another async operation.
-                         *
-                         * So at any one time, only one function is executing
-                         * and accessing the counter. It is safe to increment
-                         * without locking.
-                         */
-                        ++done;
-
-                        /**
-                         * Reporting progress too often can cause the UI to freeze.
-                         * Instead we use staggerProgress to report progress only
-                         * when the percentage has increased by 1%.
-                         */
-                        lastProgress = staggerProgress(
-                            done,
-                            totalFiles,
-                            lastProgress,
-                            (increment) => {
-                                progress.report({
-                                    message: `${done} / ${totalFiles} source files`,
-                                    increment: increment,
-                                });
-                            },
-                        );
-
-                        return fileCov;
-                    },
-                    token,
-                )
-            ).filter((v) => !!v);
-            fileCovs.map((fileCov) => {
-                run.addCoverage(fileCov);
-            });
-            await Promise.all(fileCovs);
+                            return fileCov;
+                        },
+                        importToken,
+                    )
+                ).filter((v) => !!v);
+                // Publish only once all files are ready and cancellation has been checked.
+                if (importToken.isCancellationRequested) {
+                    throw new vscode.CancellationError();
+                }
+                fileCovs.forEach((fileCov) => run.addCoverage(fileCov));
+            } finally {
+                parentCancellation?.dispose();
+                progressCancellation.dispose();
+                cancellation.dispose();
+            }
         },
     );
 }

@@ -17,7 +17,7 @@
 ----------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { existsSync } from 'fs';
+import { existsSync, statSync } from 'fs';
 import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import {
@@ -30,7 +30,7 @@ import {
     CMD_SPARK_LIMIT_SUBP_ARG,
 } from './constants';
 import { adaExtState, logger } from './extension';
-import { getGnatTestDriverProjectPath } from './gnattest';
+import { getGnatTestDriverProjectPath, loadGnatCoverageReport } from './gnattest';
 import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpers';
 
 export const TASK_TYPE_ADA = 'ada';
@@ -851,7 +851,9 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
              */
             assert(!taskDef.command);
             assert(!taskDef.args);
-            execution = new SequentialExecutionByName(task.name, taskDef.compound);
+            execution = getConventionalTaskLabel(task).startsWith(getGnatcovRunAllActionsTaskName())
+                ? new GnatcovRunAllActionsExecution(task.name, taskDef.compound)
+                : new SequentialExecutionByName(task.name, taskDef.compound);
         } else {
             /**
              * It's a shell invocation task.
@@ -1193,12 +1195,13 @@ export class WarningMessageExecution extends vscode.CustomExecution {
 }
 
 /**
- * This is an abstract class providing the scaffolding for running multiple
- * tests in sequence. Child classes can override methods to customize which
- * tasks should executed.
+ * Run the named tasks in sequence in a VS Code task terminal.
  */
-abstract class SequentialExecution extends vscode.CustomExecution {
-    constructor() {
+class SequentialExecutionByName extends vscode.CustomExecution {
+    constructor(
+        protected taskName: string,
+        private taskNames: string[],
+    ) {
         super(() => {
             return this.callback();
         });
@@ -1210,47 +1213,54 @@ abstract class SequentialExecution extends vscode.CustomExecution {
      * @returns a Pseudoterminal object that controls a Terminal in the VS Code UI.
      */
     protected callback(): Thenable<vscode.Pseudoterminal> {
-        return new Promise((resolve) => {
-            const writeEmitter = new vscode.EventEmitter<string>();
-            const closeEmitter = new vscode.EventEmitter<number>();
-            const pseudoTerminal: vscode.Pseudoterminal = {
-                onDidWrite: writeEmitter.event,
-                onDidClose: closeEmitter.event,
-                open: () => {
-                    this.getTasksToRun()
-                        .then((tasks) => {
-                            return runTaskSequence(tasks, writeEmitter);
-                        })
-                        .then(
-                            (status) => {
-                                closeEmitter.fire(status);
-                            },
-                            (reason) => {
-                                try {
-                                    if (reason instanceof Error) {
-                                        void vscode.window.showErrorMessage(reason.message);
-                                        /**
-                                         * Emit lines with \\r\\n because we're writing to a console
-                                         */
-                                        reason.message
-                                            .split(/\r?\n|\r|\n/g)
-                                            .forEach((line) => writeEmitter.fire(line + '\r\n'));
-                                    }
-                                } finally {
-                                    closeEmitter.fire(2);
-                                }
-                            },
-                        );
-                },
-                close() {
-                    //
-                },
-            };
-            resolve(pseudoTerminal);
+        const writeEmitter = new vscode.EventEmitter<string>();
+        const closeEmitter = new vscode.EventEmitter<number>();
+        const cancellation = new vscode.CancellationTokenSource();
+        const run = async () => {
+            try {
+                closeEmitter.fire(await this.runTasks(writeEmitter, cancellation.token));
+            } catch (err) {
+                if (
+                    err instanceof Error &&
+                    !(err instanceof vscode.CancellationError) &&
+                    !cancellation.token.isCancellationRequested
+                ) {
+                    void vscode.window.showErrorMessage(err.message);
+                    // Write the error message to the terminal, replacing newlines with
+                    // CRLF for proper display.
+                    writeEmitter.fire(err.message.replace(/\r?\n|\r/g, '\r\n') + '\r\n');
+                }
+                closeEmitter.fire(2);
+            } finally {
+                cancellation.dispose();
+            }
+        };
+        return Promise.resolve({
+            onDidWrite: writeEmitter.event,
+            onDidClose: closeEmitter.event,
+            open: () => {
+                void run();
+            },
+            close: () => cancellation.cancel(),
         });
     }
 
-    protected abstract getTasksToRun(): Promise<vscode.Task[]>;
+    protected async getTasksToRun(): Promise<vscode.Task[]> {
+        const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
+        return Promise.all(this.taskNames.map((name) => findTaskByName(name, adaTasks)));
+    }
+
+    protected async runTasks(
+        writeEmitter: vscode.EventEmitter<string>,
+        token: vscode.CancellationToken,
+        onTaskFailure?: (task: vscode.Task, exitCode: number) => void,
+    ): Promise<number> {
+        const tasks = await this.getTasksToRun();
+        if (token.isCancellationRequested) {
+            return 1;
+        }
+        return runTaskSequence(tasks, writeEmitter, onTaskFailure, token);
+    }
 }
 
 /**
@@ -1307,21 +1317,87 @@ export async function findTaskByName(
 }
 
 /**
- * This class is a task execution that runs other tasks in sequence. The names
- * of the tasks to run are given at construction.
+ * Load coverage only for the complete GNATcoverage workflow, after every task
+ * succeeds. Individual instrumentation, build and report tasks stay independent.
  */
-class SequentialExecutionByName extends SequentialExecution {
-    constructor(
-        private taskName: string,
-        private taskNames: string[],
-    ) {
-        super();
+class GnatcovRunAllActionsExecution extends SequentialExecutionByName {
+    protected override async runTasks(
+        writeEmitter: vscode.EventEmitter<string>,
+        token: vscode.CancellationToken,
+    ): Promise<number> {
+        // Capture the destination before running, since the active project may
+        // change while the workflow executes.
+        const outputDir = await adaExtState.getObjectDir();
+        const reportPaths = [
+            path.join(outputDir, 'index.xml'),
+            path.join(outputDir, 'xml', 'index.xml'),
+        ];
+        const previousReports = reportPaths.map((p) => statSync(p, { throwIfNoEntry: false }));
+        const status = await super.runTasks(writeEmitter, token, (task, exitCode) => {
+            // Build failures already have a notification offering runtime setup.
+            if (
+                getConventionalTaskLabel(task) ===
+                getConventionalTaskLabel(TASK_GNATCOV_BUILD_INSTRUMENTED)
+            ) {
+                return;
+            }
+            const msg = `GNATcoverage analysis failed at '${getConventionalTaskLabel(task)}' (exit code ${exitCode}). See the task terminal for details.`;
+            writeEmitter.fire(msg + '\r\n');
+            void showTaskError(task, msg);
+        });
+        if (status === 0 && !token.isCancellationRequested) {
+            try {
+                // Only import a report updated by this execution. In particular,
+                // an old flat report must not hide a new report under xml/.
+                const reportPath = reportPaths.find((p, i) => {
+                    const current = statSync(p, { throwIfNoEntry: false });
+                    const previous = previousReports[i];
+                    return (
+                        current?.isFile() &&
+                        (current.mtimeMs !== previous?.mtimeMs ||
+                            current.ctimeMs !== previous?.ctimeMs ||
+                            current.size !== previous?.size ||
+                            current.ino !== previous?.ino)
+                    );
+                });
+                if (!reportPath) {
+                    throw new Error(`No new GNATcoverage report found under ${outputDir}`);
+                }
+                await loadGnatCoverageReport(reportPath, this.taskName, token);
+            } catch (err) {
+                if (err instanceof vscode.CancellationError || token.isCancellationRequested) {
+                    return 1;
+                }
+                const msg = `GNATcoverage analysis completed, but the report could not be loaded: ${
+                    err instanceof Error ? err.message : String(err)
+                }`;
+                writeEmitter.fire(msg + '\r\n');
+                void vscode.window.showErrorMessage(msg);
+            }
+        }
+        return token.isCancellationRequested ? 1 : status;
     }
+}
 
-    protected async getTasksToRun(): Promise<vscode.Task[]> {
-        const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
-        return Promise.all(this.taskNames.map((name) => findTaskByName(name, adaTasks)));
+/** Show a task error with an action to reveal its terminal. */
+export async function showTaskError(
+    task: vscode.Task,
+    message: string,
+    ...actions: string[]
+): Promise<string | undefined> {
+    const action = await vscode.window.showErrorMessage(message, 'Show Terminal', ...actions);
+    if (action === 'Show Terminal') {
+        const terminal = vscode.window.terminals.find(
+            (terminal) =>
+                terminal.name === task.name || terminal.name === getConventionalTaskLabel(task),
+        );
+        if (terminal) {
+            terminal.show();
+        } else {
+            await vscode.commands.executeCommand('workbench.action.terminal.focus');
+        }
     }
+    return action;
 }
 
 /**
@@ -1330,59 +1406,28 @@ class SequentialExecutionByName extends SequentialExecution {
  * complete successfully.
  *
  * @param tasks - list of tasks to run in sequence.
+ * @param onTaskFailure - optional callback for a nonzero process exit code;
+ * task termination without an exit code does not invoke it
+ * @param token - optional cancellation token to stop the active task and sequence
  * @returns Status of the last executed task.
  */
-export function runTaskSequence(
+export async function runTaskSequence(
     tasks: vscode.Task[],
     writeEmitter?: vscode.EventEmitter<string>,
+    onTaskFailure?: (task: vscode.Task, exitCode: number) => void,
+    token?: vscode.CancellationToken,
 ): Promise<number> {
-    let p = new Promise<number>((resolve) => resolve(0));
-    for (const t of tasks) {
-        p = p.then((status) => {
-            if (status == 0) {
-                return new Promise<number>((resolve, reject) => {
-                    const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-                        if (e.execution.task == t) {
-                            disposable.dispose();
-                            resolve(e.exitCode ?? 1);
-                        }
-                    });
-
-                    writeEmitter?.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
-                    vscode.tasks.executeTask(t).then(undefined, (reason) => {
-                        disposable.dispose();
-
-                        if (reason instanceof Error) {
-                            /**
-                             * Enrich the error message with an explanation if possible.
-                             */
-                            let msg = 'Could not execute task: ';
-                            if (reason.message === 'Task not found') {
-                                msg +=
-                                    'Task not found. This can happen in environments with many VS Code extensions providing tasks. Try again to see if the issue persists.';
-                            } else {
-                                msg += reason.message;
-                            }
-
-                            /**
-                             * Raise the enriched error.
-                             */
-                            reject(new Error(msg));
-                        } else {
-                            /**
-                             * Forward the reason as is.
-                             */
-                            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-                            reject(reason);
-                        }
-                    });
-                });
-            } else {
-                return status;
-            }
-        });
+    for (const task of tasks) {
+        if (token?.isCancellationRequested) return 1;
+        writeEmitter?.fire(`Executing task: ${getConventionalTaskLabel(task)}\r\n`);
+        const exitCode = await runTaskAndGetResult(task, token);
+        if (exitCode !== 0) {
+            if (exitCode !== undefined && !token?.isCancellationRequested)
+                onTaskFailure?.(task, exitCode);
+            return exitCode ?? 1;
+        }
     }
-    return p;
+    return 0;
 }
 
 /**
@@ -1550,58 +1595,76 @@ function isAlire(command: string | vscode.ShellQuotedString): boolean {
  * process exit code.
  *
  * @param task - a {@link vscode.Task}
+ * @param token - optional cancellation token to terminate the task
  * @returns a Promise that resolves to the underlying process exit code when the
  * task finishes execution.
  */
-export async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
-    return await new Promise<number | undefined>((resolve, reject) => {
-        let started = false;
-
-        const startDisposable = vscode.tasks.onDidStartTask((e) => {
-            if (e.execution.task == task) {
-                /**
-                 * Task was started, let's listen to the end.
-                 */
-                started = true;
-                startDisposable.dispose();
-            }
-        });
-
-        const endDisposable = vscode.tasks.onDidEndTaskProcess((e) => {
-            if (e.execution.task == task) {
-                endDisposable.dispose();
-                resolve(e.exitCode);
-            }
-        });
-
-        setTimeout(() => {
-            /**
-             * If the task has not started within the timeout below, it means an
-             * error occured during startup. Reject the promise.
-             */
-            if (!started) {
-                const msg = `The task '${getConventionalTaskLabel(
-                    task,
-                )}' was not started, likely due to an error.\n`;
-                reject(Error(msg));
-            }
-        }, 3000);
-
-        void vscode.tasks.executeTask(task);
-    }).catch(async (reason) => {
-        if (reason instanceof Error) {
-            let msg = 'The current list of tasks is:\n';
-            msg += await vscode.tasks.fetchTasks({ type: task.definition.type }).then(
-                (list) => list.map(getConventionalTaskLabel).join('\n'),
-
-                (reason) => `fetchTasks promise was rejected: ${reason}`,
+export function runTaskAndGetResult(
+    task: vscode.Task,
+    token?: vscode.CancellationToken,
+): Promise<number | undefined> {
+    if (token?.isCancellationRequested) return Promise.resolve(undefined);
+    return new Promise((resolve, reject) => {
+        let execution: vscode.TaskExecution | undefined;
+        let finished = false;
+        const disposables: vscode.Disposable[] = [];
+        const finish = (exitCode?: number, error?: Error) => {
+            if (finished) return;
+            finished = true;
+            disposables.forEach((d) => {
+                d.dispose();
+            });
+            if (error) reject(error);
+            else resolve(exitCode);
+        };
+        // executeTask resolves when the task starts, so subscribe to completion
+        // before launching it, including for tasks that finish immediately.
+        disposables.push(
+            vscode.tasks.onDidEndTaskProcess((e) => {
+                if (e.execution.task === task && !token?.isCancellationRequested)
+                    finish(e.exitCode);
+            }),
+        );
+        if (token) {
+            disposables.push(
+                token.onCancellationRequested(() => {
+                    // Stop waiting even if task startup has not returned a handle yet.
+                    finish();
+                    execution?.terminate();
+                }),
             );
-
-            reason.message += '\n' + msg;
         }
-
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        return Promise.reject(reason);
+        Promise.resolve()
+            .then(() => {
+                if (token?.isCancellationRequested) throw new vscode.CancellationError();
+                return vscode.tasks.executeTask(task);
+            })
+            .then(
+                (started) => {
+                    execution = started;
+                    // Cancellation may have happened before executeTask resolved.
+                    if (token?.isCancellationRequested) {
+                        finish();
+                        execution.terminate();
+                    }
+                },
+                (reason: unknown) => {
+                    if (
+                        token?.isCancellationRequested ||
+                        reason instanceof vscode.CancellationError
+                    ) {
+                        finish();
+                    } else {
+                        const detail = reason instanceof Error ? reason.message : String(reason);
+                        finish(
+                            undefined,
+                            new Error(
+                                `Could not execute task '${getConventionalTaskLabel(task)}': ${detail}`,
+                            ),
+                        );
+                    }
+                },
+            );
     });
 }
 

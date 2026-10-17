@@ -868,8 +868,9 @@ async function pickAndRunTaskWithPrefix(taskNamePrefix: string, noTasksMessage: 
  * Propose to the User a list of GNATcoverage 'Run all actions' tasks, one for
  * each main defined in the project. Each of these tasks runs the
  * instrumentation-based coverage analysis workflow for that main: instrument
- * the project, build it, run the main and generate a coverage report. The
- * GNATcoverage runtime library must have been set up beforehand, e.g. via the
+ * the project, build it, run the main, generate a coverage report and load it
+ * into VS Code after successful analysis. The GNATcoverage runtime library
+ * must have been set up beforehand, e.g. via the
  * 'GNATcoverage - Setup runtime library' task.
  */
 async function gnatcovRunAllActionsAsk() {

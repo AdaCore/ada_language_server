@@ -429,12 +429,15 @@ As an alternative to running tests in coverage mode via the Test Explorer, the `
 2. Build the instrumented project
 3. Run the Main
 4. Generate the coverage report, in the project's object directory
+5. Automatically load the report into VS Code after all steps succeed
 
 As with the GNATtest integration, run the task `ada: GNATcoverage - Setup runtime library` once beforehand to set up the GNATcoverage runtime library. If the instrumented project fails to build, VS Code prompts to run that setup task, since a missing or outdated runtime library is a common cause of failure.
 
-Unlike the GNATtest integration, the resulting report is not loaded into VS Code automatically: use the `ada: GNATcoverage - Load an existing coverage report` command described above to visualize it.
+The command launches the compound task `ada: GNATcoverage - Run all actions - <main>`. You can also select this task directly through `Tasks: Run Task` to run the same workflow, including automatic report loading. If a step fails, the workflow stops and an error notification identifies the failed step; select `Show Terminal` to inspect its output. Cancelled tasks do not show a failure notification. No report is loaded after failure or cancellation.
 
 Each step is also available as an individual task (`ada: GNATcoverage - Instrument project`, `ada: GNATcoverage - Build instrumented project`, `ada: GNATcoverage - Generate report - <main>`), so the workflow can be customized or run step by step if needed. See [Task Customization](#task-customization).
+
+The individual report-generation task does not automatically load its report. Use `ada: GNATcoverage - Load an existing coverage report` to import it manually. Automatic loading uses the project's object directory; if you customize the report task to write elsewhere, import that report manually as well.
 
 ## GNAT Metrics Support
 
