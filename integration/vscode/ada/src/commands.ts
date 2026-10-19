@@ -1485,10 +1485,14 @@ export async function getEnclosingSymbol(
         const line = editor.selection.active.line;
 
         // First get all symbols for current file
-        const symbols: vscode.DocumentSymbol[] = await vscode.commands.executeCommand(
+        const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[] | undefined>(
             'vscode.executeDocumentSymbolProvider',
             editor.document.uri,
         );
+
+        if (!symbols) {
+            return null;
+        }
 
         // Then filter them according to the specified kinds
         const filtered_symbols = getSymbols(symbols, kinds, [
