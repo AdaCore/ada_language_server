@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Completion snippets are now pretty printed using GNATformat
+
 ## 2027.0.202610121
 
 * Add a `Scenario` view to the Explorer sidebar, letting users see and change the values of a GPR project's scenario (external) variables without hand-editing the `ada.scenarioVariables` setting
