@@ -311,7 +311,8 @@ User or Remote scope, that value takes effect instead of falling back to
 When the workspace is an Alire crate (i.e. it contains an `alire.toml` file), the extension uses Alire to determine the GPR project that should be loaded and to obtain an environment where the crate's dependencies have been provisioned.
 
 Moreover when working with an Alire crate, VS Code tasks automatically use standard Alire commands. For example, the `ada: Build current project` task uses the command `alr build` and the `ada: Clean current project` task uses the command `alr clean`.
-The `Debug` command will search the crate's environment PATH variable for an Alire-specified toolchain.
+The `Debug` command searches the crate's environment PATH variable for GDB.
+The native GNAT toolchain downloaded by Alire includes GDB, so no separate GDB installation is needed when using that toolchain.
 
 All other tasks use `alr exec -- ...` to execute the command in the environment provided by Alire.
 

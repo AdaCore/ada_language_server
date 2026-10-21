@@ -41,6 +41,7 @@ import {
 import * as meta from '../package.json';
 import { activateE3TestsuiteIntegration } from './e3Testsuite';
 import { resumeHelloWorldWalkthrough } from './walkthrough';
+import { initializeAlireEnvironment } from './alire';
 
 export const EXTENSION_NAME: string = meta.displayName;
 
@@ -138,6 +139,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 async function activateExtension(context: vscode.ExtensionContext) {
+    initializeAlireEnvironment(context);
     assertSupportedEnvironments(logger);
 
     // Log the environment that the extension (and all VS Code) will be using

@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
-import { envHasExec, getToolEnvironment, which } from './helpers';
-import { runTaskAndGetResult } from './taskProviders';
+import { envHasExec, exe, which } from './helpers';
+import { createInteractiveToolTask, runTaskAndGetResult } from './taskProviders';
 
 const HELLO_WALKTHROUGH_FOLDER = 'ada.walkthrough.helloFolder';
 
@@ -9,7 +9,8 @@ const HELLO_WALKTHROUGH_FOLDER = 'ada.walkthrough.helloFolder';
 export async function createHelloWorldProject(context: vscode.ExtensionContext) {
     if (!envHasExec('alr')) {
         void vscode.window.showErrorMessage(
-            'Alire was not found. Install Alire and add alr to PATH, then restart VS Code.',
+            'Alire was not found. Install Alire and add the directory containing ' +
+                'the alr executable to PATH, then restart VS Code.',
         );
         return;
     }
@@ -42,29 +43,16 @@ export async function createHelloWorldProject(context: vscode.ExtensionContext) 
  * the build to finish so dependencies and generated configuration are ready
  * before the language server loads the crate.
  */
-export async function downloadHelloWorldProject(
-    parent: vscode.Uri,
-    runTask = runTaskAndGetResult,
-): Promise<vscode.Uri> {
+export async function downloadHelloWorldProject(parent: vscode.Uri): Promise<vscode.Uri> {
     const fs = vscode.workspace.fs;
     const existing = new Set((await fs.readDirectory(parent)).map(([name]) => name));
-    const task = new vscode.Task(
-        { type: 'process' },
-        vscode.TaskScope.Global,
+    const task = createInteractiveToolTask(
         'Download and build Alire Hello World',
-        'ada',
-        new vscode.ProcessExecution(which('alr') ?? 'alr', ['get', '--build', 'hello'], {
-            cwd: parent.fsPath,
-            env: Object.fromEntries(
-                Object.entries(getToolEnvironment()).filter(
-                    (entry): entry is [string, string] => entry[1] !== undefined,
-                ),
-            ),
-        }),
-        [],
+        which('alr') ?? `alr${exe}`,
+        ['get', '--build', 'hello'],
+        parent.fsPath,
     );
-    task.presentationOptions = { reveal: vscode.TaskRevealKind.Always, focus: true };
-    if ((await runTask(task)) !== 0) {
+    if ((await runTaskAndGetResult(task)) !== 0) {
         throw new Error('Alire did not complete successfully. See the task terminal for details.');
     }
 
@@ -77,9 +65,9 @@ export async function downloadHelloWorldProject(
         throw new Error('Could not locate the downloaded hello crate.');
     }
     const crateUri = vscode.Uri.joinPath(parent, downloaded[0][0]);
-    await fs.stat(vscode.Uri.joinPath(crateUri, 'alire.toml'));
-    await fs.stat(vscode.Uri.joinPath(crateUri, 'hello.gpr'));
-    await fs.stat(vscode.Uri.joinPath(crateUri, 'src', 'hello.adb'));
+    for (const file of ['alire.toml', 'hello.gpr', 'src/hello.adb']) {
+        await fs.stat(vscode.Uri.joinPath(crateUri, file));
+    }
     return crateUri;
 }
 
@@ -128,7 +116,7 @@ export async function walkthroughStartDebugging() {
         if (begin >= 0 && line >= 0) {
             const location = new vscode.Location(mainUri, new vscode.Position(line, 0));
             await vscode.window.showTextDocument(document, {
-                selection: new vscode.Range(location.range.start, location.range.start),
+                selection: location.range,
             });
             const alreadySet = vscode.debug.breakpoints.some(
                 (breakpoint) =>

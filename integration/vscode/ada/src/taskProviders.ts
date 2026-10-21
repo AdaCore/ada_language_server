@@ -31,7 +31,12 @@ import {
 } from './constants';
 import { adaExtState, logger } from './extension';
 import { getGnatTestDriverProjectPath, loadGnatCoverageReport } from './gnattest';
-import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpers';
+import {
+    AdaMain,
+    getAdaMains,
+    getToolEnvironment,
+    showErrorMessageWithOpenLogButton,
+} from './helpers';
 
 export const TASK_TYPE_ADA = 'ada';
 export const TASK_TYPE_SPARK = 'spark';
@@ -1588,6 +1593,32 @@ function isAlire(command: string | vscode.ShellQuotedString): boolean {
     const value = typeof command == 'string' ? command : command.value;
     const commandBasename = basename(value);
     return commandBasename.match(/^alr(\.exe)?$/) != null;
+}
+
+/** Create a global tool task with the extension's environment and a focused terminal. */
+export function createInteractiveToolTask(
+    name: string,
+    executable: string,
+    args: string[],
+    cwd: string,
+): vscode.Task {
+    const task = new vscode.Task(
+        { type: 'process' },
+        vscode.TaskScope.Global,
+        name,
+        'ada',
+        new vscode.ProcessExecution(executable, args, {
+            cwd,
+            env: Object.fromEntries(
+                Object.entries(getToolEnvironment()).filter(
+                    (entry): entry is [string, string] => entry[1] !== undefined,
+                ),
+            ),
+        }),
+        [],
+    );
+    task.presentationOptions = { reveal: vscode.TaskRevealKind.Always, focus: true };
+    return task;
 }
 
 /**

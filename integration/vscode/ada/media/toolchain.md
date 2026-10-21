@@ -1,11 +1,13 @@
-Ada and SPARK are compiled languages which means that a compiler is needed to translate the source code into a program that can be executed.
+Use [Alire](https://alire.ada.dev/), the Ada and SPARK package manager, to install a compiler and manage project dependencies.
 
-For community users, we recommend [Alire](https://alire.ada.dev/), the package manager for Ada and SPARK. It downloads compiler toolchains and manages your project's library dependencies.
+1. Click **Install Alire** to use an existing installation or install it in a folder of your choice (default: `~/alire`).
+2. In the terminal that opens, select the native GNAT compiler (`gnat_native`) and GPRbuild. Accept any setup prompts, including MSYS2 on Windows.
+3. Continue with **Get an Alire project** to download the Hello World example.
 
-1. [Download and install Alire](https://alire.ada.dev/docs/#installation) for your platform.
-2. Make the `alr` command available on the `PATH` used to start VS Code. Restart VS Code after changing your environment. On Windows, you can start VS Code from the Alire PowerShell shortcut.
-3. In a terminal, run `alr toolchain --select` and select the native GNAT compiler (`gnat_native`) and GPRbuild. Alire downloads the selected tools. Accept any platform setup prompts needed by Alire.
+The native GNAT toolchain downloaded by Alire includes GDB. The extension finds it automatically when debugging an Alire project, so no separate GDB installation is needed for this walkthrough.
 
-The next step downloads an example Alire project. The extension uses its Alire environment automatically, so you do not need to add the downloaded compiler's directory to `PATH` separately.
+Alire is available in new VS Code terminals after setup. To use it elsewhere, follow **Use Alire outside VS Code** in the completion message.
+
+For [manual installation](https://alire.ada.dev/docs/#installation), set `ada.alire.executablePath` or add the directory containing the `alr` executable to `PATH`, then restart VS Code. Windows ARM64 requires Windows 11 for automatic installation; on Windows 10, use a compatible manual installation or WSL.
 
 Already have an AdaCore subscription? You can use your [GNAT Pro tools](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/ada#getting-additional-tools) with Alire by selecting the tools available in your environment.

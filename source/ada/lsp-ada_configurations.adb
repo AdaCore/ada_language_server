@@ -485,6 +485,7 @@ package body LSP.Ada_Configurations is
 
             elsif Name = "showNotificationsOnErrors"
               or else Name = "metricThresholds"
+              or else Name = "alire.executablePath"
             then
                --  These are VS Code only settings, treated at the VS Code
                --  extension's level. We still include them here to mark them as
@@ -500,6 +501,11 @@ package body LSP.Ada_Configurations is
                --  extension's level. We still include them here to mark them
                --  as recognized and to support the settings-doc test that
                --  checks that each setting is documented.
+               null;
+
+            elsif Name.Starts_With ("alire")
+            then
+               --  VS Code can send alire settings as a nested JSON object.
                null;
 
             elsif Name.Starts_With ("projectView")

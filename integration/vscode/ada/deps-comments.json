@@ -40,6 +40,7 @@
         "command-exists": "Utility to check if a command-line program exists on the system",
         "elkjs": "Graph layout library using Eclipse Layout Kernel for automatic graph arrangement",
         "fast-xml-parser": "High-performance XML parser for reading and writing XML files (used for GNATcoverage reports)",
+        "fflate": "Extracts the Alire executable and license from downloaded ZIP archives without requiring external extraction tools",
         "fp-ts": "Functional programming library for TypeScript providing type-safe functional constructs",
         "process": "Polyfill for Node.js process global object for browser environments",
         "react": "JavaScript library for building user interfaces with component-based architecture",

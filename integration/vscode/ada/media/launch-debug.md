@@ -17,6 +17,10 @@ Ada debugging leverages the integration of GDB through the [Microsoft C/C++](com
 
 You can start debugging by running the [`Debug: Start Debugging`](command:toSide:ada.walkthroughStartDebugging) command and selecting `Ada` if multiple languages are offered.
 
-For the Hello World example, the walkthrough sets a breakpoint in `src/hello.adb`. The extension uses the Alire environment to find GDB; if your toolchain does not include it, install GDB for your platform and make it available on `PATH`.
+The extension generates the debug configuration from the project's `Main` entry points. No `launch.json` file is needed to debug the Hello World example.
+
+For the Hello World example, the walkthrough sets a breakpoint in `src/hello.adb`. The native GNAT toolchain downloaded by Alire includes GDB, which the extension finds automatically in the crate's Alire environment. No separate GDB installation is needed for this walkthrough.
+
+If you use a different toolchain that does not include GDB, install GDB for your platform and make it available on `PATH`.
 
 If you would like to provide command line arguments to the debugged program or customize GDB's behavior, use the [`Debug: Add Configuration`](command:toSide:debug.addConfiguration) command to create a `launch.json` where you can customize these aspects.

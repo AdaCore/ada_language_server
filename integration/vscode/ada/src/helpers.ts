@@ -24,6 +24,7 @@ import winston from 'winston';
 
 import { spawnSync } from 'child_process';
 import { existsSync } from 'fs';
+import { applyManagedToolEnvironment, parseAlireEnvironment } from './toolEnvironment';
 import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
 import {
     ALS_GprDependencyDirection,
@@ -217,8 +218,8 @@ export function getArgValue(a: string | vscode.ShellQuotedString): string {
 }
 
 /**
- * Read the environment variables specified in the vscode setting
- * `terminal.integrated.env.<os>` and set them in the given ProcessEnv object.
+ * Apply `terminal.integrated.env.<os>` overrides and the directories of tools
+ * installed through the extension to the given process environment.
  *
  * The targetEnv can be `process.env` to apply the changes to the environment of
  * the running process.
@@ -232,6 +233,13 @@ export function setTerminalEnvironment(targetEnv: NodeJS.ProcessEnv, custom_env?
     if (custom_env) {
         for (const var_name in custom_env) {
             const var_value = custom_env[var_name];
+            if (isWindows && var_name.toUpperCase() === 'PATH') {
+                // A workspace's Path override must replace any inherited PATH
+                // regardless of the spelling used by either environment.
+                for (const key of Object.keys(targetEnv)) {
+                    if (key.toUpperCase() === 'PATH') delete targetEnv[key];
+                }
+            }
             if (var_value == null) {
                 /**
                  * If the value is null, delete it from the target env if it
@@ -245,12 +253,13 @@ export function setTerminalEnvironment(targetEnv: NodeJS.ProcessEnv, custom_env?
             }
         }
     }
+    applyManagedToolEnvironment(targetEnv);
 }
 
 /**
  * @returns a copy of this process's environment with the user's
- * `terminal.integrated.env.<os>` settings applied, i.e. the environment that a
- * tool spawned by the extension should run in.
+ * `terminal.integrated.env.<os>` settings and managed tool paths applied, i.e.
+ * the environment that a tool spawned by the extension should run in.
  *
  * Use this rather than `process.env` when spawning anything, so that a tool
  * resolves and behaves the same way it would in the user's terminal.
@@ -884,19 +893,19 @@ export async function belongsToLoadedProject(
  * @returns Key-value table of Alire environment variables if any
  */
 export function getAlireEnv(alireToml: vscode.Uri): EnvTable | undefined {
-    const alrDriver = 'alr';
-    if (!envHasExec(alrDriver)) {
+    const alrDriver = which('alr');
+    if (!alrDriver) {
         logger.warn('Could not find alr executable.');
         return undefined;
     } else {
         logger.info('Checking Alire environment...');
     }
-    const alrExecArgs = ['--non-interactive', 'printenv'];
+    const alrExecArgs = ['--non-interactive', 'printenv', '--unix'];
     // Need to run Alire commands in directory containing alire.toml
     const crateRoot = path.dirname(alireToml.fsPath);
     const alrProc = spawnSync(alrDriver, alrExecArgs, {
         cwd: crateRoot,
-        shell: true,
+        env: getToolEnvironment(),
         timeout: 3000,
         encoding: 'buffer',
     });
@@ -913,21 +922,5 @@ export function getAlireEnv(alireToml: vscode.Uri): EnvTable | undefined {
      *   export PATH="/home/work/share/alire/toolchains/gprbuild_22.0.1_24dfc15/bin:/usr/bin"
      *
      */
-    const newLineRgx = /[\r,\n,\r\n]/g;
-    // Names of environment variable are relatively simple
-    const varNameRgx = '(?<alrName>\\w+)\\s*';
-    // but values may include complicated paths and enclosing quotes (which we ignore)
-    const varValRgx = '\\s*[\',"]?(?<alrVal>[\\w,/,\\\\,.,:,;,~,-]+)[\',"]?';
-    // e.g. 'export BUILD_MODE="prod"' -> alrName: 'BUILD_MODE', alrVal: 'prod'
-    const alrEnvStmtRgx = new RegExp(`${varNameRgx}=${varValRgx}`);
-
-    // Parse all environment variable assignments
-    const alrOutput = alrProc.stdout.toString('utf-8').split(newLineRgx) || [];
-    const alrEnvKeyPairs = alrOutput
-        .map((line) => line.match(alrEnvStmtRgx)?.groups)
-        .filter((m) => m != undefined);
-    const alireEnv: EnvTable = Object.fromEntries(
-        alrEnvKeyPairs.map((matched) => [matched.alrName, matched.alrVal]),
-    );
-    return alireEnv;
+    return parseAlireEnvironment(alrProc.stdout.toString('utf-8'));
 }
