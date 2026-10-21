@@ -9,10 +9,14 @@ To provide command line argument to your executable, use the gear icon at the ri
 
 Alternatively, open a new terminal and launch the executable manually with the desired command line arguments.
 
+For the Alire Hello World example, you can also run `alr run` in the crate's folder to build and launch it, or `alr run -- arg1 arg2` to pass arguments.
+
 # 🐞 Debug
 
 Ada debugging leverages the integration of GDB through the [Microsoft C/C++](command:toSide:extension.open?%22ms-vscode.cpptools%22) VS Code extension.
 
 You can start debugging by running the [`Debug: Start Debugging`](command:toSide:ada.walkthroughStartDebugging) command and selecting `Ada` if multiple languages are offered.
+
+For the Hello World example, the walkthrough sets a breakpoint in `src/hello.adb`. The extension uses the Alire environment to find GDB; if your toolchain does not include it, install GDB for your platform and make it available on `PATH`.
 
 If you would like to provide command line arguments to the debugged program or customize GDB's behavior, use the [`Debug: Add Configuration`](command:toSide:debug.addConfiguration) command to create a `launch.json` where you can customize these aspects.

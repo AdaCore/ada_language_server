@@ -93,7 +93,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand(CMD_RESTART_LANG_SERVERS, restartLanguageServers),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.createHelloWorldProject', createHelloWorldProject),
+        vscode.commands.registerCommand('ada.createHelloWorldProject', () =>
+            createHelloWorldProject(context),
+        ),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.visualizeCalls', () =>

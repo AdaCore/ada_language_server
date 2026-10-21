@@ -18,6 +18,7 @@
         "ms-vscode.live-server"
     ],
     "activationEvents": [
+        "onWalkthrough:als-get-started",
         "workspaceContains:*.gpr",
         "workspaceContains:*/*.gpr",
         "workspaceContains:*.ad[bs]",
@@ -1972,7 +1973,7 @@
                     {
                         "id": "als-get-started-install-toolchain",
                         "title": "Install development tools",
-                        "description": "Install an Ada compiler to execute your source code.\n[Install a Compiler](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/ada#getting-additional-tools)",
+                        "description": "Install Alire to download and manage your Ada compiler, build tools, and libraries.\n[Download Alire](https://alire.ada.dev/)",
                         "media": {
                             "markdown": "media/toolchain.md"
                         }
@@ -1980,7 +1981,7 @@
                     {
                         "id": "als-get-started-open-workspace",
                         "title": "Open a VS Code workspace",
-                        "description": "Create a new folder or use an existing one, and open it with VS Code.\n[Open Folder](command:vscode.openFolder)",
+                        "description": "For an existing Alire project, open the folder containing alire.toml. To try the Hello World example, continue to the next step and choose where to download it.\n[Open Folder](command:vscode.openFolder)",
                         "media": {
                             "markdown": "media/empty.md"
                         },
@@ -1988,8 +1989,8 @@
                     },
                     {
                         "id": "als-get-started-create-project",
-                        "title": "Setup a project",
-                        "description": "If you don't already have a GPR project, create one!\n[Create a Hello World Project](command:toSide:ada.createHelloWorldProject)\nAlready have a project? [Open Project](command:ada.openProjectFile)",
+                        "title": "Get an Alire project",
+                        "description": "Download and build the hello example from Alire, then open it in VS Code.\n[Get the Alire Hello World Project](command:toSide:ada.createHelloWorldProject)\nAlready have a project? [Open Folder](command:vscode.openFolder)",
                         "media": {
                             "markdown": "media/project.md"
                         }
@@ -2005,7 +2006,7 @@
                     {
                         "id": "als-get-started-build",
                         "title": "Build your project",
-                        "description": "Use automatically provided `ada` tasks to build your project.\n[Run Build Task](command:workbench.action.tasks.build)",
+                        "description": "Use the automatically provided Ada build task, which runs alr build for Alire projects.\n[Run Build Task](command:workbench.action.tasks.build)",
                         "media": {
                             "markdown": "media/build.md"
                         },
