@@ -53,12 +53,9 @@ If you are an [AdaCore](https://www.adacore.com/) customer, log into your accoun
 
 ### Community Users
 
-The Ada & SPARK tools are available to the community through different channels:
-
-* [ALIRE](https://alire.ada.dev/): The Ada LIbrary Repository provides the means to install compiler [toolchains](https://alire.ada.dev/docs/#toolchain-management).
-The `gnatprove` crate provides GNATprove.
-Both tools are available for Linux, Windows and macOS (Intel and Apple silicon)
-* On Windows with [msys2](https://www.msys2.org/) you can install the `gcc` and `gprbuild` packages.
+The Ada and SPARK tools are available to the community through [ALIRE](https://alire.ada.dev/), the Ada Library Repository, which simplifies the installation and management of compiler toolchains.
+GNATprove is available through the `gnatprove` crate.
+Both the compiler toolchains and GNATprove are available on Linux, Windows, and macOS (Intel and Apple silicon).
 
 ## Documentation
 
