@@ -83,9 +83,8 @@ package body LSP.Ada_Handlers.Refactor is
 
       Name            : constant String :=
         LSP.Ada_Handlers.Refactor.Command'Class (Self).Name;
-      Error_Msg       : constant String := "Failed to execute the "
-        & Name
-        & " refactoring.";
+      Error_Msg       : constant String :=
+        "Failed to execute the " & Name & " refactoring.";
       Apply           : LSP.Structures.ApplyWorkspaceEditParams;
       Workspace_Edits : LSP.Structures.WorkspaceEdit renames Apply.edit;
       Label           : Virtual_String_Optional renames Apply.label;

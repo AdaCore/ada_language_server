@@ -1,0 +1,7 @@
+project Default is
+   for Source_Dirs use (".");
+   package Naming is
+      for Body_Suffix ("Ada") use ".crab";
+      for Spec_Suffix ("Ada") use ".ads";
+   end Naming;
+end Default;

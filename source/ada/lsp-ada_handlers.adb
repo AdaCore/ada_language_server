@@ -23,8 +23,6 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 
-with LAL_Refactor.Generate_Package;
-with LAL_Refactor.Sort_Case;
 with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Indexing;
 with LSP.Ada_Semantic_Diagnostics;
@@ -40,15 +38,17 @@ with Laltools.Common;
 
 with Langkit_Support.Text;
 
+with LAL_Refactor.Auto_Import;
 with LAL_Refactor.Delete_Entity;
 with LAL_Refactor.Extract_Subprogram;
 with LAL_Refactor.Extract_Variable;
+with LAL_Refactor.Generate_Package;
 with LAL_Refactor.Generate_Subprogram;
 with LAL_Refactor.Inline_Variable;
 with LAL_Refactor.Introduce_Parameter;
 with LAL_Refactor.Pull_Up_Declaration;
-with LAL_Refactor.Auto_Import;
 with LAL_Refactor.Replace_Type;
+with LAL_Refactor.Sort_Case;
 with LAL_Refactor.Sort_Dependencies;
 with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
@@ -1270,13 +1270,14 @@ package body LSP.Ada_Handlers is
             use Libadalang.Analysis;
             use LAL_Refactor.Generate_Package;
             use LSP.Ada_Handlers.Refactor.Generate_Package;
+
             use type LSP.Structures.Position;
 
+            Single_Location          : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
             Generate_Package_Command : Command;
             Spec                     : Base_Package_Decl :=
               No_Base_Package_Decl;
-            Single_Location          : constant Boolean :=
-              Value.a_range.start = Value.a_range.an_end;
          begin
             if Single_Location
               and then Is_Generate_Package_Available (Node, Spec)
@@ -1284,11 +1285,9 @@ package body LSP.Ada_Handlers is
                Generate_Package_Command.Append_Code_Action
                  (Context         => Context,
                   Commands_Vector => Result,
-                  Spec_Loc        => Context.To_LSP_Location
-                    (Spec.Unit.Get_Filename, Self.To_LSP_Range (Spec)),
-                  Body_Path       =>
-                    VSS.Strings.Conversions.To_Virtual_String
-                      (Get_Body_Path (Spec)),
+                  Spec_Loc        =>
+                    Context.To_LSP_Location
+                      (Spec.Unit.Get_Filename, Self.To_LSP_Range (Spec)),
                   New_File        => not Package_Body_Exists (Spec));
                Found := True;
             else

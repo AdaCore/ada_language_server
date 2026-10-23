@@ -15,17 +15,18 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Langkit_Support.Slocs; use Langkit_Support.Slocs;
+with VSS.JSON.Streams;
+with VSS.Strings.Conversions;
 
-with Libadalang.Analysis; use Libadalang.Analysis;
-with Libadalang.Common;   use Libadalang.Common;
+with GPR2;
 
-with LAL_Refactor; use LAL_Refactor;
+with Langkit_Support.Slocs;         use Langkit_Support.Slocs;
+with Libadalang.Analysis;           use Libadalang.Analysis;
+with Libadalang.Common;             use Libadalang.Common;
+with LAL_Refactor;                  use LAL_Refactor;
 with LAL_Refactor.Generate_Subprogram;
 
 with LSP.Structures;
-with VSS.JSON.Streams;
-with VSS.Strings.Conversions;
 with LSP.Enumerations;
 with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 
@@ -146,6 +147,23 @@ package body LSP.Ada_Handlers.Refactor.Generate_Subprogram is
       function Analysis_Units return Analysis_Unit_Array
       is (Context.Analysis_Units);
       --  Provide project context for refactor engine
+
+      function Project_Attribute_Cbk
+        (Attribute : GPR2.Q_Attribute_Id; Default : String := "")
+         return String;
+      --  Provide project attribute lookup for refactor engine
+
+      ---------------------------
+      -- Project_Attribute_Cbk --
+      ---------------------------
+
+      function Project_Attribute_Cbk
+        (Attribute : GPR2.Q_Attribute_Id; Default : String := "") return String
+      is
+         Idx : constant String := "Ada";
+      begin
+         return Context.Project_Attribute_Value (Attribute, Idx, Default);
+      end Project_Attribute_Cbk;
    begin
       Document := Message_Handler.Get_Open_Document (Self.Subp_Start.uri);
       Node := Document.Get_Node_At (Context, Self.Subp_Start.a_range.start);
@@ -158,8 +176,9 @@ package body LSP.Ada_Handlers.Refactor.Generate_Subprogram is
                  Node));
       else
          Edits :=
-           Create_Subprogram_Generator (Target_Subp).Refactor
-             (Analysis_Units'Access);
+           Create_Subprogram_Generator
+             (Target_Subp, Project_Attribute_Cbk'Unrestricted_Access)
+             .Refactor (Analysis_Units'Access);
       end if;
    exception
       when E : others =>

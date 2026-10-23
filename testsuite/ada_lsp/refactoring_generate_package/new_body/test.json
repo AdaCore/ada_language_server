@@ -164,7 +164,6 @@
                         "arguments": [
                            {
                               "context_id": "$URI{default.gpr}",
-                              "body_path": "${DIR}${DIR_SEP}pkg.adb",
                               "spec_loc": {
                                  "uri": "$URI{pkg.ads}",
                                  "range": {
@@ -191,7 +190,6 @@
                "arguments": [
                   {
                      "context_id": "$URI{default.gpr}",
-                     "body_path": "${DIR}${DIR_SEP}pkg.adb",
                      "spec_loc": {
                         "range": {
                            "start": { "line": 0, "character": 0 },
