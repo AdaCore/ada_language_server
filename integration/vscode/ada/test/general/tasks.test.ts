@@ -7,6 +7,7 @@ import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
 import { exe, getProjectFile } from '../../src/helpers';
 import {
     createAdaTaskProvider,
+    createSparkTaskProvider,
     findTaskByName,
     getConventionalTaskLabel,
     isFromWorkspace,
@@ -195,6 +196,59 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
         });
         assert.equal(getSelectedRegion(vscode.window.activeTextEditor), '16:18');
     });
+
+    /**
+     * Task discovery evaluates --limit-subp before gnatprove is run, including
+     * in environments without SPARK tooling. Symbol lookup may return undefined
+     * or an empty array.
+     * Check that both results mean no enclosing symbol and that task resolution
+     * uses the existing file/line-number fallback instead.
+     */
+    for (const symbols of [undefined, []]) {
+        test(`SPARK tasks without document symbols (${JSON.stringify(symbols)})`, async () => {
+            assert(vscode.workspace.workspaceFolders);
+            const uri = vscode.Uri.joinPath(
+                vscode.workspace.workspaceFolders[0].uri,
+                'src',
+                'test.adb',
+            );
+            const editor = await vscode.window.showTextDocument(uri);
+            const originalExecuteCommand = vscode.commands.executeCommand;
+
+            // Simulate missing symbols while letting the other task argument
+            // commands execute normally, so the test covers task resolution.
+            vscode.commands.executeCommand = <T>(command: string, ...args: unknown[]) => {
+                if (command === 'vscode.executeDocumentSymbolProvider') {
+                    return Promise.resolve(symbols as T);
+                }
+                return originalExecuteCommand<T>(command, ...args);
+            };
+
+            try {
+                // Missing symbols must be treated as no enclosing subprogram.
+                assert.strictEqual(
+                    await getEnclosingSymbol(editor, [vscode.SymbolKind.Function]),
+                    null,
+                );
+                const tasks = await createSparkTaskProvider().provideTasks();
+                for (const name of ['Prove subprogram', 'Examine subprogram']) {
+                    const task = tasks.find((t) => t.name === name);
+
+                    // Both tasks must remain available as shell invocations.
+                    assert(task, `${name} should still be offered without document symbols`);
+                    assert(task.execution instanceof vscode.ShellExecution);
+
+                    // Without a subprogram's start line, defer to VS Code's
+                    // current file and cursor line when the task runs.
+                    assert(
+                        task.execution.args.includes('--limit-subp=${fileBasename}:${lineNumber}'),
+                    );
+                }
+            } finally {
+                vscode.commands.executeCommand = originalExecuteCommand;
+            }
+        });
+    }
 
     /**
      * Verify that {@link findTaskByName} returns the predefined task that
