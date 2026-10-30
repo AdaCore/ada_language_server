@@ -481,6 +481,8 @@ begin
         & "ALS.OUT=no"
         & Ada.Characters.Latin_1.LF
         & "DEBUG.ABSOLUTE_TIME=yes"
+        & Ada.Characters.Latin_1.LF
+        & "DEBUG.ELAPSED_TIME=yes"
         & Ada.Characters.Latin_1.LF;
    begin
       --  Look for a traces file, in this order:
