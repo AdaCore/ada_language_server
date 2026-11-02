@@ -493,9 +493,18 @@ Conversely, in VS Code this settings can be set without nesting:
 
 ### rangeFormattingFallback
 
-This option controls if the `textDocument/rangeFormatting` request should fallback to another
+This option controls if the `textDocument/rangeFormatting` request should fallback to another 
 indenter in case the code is not syntactically correct. If disabled, `textDocument/rangeFormatting`
 will return an error if the code is not syntactically correct.
+
+ALS uses the project's `Format.Layout` (`default` or `tall`) and `Format.Override_Layout` attributes
+for language-wide or source-specific layouts, matching GNATformat's `--layout` and `--override-layout` switches.
+
+Layout loading failures cause document and range formatting to return `RequestFailed` with
+configuration diagnostics and no edits. Completion snippets keep their original text, and diagnostics
+are logged.
+
+Layouts and loading errors are cached. Reload the project or restart ALS after changing an override file.
 
 ### rangeFormatting.formatChoice
 

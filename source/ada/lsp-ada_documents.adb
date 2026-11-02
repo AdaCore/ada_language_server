@@ -844,23 +844,11 @@ package body LSP.Ada_Documents is
              Source_Filename => Source_Filename,
              Error           => Error);
    begin
-<<<<<<< HEAD
-      if not Unparsing_Diagnostics.Is_Empty then
-         Self.Tracer.Trace_Debug
-           ("Diagnostics found while loading the unparsing configuration for "
-            & Source_Filename
-            & ":");
-         for Diagnostic of Unparsing_Diagnostics loop
-            Self.Tracer.Trace_Debug
-              (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
-         end loop;
-=======
       --  Reject a failed layout before formatting or constructing replacement
       --  text, for both document formatting and range formatting.
       if not Error.Is_Empty then
          Result.Clear;
          return;
->>>>>>> 69068ddf (Adapt the gnatformat integration for the unparsing diagnostics handling)
       end if;
 
       declare
