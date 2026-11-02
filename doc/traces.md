@@ -33,19 +33,42 @@ The first line of the traces files defines the traces output stream (a filename 
 
 Note that you can provide another traces configuration file via the `--tracefile=<FILE>` command line option.
 
+### Resetting to the default configuration
+
+Existing traces configuration files are preserved when ALS is updated. To use
+the current defaults, including after enabling verbose traces for troubleshooting:
+
+1. Delete or rename `$HOME/.als/ada_ls_traces.cfg` and
+   `$HOME/.als/gpr_ls_traces.cfg`. If `ALS_HOME` is set, use `$ALS_HOME/.als/`
+   instead of `$HOME/.als/`.
+2. Restart the language servers. In VS Code, run **Ada: Restart Language Servers**
+   from the Command Palette.
+
+Each server recreates its missing configuration file with the defaults when it
+starts. These defaults enable `DEBUG.ABSOLUTE_TIME` and `DEBUG.ELAPSED_TIME` and
+disable `ALS.IN` and `ALS.OUT`. Input and output tracing can significantly slow
+down the servers and can include source code contents, which may be sensitive or
+confidential. Review these logs before sharing them and reset the configuration
+after collecting verbose logs.
+
+If you launch ALS with `--tracefile=<FILE>`, remove that option to return to the
+default configuration files.
+
 ## Supported Traces
 
 Here is a list of the most useful supported traces:
 
 ### `ALS.IN` (default: no)
 
-Shows all the server's input. Use this way:
+Shows all the server's input, which can include source code contents. These may
+be sensitive or confidential; review the logs before sharing them. Use this way:
 
     ALS.IN=yes
 
 ### `ALS.OUT` (default: no)
 
-Shows all the server's output. Use this way:
+Shows all the server's output, which can include source code contents. These may
+be sensitive or confidential; review the logs before sharing them. Use this way:
 
     ALS.OUT=yes
 
@@ -55,6 +78,19 @@ Trace requests, notifications and responses in ALS log files. Will
 also log any exception that occurs when handling LSP requests.
 
     ALS.MAIN=yes
+
+### `DEBUG.ABSOLUTE_TIME` (default: yes)
+
+Include a timestamp in each trace message.
+
+    DEBUG.ABSOLUTE_TIME=yes
+
+### `DEBUG.ELAPSED_TIME` (default: yes)
+
+Include the elapsed time since the previous message from the same trace handle
+to help investigate performance issues.
+
+    DEBUG.ELAPSED_TIME=yes
 
 ### `ALS.ALLOW_INCREMENTAL_TEXT_CHANGES` (default: yes)
 
