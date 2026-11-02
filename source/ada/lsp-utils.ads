@@ -74,6 +74,12 @@ package LSP.Utils is
    function Is_Empty_Range (Value : LSP.Structures.A_Range) return Boolean;
    --  Check if range is empty
 
+   function Before (Left, Right : LSP.Structures.Position) return Boolean
+   is (Left.line < Right.line
+       or else
+         (Left.line = Right.line and then Left.character < Right.character));
+   --  Return True when Left is strictly before Right in the document.
+
    function Overlaps (Left, Right : LSP.Structures.A_Range) return Boolean;
    --  Return True if Left and Right ranges overlap.
 

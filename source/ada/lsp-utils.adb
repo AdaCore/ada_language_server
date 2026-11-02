@@ -560,11 +560,6 @@ package body LSP.Utils is
    -------------
 
    function Overlaps (Left, Right : LSP.Structures.A_Range) return Boolean is
-      function Before
-        (L, R : LSP.Structures.Position) return Boolean is
-          (L.line < R.line
-             or else (L.line = R.line and then L.character < R.character));
-      --  Return True when L is strictly before R.
    begin
       --  Two ranges overlap unless one ends strictly before the other begins.
       return not (Before (Left.an_end, Right.start)

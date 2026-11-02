@@ -29,6 +29,7 @@ with GNATCOLL.Traces; use GNATCOLL.Traces;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents.Semantic_Diagnostics;
 with LSP.Servers;
+with LSP.Utils;
 
 package body LSP.Ada_Semantic_Diagnostics is
 
@@ -58,8 +59,8 @@ package body LSP.Ada_Semantic_Diagnostics is
       use type LSP.Ada_Handlers.Project_Stamp;
       use type LSP.Ada_Documents.Document_Access;
 
-      Document : constant LSP.Ada_Documents.Document_Access
-        := Self.Handler.Get_Open_Document (Self.Document_URI);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Handler.Get_Open_Document (Self.Document_URI);
       --  Fetch the document on every call of `Execute` to prevent dangling
       --  pointers if the document was closed while this job was in the
       --  queue.
@@ -67,8 +68,7 @@ package body LSP.Ada_Semantic_Diagnostics is
       --  The document to analyze.
 
       procedure Process_Node (Node : Ada_Node);
-      --  Process a single node during traversal: if it is an xref entry point and
-      --  overlaps changed ranges (when applicable), extract diagnostics and add
+      --  If the node is an xref entry point, extract its diagnostics and add
       --  them to Self.Errors.
 
       ------------------
@@ -83,40 +83,10 @@ package body LSP.Ada_Semantic_Diagnostics is
             return;
          end if;
 
-         --  For per-range jobs, skip entry points whose sloc range does not
-         --  overlap any of the changed ranges.  The traversal still visits all
-         --  nodes in the containing entry-point ancestor (which may be the
-         --  whole package body), but this guard avoids calling the expensive
-         --  P_Nameres_Diagnostics on unrelated entry points.
-         if not Self.Ranges.Is_Empty then
-            declare
-               Node_Start : constant Source_Location :=
-                 Start_Sloc (Node.Sloc_Range);
-               Node_End   : constant Source_Location :=
-                 End_Sloc (Node.Sloc_Range);
-               Overlaps   : Boolean := False;
-            begin
-               for R of Self.Ranges loop
-                  declare
-                     R_Start : constant Source_Location :=
-                       (Line   => Line_Number (R.start.line + 1),
-                        Column => Column_Number (R.start.character + 1));
-                     R_End   : constant Source_Location :=
-                       (Line   => Line_Number (R.an_end.line + 1),
-                        Column => Column_Number (R.an_end.character + 1));
-                  begin
-                     if Node_Start <= R_End and then Node_End >= R_Start then
-                        Overlaps := True;
-                        exit;
-                     end if;
-                  end;
-               end loop;
-
-               if not Overlaps then
-                  return;
-               end if;
-            end;
-         end if;
+         --  Check every entry point under the traversal root. The same
+         --  root is the eviction boundary when merging into the cache.
+         --  Filtering by the original edit would discard unrelated errors
+         --  inside that boundary without recomputing them.
 
          --  Process this xref entry point.
          declare
@@ -164,6 +134,7 @@ package body LSP.Ada_Semantic_Diagnostics is
 
    begin
       if Self.Handler.Get_Project_Stamp /= Self.Project_Stamp
+        or else not Self.Handler.Semantic_Diagnostics_Enabled
         or else Self.Handler.Is_Shutdown
         or else Document = null
         or else not Document.Is_Same (Self.Document_Signature)
@@ -196,20 +167,19 @@ package body LSP.Ada_Semantic_Diagnostics is
             --  visiting nodes that are entirely before the first change.
             if not Self.Ranges.Is_Empty then
 
-               Me_Debug.Trace ("Executing a per-range semantic diagnostics job for "
-                               & Self.File_Name.Display_Base_Name
+               Me_Debug.Trace
+                 ("Executing a per-range semantic diagnostics job for "
+                  & Self.File_Name.Display_Base_Name
                   & " (version "
                   & Self.Document_Signature.Version'Image
                   & ")");
-               Me_Debug.Trace
-                 ("Changed ranges: "
-                  & Self.Ranges'Image);
+               Me_Debug.Trace ("Changed ranges: " & Self.Ranges'Image);
 
                declare
                   First_Pos : constant LSP.Structures.Position :=
                     Self.Ranges.First_Element.start;
                   Sloc      : constant Source_Location :=
-                    (Line => Line_Number (First_Pos.line + 1), Column => 1);
+                    Document.To_Source_Location (First_Pos);
                   Node      : Ada_Node := Unit.Root.Lookup (Sloc);
                begin
                   --  Walk up to the nearest xref entry-point ancestor.
@@ -226,6 +196,27 @@ package body LSP.Ada_Semantic_Diagnostics is
                   if not Node.Is_Null then
                      Start := Node;
                   end if;
+
+                  Self.Traversal_Range :=
+                    (Is_Set => True,
+                     Value  => Document.To_A_Range (Start.Sloc_Range));
+
+                  --  Fall back to the unit if any edit extends outside the
+                  --  selected root. Compare LSP positions directly: after a
+                  --  deletion, the old end line may no longer exist.
+                  for R of Self.Ranges loop
+                     if not LSP.Utils.In_Range
+                       (R.start, Self.Traversal_Range.Value)
+                       or else
+                         not LSP.Utils.In_Range
+                           (R.an_end, Self.Traversal_Range.Value)
+                     then
+                        Start := Unit.Root;
+                        Self.Traversal_Range.Value :=
+                          Document.To_A_Range (Start.Sloc_Range);
+                        exit;
+                     end if;
+                  end loop;
                end;
 
                Me_Debug.Trace
@@ -271,7 +262,8 @@ package body LSP.Ada_Semantic_Diagnostics is
                      & ")");
 
                   Semantic_Diags_Source.Update_Diagnostics
-                    (Errors => Self.Errors);
+                    (Errors           => Self.Errors,
+                     Range_To_Replace => Self.Traversal_Range);
                   Self.Handler.Publish_Diagnostics (Document);
                end;
 
@@ -341,12 +333,12 @@ package body LSP.Ada_Semantic_Diagnostics is
          --  We fetch the document on each Execute call and compare it to this
          --  creation-time signature to detect close/reopen or text updates.
 
-         Job.Project_Stamp      := Handler.Get_Project_Stamp;
-         Job.Document_URI       := Document.URI;
+         Job.Project_Stamp := Handler.Get_Project_Stamp;
+         Job.Document_URI := Document.URI;
          Job.Document_Signature := Document.Signature;
-         Job.File_Name          := Handler.To_File (Document.URI);
-         Job.Ranges             := Ranges;
-         Job_Access             := LSP.Server_Jobs.Server_Job_Access (Job);
+         Job.File_Name := Handler.To_File (Document.URI);
+         Job.Ranges := Ranges;
+         Job_Access := LSP.Server_Jobs.Server_Job_Access (Job);
          Server.Enqueue (Job_Access);
       end;
    end Schedule_Semantic_Diagnostics_For_Change;

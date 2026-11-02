@@ -29,29 +29,41 @@ package LSP.Ada_Documents.Semantic_Diagnostics is
       Document : not null LSP.Ada_Documents.Document_Access)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with private;
 
-   type Semantic_Diagnostic_Source_Access is access all Diagnostic_Source'Class;
+   type Semantic_Diagnostic_Source_Access is
+     access all Diagnostic_Source'Class;
 
-   overriding procedure Get_Diagnostics
+   overriding
+   procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector);
    --  Return the cached set of semantic diagnostics.
 
-   overriding function Has_New_Diagnostic
-     (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context) return Boolean;
+   overriding
+   function Has_New_Diagnostic
+     (Self : in out Diagnostic_Source; Context : LSP.Ada_Contexts.Context)
+      return Boolean;
    --  Return True if a background job has deposited new results that have
    --  not yet been handed to the client.
 
-   overriding function Is_Enabled
-     (Self : Diagnostic_Source) return Boolean;
-     --  Return True if semantic diagnostics are enabled
-     --  in the handler's configuration.
+   overriding
+   function Is_Enabled (Self : Diagnostic_Source) return Boolean;
+   --  Return True if semantic diagnostics are enabled
+   --  in the handler's configuration.
+
+   procedure Rebase_Diagnostics
+     (Self    : in out Diagnostic_Source;
+      Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector);
+   --  Apply edits to cached diagnostic positions, in order. Drop diagnostics
+   --  touched by an edit, or the entire cache for a full-text replacement.
+   --  The next background job publishes the updated cache.
 
    procedure Update_Diagnostics
-     (Self   : in out Diagnostic_Source;
-      Errors : LSP.Structures.Diagnostic_Vector);
-   --  Update the cached diagnostics with Errors.
+     (Self             : in out Diagnostic_Source;
+      Errors           : LSP.Structures.Diagnostic_Vector;
+      Range_To_Replace : LSP.Structures.A_Range_Optional := (Is_Set => False));
+   --  Replace diagnostics inside Range_To_Replace, retaining the rest of the
+   --  cache. When no range is given, replace the complete cache.
 
 private
 
