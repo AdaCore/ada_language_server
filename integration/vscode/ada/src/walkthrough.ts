@@ -1,138 +1,136 @@
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
-import { getProjectFileSettingValue } from './helpers';
+import { envHasExec, exe, which } from './helpers';
+import { createInteractiveToolTask, runTaskAndGetResult } from './taskProviders';
 
-/**
- * This function creates a hello world project in the current workspace. It is
- * called from the walkthrough of the extension.
- */
-export async function createHelloWorldProject() {
-    if (vscode.workspace.workspaceFolders) {
-        const wsFolder = vscode.workspace.workspaceFolders[0];
-        const fs = vscode.workspace.fs;
-        const prjUri = vscode.Uri.joinPath(wsFolder.uri, 'hello_world.gpr');
-        const srcUri = vscode.Uri.joinPath(wsFolder.uri, 'src');
-        const objUri = vscode.Uri.joinPath(wsFolder.uri, 'obj');
-        const mainUri = getHelloWorldMainUri(wsFolder);
+const HELLO_WALKTHROUGH_FOLDER = 'ada.walkthrough.helloFolder';
 
-        await fs.createDirectory(srcUri);
-        // Create obj/ directory to avoid GPR warning
-        await fs.createDirectory(objUri);
-        await createFile(
-            prjUri,
-            `project Hello_World is
-   for Source_Dirs use ("src");
-   for Object_Dir use "obj";
-   for Main use ("hello_world.adb");
-
-   package Compiler is
-      for Switches ("Ada") use ("-g", "-O0", "-gnatwa");
-   end Compiler;
-end Hello_World;
-`,
-        );
-        await createFile(
-            mainUri,
-            `with Ada.Text_IO;
-
-procedure Hello_World is
-   Msg : String := "Hello World!";
-begin
-   Ada.Text_IO.Put_Line (Msg);
-end Hello_World;
-`,
-        );
-
-        /**
-         * Set ada.projectFile explicitly since that's recommended.
-         */
-        await vscode.workspace
-            .getConfiguration()
-            .update('ada.projectFile', getProjectFileSettingValue(prjUri.fsPath));
-
-        /**
-         * Show the created files for convenience.
-         */
-        await vscode.window.showTextDocument(prjUri, { preserveFocus: true, preview: false });
-        await vscode.window.showTextDocument(mainUri, { preserveFocus: true, preview: false });
-    } else {
+/** Fetch and build the Alire hello crate, then open it as the workspace. */
+export async function createHelloWorldProject(context: vscode.ExtensionContext) {
+    if (!envHasExec('alr')) {
         void vscode.window.showErrorMessage(
-            'You must open a workspace folder before creating the Ada Hello World project',
+            'Alire was not found. Install Alire and add the directory containing ' +
+                'the alr executable to PATH, then restart VS Code.',
+        );
+        return;
+    }
+
+    const folders = await vscode.window.showOpenDialog({
+        title: 'Select a parent folder for the Alire Hello World project',
+        openLabel: 'Download Hello Here',
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        defaultUri: vscode.workspace.workspaceFolders?.[0].uri,
+    });
+    if (!folders?.length) return;
+
+    try {
+        const crateUri = await downloadHelloWorldProject(folders[0]);
+        // Opening a folder restarts the extension host. Resume the walkthrough
+        // after activation in the new workspace.
+        await context.globalState.update(HELLO_WALKTHROUGH_FOLDER, crateUri.toString());
+        await vscode.commands.executeCommand('vscode.openFolder', crateUri);
+    } catch (error) {
+        void vscode.window.showErrorMessage(
+            `Could not set up the Alire Hello World project: ${String(error)}`,
         );
     }
 }
 
-async function createFile(uri: vscode.Uri, content: string) {
+/**
+ * Download into a new subfolder, leaving existing projects untouched. Wait for
+ * the build to finish so dependencies and generated configuration are ready
+ * before the language server loads the crate.
+ */
+export async function downloadHelloWorldProject(parent: vscode.Uri): Promise<vscode.Uri> {
     const fs = vscode.workspace.fs;
-    try {
-        // First we check that the file doesn't exist.
-        await fs.stat(uri);
-        const msg = `The file ${vscode.workspace.asRelativePath(
-            uri,
-        )} already exists. Retry in an empty workspace.`;
-        void vscode.window.showErrorMessage(msg);
-        throw Error(msg);
-    } catch (error) {
-        if (
-            error instanceof vscode.FileSystemError &&
-            error.code == vscode.FileSystemError.FileNotFound.name
-        ) {
-            // The file doesn't exist. We can proceed.
-        } else {
-            // Unexpected error, throw it.
-            throw error;
-        }
+    const existing = new Set((await fs.readDirectory(parent)).map(([name]) => name));
+    const task = createInteractiveToolTask(
+        'Download and build Alire Hello World',
+        which('alr') ?? `alr${exe}`,
+        ['get', '--build', 'hello'],
+        parent.fsPath,
+    );
+    if ((await runTaskAndGetResult(task)) !== 0) {
+        throw new Error('Alire did not complete successfully. See the task terminal for details.');
     }
 
-    await fs.writeFile(uri, Buffer.from(content, 'utf-8'));
+    // Alire names downloaded folders hello_<version>_<hash>.
+    const downloaded = (await fs.readDirectory(parent)).filter(
+        ([name, type]) =>
+            type === vscode.FileType.Directory && name.startsWith('hello_') && !existing.has(name),
+    );
+    if (downloaded.length !== 1) {
+        throw new Error('Could not locate the downloaded hello crate.');
+    }
+    const crateUri = vscode.Uri.joinPath(parent, downloaded[0][0]);
+    for (const file of ['alire.toml', 'hello.gpr', 'src/hello.adb']) {
+        await fs.stat(vscode.Uri.joinPath(crateUri, file));
+    }
+    return crateUri;
 }
 
-/**
- * This function is called from the walkthrough to start a debugging session.
- *
- * If the hello world source file exists, it opens it and sets sets a
- * breakpoint. Otherwise no breakpoint is set.
- *
- * Finally the workbench.action.debug.start command is called to start the
- * debug session.
- */
+/** Restore the walkthrough after opening the downloaded crate's folder. */
+export async function resumeHelloWorldWalkthrough(context: vscode.ExtensionContext) {
+    const pendingFolder = context.globalState.get<string>(HELLO_WALKTHROUGH_FOLDER);
+    const folder = vscode.workspace.workspaceFolders?.find(
+        (folder) => folder.uri.toString() === pendingFolder,
+    );
+    if (!folder) return;
+
+    await context.globalState.update(HELLO_WALKTHROUGH_FOLDER, undefined);
+    await vscode.window.showTextDocument(vscode.Uri.joinPath(folder.uri, 'alire.toml'), {
+        preserveFocus: true,
+        preview: false,
+    });
+    await vscode.window.showTextDocument(getHelloWorldMainUri(folder), {
+        preserveFocus: true,
+        preview: false,
+    });
+    await vscode.commands.executeCommand(
+        'workbench.action.openWalkthrough',
+        'AdaCore.ada#als-get-started',
+        true,
+    );
+}
+
+/** Start debugging, adding a breakpoint in the hello crate when present. */
 export async function walkthroughStartDebugging() {
-    if (vscode.workspace.workspaceFolders) {
-        const wsFolder = vscode.workspace.workspaceFolders[0];
-        const mainUri = getHelloWorldMainUri(wsFolder);
-
-        if (existsSync(mainUri.fsPath)) {
-            await vscode.window.showTextDocument(mainUri, {
-                preserveFocus: false,
-                selection: new vscode.Range(5, 0, 5, 0),
-            });
-
-            /**
-             * Since there's only a command to toggle breakpoints, we must
-             * clear all breakpoints first to make sure we are enabling the
-             * desired breakpoint.
-             */
-            await vscode.commands.executeCommand(
-                'workbench.debug.viewlet.action.removeAllBreakpoints',
-            );
-            await vscode.commands.executeCommand('editor.debug.action.toggleBreakpoint');
-        }
-
-        await vscode.commands.executeCommand('workbench.action.debug.start');
-    } else {
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    if (!folder) {
         void vscode.window.showInformationMessage(
             'You must open a workspace folder before using this command',
         );
+        return;
     }
+
+    const mainUri = getHelloWorldMainUri(folder);
+    if (existsSync(mainUri.fsPath)) {
+        const document = await vscode.workspace.openTextDocument(mainUri);
+        const lines = document.getText().split(/\r?\n/);
+        const begin = lines.findIndex((line) => /^\s*begin\s*$/i.test(line));
+        const line = lines.findIndex(
+            (text, index) => index > begin && text.trim() !== '' && !text.trim().startsWith('--'),
+        );
+        if (begin >= 0 && line >= 0) {
+            const location = new vscode.Location(mainUri, new vscode.Position(line, 0));
+            await vscode.window.showTextDocument(document, {
+                selection: location.range,
+            });
+            const alreadySet = vscode.debug.breakpoints.some(
+                (breakpoint) =>
+                    breakpoint instanceof vscode.SourceBreakpoint &&
+                    breakpoint.location.uri.toString() === mainUri.toString() &&
+                    breakpoint.location.range.start.line === line,
+            );
+            if (!alreadySet) vscode.debug.addBreakpoints([new vscode.SourceBreakpoint(location)]);
+        }
+    }
+
+    await vscode.commands.executeCommand('workbench.action.debug.start');
 }
 
-/**
- * This function is defined to share the main source file location between the
- * creation of the hello world project, and the starting of the debug session.
- *
- * @param wsFolder - the root WorkspaceFolder
- * @returns the path to the hello world main source file.
- */
-function getHelloWorldMainUri(wsFolder: vscode.WorkspaceFolder) {
-    return vscode.Uri.joinPath(wsFolder.uri, 'src', 'hello_world.adb');
+function getHelloWorldMainUri(folder: vscode.WorkspaceFolder) {
+    return vscode.Uri.joinPath(folder.uri, 'src', 'hello.adb');
 }

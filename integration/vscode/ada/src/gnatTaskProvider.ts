@@ -15,11 +15,10 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
-import commandExists from 'command-exists';
 import * as vscode from 'vscode';
 import { getProjectFromConfigOrALS, sparkLimitRegionArg, sparkLimitSubpArg } from './commands';
 import { DEFAULT_PROBLEM_MATCHERS, WarningMessageExecution } from './taskProviders';
-import { gprScenarioArgs } from './helpers';
+import { envHasExec, gprScenarioArgs } from './helpers';
 
 /**
  * Callback to provide an extra argument for a tool
@@ -337,12 +336,6 @@ export const getDiagnosticArgs = (): string[] => {
 //  Alire `exec` command if we have `alr` installed and `alire.toml`
 
 export async function alire(): Promise<string[]> {
-    return vscode.workspace.findFiles('alire.toml').then((found) =>
-        found.length == 0
-            ? [] // not alire.toml found, return no command
-            : // if alire.toml found, search for `alr`
-              commandExists('alr')
-                  .then(() => ['alr', 'exec', '--'])
-                  .catch(() => []),
-    );
+    const found = await vscode.workspace.findFiles('alire.toml');
+    return found.length && envHasExec('alr') ? ['alr', 'exec', '--'] : [];
 }

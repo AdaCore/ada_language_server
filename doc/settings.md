@@ -101,6 +101,7 @@ Settings taken into account only from the Ada & SPARK VS Code extension:
 * [projectView.showObjectDirectories](#projectviewshowobjectdirectories)
 * [projectView.showRuntimeFiles](#projectviewshowruntimefiles)
 * [externalAnnotations.showInEditor](#externalannotationsshowineditor)
+* [alire.executablePath](#alireexecutablepath)
 
 Settings understood by the Ada Language Server itself, independently from the LSP client:
 
@@ -214,6 +215,14 @@ Controls whether the GNATcoverage external annotations of the project are
 highlighted in the editor. The annotation files themselves come from the
 `Coverage'External_Annotations` project attribute, not from a setting. This is a
 VS Code-only setting.
+
+### alire.executablePath
+
+Path to `alr` (`alr.exe` on Windows). Use an absolute path; the extension itself
+expands `~` to your home directory on all platforms, including Windows.
+Leave empty to search `PATH`. The walkthrough installer sets this automatically.
+Reload VS Code after changing it manually.
+This setting is only available in VS Code.
 
 ### gprConfigurationFile
 
