@@ -34,6 +34,7 @@ import { getGnatTestDriverProjectPath, loadGnatCoverageReport } from './gnattest
 import {
     AdaMain,
     getAdaMains,
+    getArgValue,
     getToolEnvironment,
     showErrorMessageWithOpenLogButton,
 } from './helpers';
@@ -100,7 +101,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
     taskDef: {
         type: TASK_TYPE_ADA,
         command: 'gprbuild',
-        args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, "'-cargs:ada'", '-gnatef'],
+        args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, '-cargs:ada', '-gnatef'],
     },
     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     taskGroup: vscode.TaskGroup.Build,
@@ -171,7 +172,7 @@ export const TASK_GNATCOV_BUILD_INSTRUMENTED: PredefinedTask = {
             `\${command:${CMD_GPR_PROJECT_ARGS}}`,
             '--src-subdirs=gnatcov-instr',
             '--implicit-with=gnatcov_rts.gpr',
-            "'-cargs:ada'",
+            '-cargs:ada',
             '-gnatef',
         ],
     },
@@ -249,7 +250,7 @@ export const adaTasks: PredefinedTask[] = [
                 '-gnatc',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '${fileBasename}',
-                "'-cargs:ada'",
+                '-cargs:ada',
                 '-gnatef',
             ],
         },
@@ -267,7 +268,7 @@ export const adaTasks: PredefinedTask[] = [
                 '-u',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '${fileBasename}',
-                "'-cargs:ada'",
+                '-cargs:ada',
                 '-gnatef',
             ],
         },
@@ -576,7 +577,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             args: [
                                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                                 main.mainRelPath(),
-                                "'-cargs:ada'",
+                                '-cargs:ada',
                                 '-gnatef',
                             ],
                         },
@@ -587,9 +588,9 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     let execRelPath = main.execRelPath();
                     /**
                      * Always prepend ./ to the relative path. When the path
-                     * only has one component, ./ is necessary for the shell to
-                     * spawn the executable. We choose to always prepend ./ for
-                     * consistency.
+                     * only has one component, ./ distinguishes its relative
+                     * path from a command to look up on PATH. We choose to
+                     * always prepend ./ for consistency.
                      *
                      * We can't use path.join() because it calls
                      * path.normalize() which removes ./
@@ -753,7 +754,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     taskDef: {
                         type: TASK_TYPE_ADA,
                         command: 'gprbuild',
-                        args: ['-P', harnessPrj, "'-cargs:ada'", '-gnatef'],
+                        args: ['-P', harnessPrj, '-cargs:ada', '-gnatef'],
                     },
                     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
                     taskGroup: vscode.TaskGroup.Build,
@@ -861,7 +862,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 : new SequentialExecutionByName(task.name, taskDef.compound);
         } else {
             /**
-             * It's a shell invocation task.
+             * Invoke the executable directly, preserving argument boundaries.
              */
             assert(taskDef.command);
             /**
@@ -872,7 +873,10 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             try {
                 const evaluatedArgs: (string | vscode.ShellQuotedString)[] =
                     await evaluateArgs(args);
-                execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
+                execution = new vscode.ProcessExecution(
+                    getArgValue(taskDef.command),
+                    evaluatedArgs.map(getArgValue),
+                );
             } catch (err) {
                 if (err instanceof vscode.CancellationError) {
                     // It's just a cancellation, propagate as is
@@ -1539,7 +1543,7 @@ export async function findBuildMainTask(adaMain: AdaMain): Promise<vscode.Task |
  */
 function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
     /**
-     * Only process shell command tasks, if they are not already using ALIRE
+     * Only process executable tasks, if they are not already using ALIRE
      */
     if (taskDef.command && !isAlire(taskDef.command)) {
         /**
@@ -1561,7 +1565,7 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
              * scenario args because they are managed by ALIRE.
              *
              */
-            args.splice(0, args.length, 'build', '--', "'-cargs:ada'", '-gnatef');
+            args.splice(0, args.length, 'build', '--', '-cargs:ada', '-gnatef');
         } else if (taskDef == TASK_CLEAN_PROJECT.taskDef) {
             /**
              * Replace the entire command with `alr clean`. Ignore project and

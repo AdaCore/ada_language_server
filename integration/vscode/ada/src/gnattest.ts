@@ -916,7 +916,7 @@ async function buildTestDriverAndReportErrors(
                     await getGnatTestDriverProjectPath(),
                 ]
                     .concat(gprScenarioArgs())
-                    .concat(["'-cargs:ada'", '-gnatef']),
+                    .concat(['-cargs:ada', '-gnatef']),
             }),
         );
         buildTasks.push(instTask, buildTask);
