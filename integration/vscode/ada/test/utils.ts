@@ -5,7 +5,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { CodeLens, Uri, window, workspace } from 'vscode';
 import { adaExtState } from '../src/extension';
-import { getArgValue, setTerminalEnvironment } from '../src/helpers';
+import { setTerminalEnvironment } from '../src/helpers';
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
@@ -82,7 +82,7 @@ export async function activate(): Promise<void> {
  *
  * @param prov - a TaskProvider
  * @returns a string representation of the subset of tasks offered by the
- * provider that are based on a ShellExecution. The string includes the command
+ * provider that are based on a ProcessExecution. The string includes the command
  * line of each task.
  */
 export async function getCommandLines(
@@ -104,10 +104,10 @@ export async function getCommandLines(
         )
     )
         .filter(function ({ execution }) {
-            return execution instanceof vscode.ShellExecution;
+            return execution instanceof vscode.ProcessExecution;
         })
         .map(function ({ task, execution }) {
-            assert(execution instanceof vscode.ShellExecution);
+            assert(execution instanceof vscode.ProcessExecution);
             return `${task.source}: ${task.name} - ${getCmdLine(execution)}`;
         })
         .join('\n');
@@ -116,22 +116,11 @@ export async function getCommandLines(
 
 /**
  *
- * @param exec - a ShellExecution
- * @returns the command line of the ShellExecution as a string
+ * @param exec - a ProcessExecution
+ * @returns the process and its arguments as a string
  */
-export function getCmdLine(exec: vscode.ShellExecution): string {
-    return exec.command
-        ? [exec.command]
-              .concat(exec.args)
-              .map((s) => {
-                  if (typeof s == 'object') {
-                      return s.value;
-                  } else {
-                      return s;
-                  }
-              })
-              .join(' ')
-        : (exec.commandLine ?? '');
+export function getCmdLine(exec: vscode.ProcessExecution): string {
+    return [exec.process, ...exec.args].join(' ');
 }
 
 /**
@@ -157,20 +146,20 @@ export async function testTask(
 
     if (execStatus != 0) {
         let msg = `Got status ${execStatus ?? "'undefined'"} for task '${taskName}'`;
-        if (task.execution instanceof vscode.ShellExecution) {
-            const cmdLine = [task.execution.command].concat(task.execution.args).map((arg) => {
-                return getArgValue(arg);
-            });
+        if (task.execution instanceof vscode.ProcessExecution) {
+            const cmdLine = [task.execution.process, ...task.execution.args];
             msg += ` with command line: ${cmdLine.join(' ')}`;
 
             try {
                 /**
                  * Let's try re-running the command line explicitlely to obtain its output.
                  */
-                const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+                const cwd =
+                    task.execution.options?.cwd ?? vscode.workspace.workspaceFolders[0].uri.fsPath;
                 msg += `\nTrying to re-run the command explicitly in: ${cwd}`;
                 const env = { ...process.env };
                 setTerminalEnvironment(env);
+                Object.assign(env, task.execution.options?.env);
                 const cp = spawnSync(cmdLine[0], cmdLine.slice(1), { cwd: cwd, env: env });
 
                 if (cp.status != null) {

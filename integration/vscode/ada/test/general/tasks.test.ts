@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable max-len */
 import assert from 'assert';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
 import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
-import { exe, getProjectFile } from '../../src/helpers';
+import { exe, getProjectFile, gprScenarioArgs } from '../../src/helpers';
 import {
     createAdaTaskProvider,
     createSparkTaskProvider,
@@ -72,13 +74,13 @@ ada: Build and run main - src/test.adb
     test('Ada task command lines', async function () {
         const expectedCmdLines = `
 ada: Clean current project - gprclean -P ${projectPath}
-ada: Build current project - gprbuild -P ${projectPath} '-cargs:ada' -gnatef
-ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} '-cargs:ada' -gnatef
-ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} '-cargs:ada' -gnatef
+ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
+ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
+ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
-ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb '-cargs:ada' -gnatef
+ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
 ada: Run main - src/main1.adb - .${path.sep}obj${path.sep}main1exec${exe}
-ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb '-cargs:ada' -gnatef
+ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
 ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 `.trim();
 
@@ -124,7 +126,7 @@ ada: GNATcoverage - Run all actions - src/test.adb
         const expectedCmdLines = `
 ada: GNATcoverage - Setup runtime library - gnatcov setup
 ada: GNATcoverage - Instrument project - gnatcov instrument -P ${projectPath} --level=stmt --dump-filename-simple
-ada: GNATcoverage - Build instrumented project - gprbuild -m -s -P ${projectPath} --src-subdirs=gnatcov-instr --implicit-with=gnatcov_rts.gpr '-cargs:ada' -gnatef
+ada: GNATcoverage - Build instrumented project - gprbuild -m -s -P ${projectPath} --src-subdirs=gnatcov-instr --implicit-with=gnatcov_rts.gpr -cargs:ada -gnatef
 ada: GNATcoverage - Generate report - src/main1.adb - gnatcov coverage -P ${projectPath} --level=stmt --annotate=xml --output-dir=\${command:ada.getObjectDir} -T \${workspaceFolder}/main1exec${exe}.srctrace
 ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${projectPath} --level=stmt --annotate=xml --output-dir=\${command:ada.getObjectDir} -T \${workspaceFolder}/test${exe}.srctrace
 `.trim();
@@ -152,7 +154,7 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
         assert(resolved);
         assert(resolved.execution);
 
-        const exec = resolved.execution as vscode.ShellExecution;
+        const exec = resolved.execution as vscode.ProcessExecution;
 
         const actualCmd = getCmdLine(exec);
 
@@ -234,9 +236,9 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 for (const name of ['Prove subprogram', 'Examine subprogram']) {
                     const task = tasks.find((t) => t.name === name);
 
-                    // Both tasks must remain available as shell invocations.
+                    // Both tasks must remain available as process invocations.
                     assert(task, `${name} should still be offered without document symbols`);
-                    assert(task.execution instanceof vscode.ShellExecution);
+                    assert(task.execution instanceof vscode.ProcessExecution);
 
                     // Without a subprogram's start line, defer to VS Code's
                     // current file and cursor line when the task runs.
@@ -269,7 +271,7 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 args: [
                     '${command:ada.gprProjectArgs}',
                     '--no-object-check',
-                    "'-cargs:ada'",
+                    '-cargs:ada',
                     '-gnatef',
                 ],
                 label: 'ada: Build current project',
@@ -291,13 +293,13 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 'Build task does not come from workspace. Source is: ' + resolved.source,
             );
 
-            const exec = buildTask.execution as vscode.ShellExecution;
+            const exec = buildTask.execution as vscode.ProcessExecution;
             const actualCmd = getCmdLine(exec);
 
             // The '--no-object-check' switch has been added to the 'ada: Build current project'
             // predefined task in the workspace's tasks.json file: check that it's indeed present
             // in the returned task's command line.
-            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check '-cargs:ada' -gnatef`;
+            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs:ada -gnatef`;
 
             assert.strictEqual(actualCmd, expectedCmd);
         } finally {
@@ -633,8 +635,8 @@ suite('Task Execution', function () {
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that
      * produce the executable at the root of the workspace. In that case it is
-     * necessary to use a leading `./` for the shell to be able to spawn the
-     * executable.
+     * necessary to preserve the executable's relative path rather than look
+     * up its name on PATH.
      */
     test('Build and run main task when exec at workspace root', async () => {
         // Load a custom project that does not define any object dir by
@@ -656,7 +658,7 @@ suite('Task Execution', function () {
             const runTask = (await vscode.tasks.fetchTasks({ type: 'ada' })).find((t) =>
                 t.name.includes('Run main'),
             );
-            assert(runTask?.execution instanceof vscode.ShellExecution);
+            assert(runTask?.execution instanceof vscode.ProcessExecution);
             const cmdLine = getCmdLine(runTask.execution);
             assert(
                 cmdLine.startsWith('.' + path.sep),
@@ -717,6 +719,96 @@ suite('Task Execution', function () {
         resolved = await prov.resolveTask(task);
         assert(resolved);
         assert.equal(await runTaskAndGetResult(resolved), 2);
+    });
+
+    test('Scenario variables in process build task', async () => {
+        const root = mkdtempSync(path.join(tmpdir(), 'als scenario variables '));
+        const projectFile = path.join(root, 'show_ip.gpr');
+        const config = vscode.workspace.getConfiguration('ada');
+        const previousVariables = config.inspect('scenarioVariables')?.workspaceValue;
+        const scenarioCommand = vscode.commands.registerCommand(
+            'ada.testScenarioArgs',
+            gprScenarioArgs,
+        );
+
+        try {
+            mkdirSync(path.join(root, 'src'));
+            writeFileSync(
+                path.join(root, 'src', 'main.adb'),
+                'procedure Main is begin null; end Main;\n',
+            );
+            writeFileSync(
+                projectFile,
+                `project Show_IP is
+   Target_IP := external ("TARGET_IP", "127.0.0.1");
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj/" & Target_IP;
+   for Main use ("main.adb");
+end Show_IP;
+`,
+            );
+            await config.update(
+                'scenarioVariables',
+                { TARGET_IP: '192.168.0.10' },
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            const prov = createAdaTaskProvider();
+            const task = await prov.resolveTask(
+                new vscode.Task(
+                    {
+                        type: TASK_TYPE_ADA,
+                        command: 'gprbuild',
+                        args: [
+                            '-p',
+                            '-P',
+                            projectFile,
+                            '${command:ada.testScenarioArgs}',
+                            '-cargs:ada',
+                            '-gnatef',
+                        ],
+                    },
+                    vscode.TaskScope.Workspace,
+                    'Build project with dotted scenario variable',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(task?.execution instanceof vscode.ProcessExecution);
+            assert.deepStrictEqual(task.execution.args, [
+                '-p',
+                '-P',
+                projectFile,
+                '-XTARGET_IP=192.168.0.10',
+                '-cargs:ada',
+                '-gnatef',
+            ]);
+            assert.strictEqual(await runTaskAndGetResult(task), 0);
+
+            const objectDir = path.join(root, 'obj', '192.168.0.10');
+            const executable = path.join(objectDir, 'main' + exe);
+            assert(existsSync(path.join(objectDir, 'main.ali')));
+            assert(existsSync(executable));
+            assert(!existsSync(path.join(root, 'obj', '192')));
+
+            const runTask = await prov.resolveTask(
+                new vscode.Task(
+                    { type: TASK_TYPE_ADA, command: executable, args: [] },
+                    vscode.TaskScope.Workspace,
+                    'Run executable with spaces in its path',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(runTask?.execution instanceof vscode.ProcessExecution);
+            assert.strictEqual(await runTaskAndGetResult(runTask), 0);
+        } finally {
+            scenarioCommand.dispose();
+            await config.update(
+                'scenarioVariables',
+                previousVariables,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
     });
 
     test('All tasks tested', function () {
