@@ -15,9 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  This package provides a diagnostic source for Libadalang semantic
---  diagnostics (name resolution failures).  Diagnostics are computed
---  asynchronously by a background job (see LSP.Ada_Semantic_Diagnostics).
+--  This package saves semantic errors found by Libadalang and makes them
+--  available to the client. A background job finds the errors (see
+--  LSP.Ada_Semantic_Diagnostics).
 
 with LSP.Ada_Handlers;
 with LSP.Diagnostic_Sources;
@@ -37,33 +37,35 @@ package LSP.Ada_Documents.Semantic_Diagnostics is
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector);
-   --  Return the cached set of semantic diagnostics.
+   --  Return the saved semantic diagnostics.
 
    overriding
    function Has_New_Diagnostic
      (Self : in out Diagnostic_Source; Context : LSP.Ada_Contexts.Context)
       return Boolean;
-   --  Return True if a background job has deposited new results that have
-   --  not yet been handed to the client.
+   --  Return True if there are results the client has not received yet,
+   --  or if the semantic diagnostics setting has changed.
 
    overriding
    function Is_Enabled (Self : Diagnostic_Source) return Boolean;
-   --  Return True if semantic diagnostics are enabled
-   --  in the handler's configuration.
+   --  Return True if the settings enable semantic diagnostics.
 
    procedure Rebase_Diagnostics
      (Self    : in out Diagnostic_Source;
       Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector);
-   --  Apply edits to cached diagnostic positions, in order. Drop diagnostics
-   --  touched by an edit, or the entire cache for a full-text replacement.
-   --  The next background job publishes the updated cache.
+   --  Move saved diagnostics to match the edited text. For example, adding
+   --  two lines above an error moves it down two lines. Remove errors that
+   --  overlap an edit; the next check will compute them again. Replacing the
+   --  whole text clears all saved errors. This does not publish the results;
+   --  the next background check does that.
 
    procedure Update_Diagnostics
      (Self             : in out Diagnostic_Source;
-      Errors           : LSP.Structures.Diagnostic_Vector;
+      New_Diagnostics  : LSP.Structures.Diagnostic_Vector;
       Range_To_Replace : LSP.Structures.A_Range_Optional := (Is_Set => False));
-   --  Replace diagnostics inside Range_To_Replace, retaining the rest of the
-   --  cache. When no range is given, replace the complete cache.
+   --  Replace saved diagnostics that overlap Range_To_Replace with
+   --  New_Diagnostics. Keep the other saved diagnostics. If no range is
+   --  given, replace them all with New_Diagnostics.
 
 private
 
@@ -72,17 +74,14 @@ private
       Document : not null LSP.Ada_Documents.Document_Access)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with record
       Cached_Errors : LSP.Structures.Diagnostic_Vector;
-      --  The last set of semantic diagnostics deposited by a background job.
+      --  Saved semantic diagnostics, including errors kept from older checks.
 
       Has_Unpublished_Results : Boolean := False;
-      --  Used to know when to trigger a publish diagnostics notification.
-      --  Set to True by background jobs when they deposit new results, and
-      --  reset to False by when the client gets the diagnostics to publish
-      --  them.
+      --  True when results or settings have changed. Get_Diagnostics clears
+      --  this flag when it returns the diagnostics to publish.
 
       Enabled : Boolean := True;
-      --  Used to keep track of the 'semanticDiagnostics' option, which
-      --  enables/disables semantic diagnostics.
+      --  The last value seen for the 'semanticDiagnostics' setting.
    end record;
 
 end LSP.Ada_Documents.Semantic_Diagnostics;

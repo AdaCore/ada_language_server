@@ -205,4 +205,5 @@ def check_cache(working_dir):
         change([((0, column), (0, column + len(inserted)), "")])
     finally:
         client.shutdown()
+    # A nonempty list makes the Python driver fail this test.
     return client.errors

@@ -68,18 +68,18 @@ package body LSP.Ada_Did_Change_Document is
      (Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector)
       return Boolean
    is (not Changes.Is_Empty and then Changes.First_Element.a_range.Is_Set);
-   --  Changes has incrimental form (not just full text update)
+   --  Return True when the first change edits a range of the document.
 
-   procedure Apply_Changes
+   procedure Apply_Changes_And_Rebase_Diagnostics
      (Document : not null LSP.Ada_Documents.Document_Access;
       Params   : LSP.Structures.DidChangeTextDocumentParams);
-   --  Apply text edits and update cached diagnostic positions together.
+   --  Apply the edits and move saved diagnostics to their new positions.
 
-   -------------------
-   -- Apply_Changes --
-   -------------------
+   ------------------------------------------
+   -- Apply_Changes_And_Rebase_Diagnostics --
+   ------------------------------------------
 
-   procedure Apply_Changes
+   procedure Apply_Changes_And_Rebase_Diagnostics
      (Document : not null LSP.Ada_Documents.Document_Access;
       Params   : LSP.Structures.DidChangeTextDocumentParams)
    is
@@ -92,7 +92,7 @@ package body LSP.Ada_Did_Change_Document is
       Document.Apply_Changes
         (Params.textDocument.version, Params.contentChanges);
       Source.Rebase_Diagnostics (Params.contentChanges);
-   end Apply_Changes;
+   end Apply_Changes_And_Rebase_Diagnostics;
 
    --------------
    -- Complete --
@@ -133,9 +133,9 @@ package body LSP.Ada_Did_Change_Document is
               Self.Parent.Context.To_File (Change.Params.textDocument.uri);
          begin
             if File = Next_File then
-               --  However, we should skip the Indexing part (and
-               --  non-incremental changes) if the next didChange message
-               --  will re-change the text document.
+               --  Another change to this file is already waiting. Apply it
+               --  before reparsing, indexing or checking for errors. For a
+               --  full text replacement, only the latest text is needed.
                return;
             end if;
          end;
@@ -146,13 +146,13 @@ package body LSP.Ada_Did_Change_Document is
       end if;
 
       if not Is_Incremental (Changes) then
-         Apply_Changes (Document, Message.Params);
+         Apply_Changes_And_Rebase_Diagnostics (Document, Message.Params);
       end if;
 
-      --  Clear the cacha of symbols now
+      --  The edits may have changed the symbols in this document.
       LSP.Ada_Documents.Reset_Symbol_Cache (Document.all);
-      --  Manually reparse the file in all context now so the AU is up-to-date
-      --  for the following requests.
+      --  Reparse the file in every context that uses it, so later requests
+      --  see the updated text.
       for Context of Self.Parent.Context.Contexts_For_File (File) loop
          declare
             Dummy : Libadalang.Analysis.Analysis_Unit;
@@ -160,31 +160,32 @@ package body LSP.Ada_Did_Change_Document is
             Dummy := Context.Get_AU (File, Reparse => True);
          end;
       end loop;
-      --  The indexing here will do PLE and fill the database of Defining_Name
-      --  in a separate job at the lowest priority
+      --  Update the index in a separate job at the lowest priority.
       if Did_Change_Indexing.Is_Active then
          Self.Parent.Context.Enqueue_Indexing (File);
       end if;
 
-      --  Emit diagnostics
+      --  Publish any diagnostics that are ready now.
       Self.Parent.Context.Publish_Diagnostics (Document);
 
-      --  Schedule the semantic diagnostics job for the changed ranges.
+      --  Schedule semantic checks for the updated text.
       declare
          Ranges : LSP.Structures.Range_Vector;
       begin
-         --  Multiple edits use successive document versions, so their
-         --  original ranges cannot be compared with the final tree. Use a
-         --  full check in that case, including other open documents whose
-         --  errors may depend on the changed declarations.
-         if Changes.Length = 1 and then Changes.First_Element.a_range.Is_Set
-         then
-            Ranges.Append (Changes.First_Element.a_range.Value);
-         end if;
-
          if Changes.Length > 1 then
+            --  Later edits can move text changed by earlier edits. For
+            --  example, adding an error on line 8 then inserting six lines
+            --  above it puts the error on line 14. The first range still
+            --  points to line 8, so it could make us check the wrong code.
+            --  Check all open files: changed declarations may also cause
+            --  errors in other files that use them.
             Self.Parent.Context.Enqueue_Semantic_Diagnostics;
          else
+            --  A single ranged edit gets a quick local check first.
+            if Is_Incremental (Changes) then
+               Ranges.Append (Changes.First_Element.a_range.Value);
+            end if;
+
             Self.Parent.Context.Enqueue_Semantic_Diagnostics
               (Document => Document, Ranges => Ranges);
          end if;
@@ -238,9 +239,9 @@ package body LSP.Ada_Did_Change_Document is
       end if;
 
       if Is_Incremental (Changes) then
-         --  Apply incremental changes immediately to preserve text
-         --  synchronization. Indexing and diagnostics run in Complete.
-         Apply_Changes (Document, Message.Params);
+         --  Apply these edits now: the next change may use their result.
+         --  Complete will reparse, index and check the updated document.
+         Apply_Changes_And_Rebase_Diagnostics (Document, Message.Params);
       end if;
    exception
       when E : others =>

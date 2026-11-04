@@ -37,7 +37,7 @@ package body LSP.Ada_Semantic_Diagnostics is
      Create ("ALS.DIAGNOSTICS.SEMANTIC", Off);
 
    Max_Nodes_Per_Batch : constant := 300;
-   --  Number of AST nodes processed per Execute call before yielding.
+   --  Check at most this many tree nodes before letting other jobs run.
    --  Matches the batch size used by the folding-range and tokens-full jobs.
 
    -------------
@@ -61,15 +61,12 @@ package body LSP.Ada_Semantic_Diagnostics is
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Handler.Get_Open_Document (Self.Document_URI);
-      --  Fetch the document on every call of `Execute` to prevent dangling
-      --  pointers if the document was closed while this job was in the
-      --  queue.
-
-      --  The document to analyze.
+      --  Look up the document on each call. It may have been closed while
+      --  this job was waiting, so an older pointer could no longer be valid.
 
       procedure Process_Node (Node : Ada_Node);
-      --  If the node is an xref entry point, extract its diagnostics and add
-      --  them to Self.Errors.
+      --  Collect errors in Self.Errors if Libadalang can check this node
+      --  on its own (an xref entry point, such as a declaration).
 
       ------------------
       -- Process_Node --
@@ -77,18 +74,15 @@ package body LSP.Ada_Semantic_Diagnostics is
 
       procedure Process_Node (Node : Ada_Node) is
       begin
-         --  Skip nodes that are not xref entry points: only those
-         --  can have semantic diagnostics attached.
+         --  Other nodes cannot be checked for semantic errors on their own.
          if not Node.P_Xref_Entry_Point then
             return;
          end if;
 
-         --  Check every entry point under the traversal root. The same
-         --  root is the eviction boundary when merging into the cache.
-         --  Filtering by the original edit would discard unrelated errors
-         --  inside that boundary without recomputing them.
-
-         --  Process this xref entry point.
+         --  Check all entry points in the selected subtree, because the
+         --  cache update will replace all errors in that subtree. For
+         --  example, renaming a declaration in a package must not hide a
+         --  type error elsewhere in the same package.
          declare
             Raw_Diags : constant Solver_Diagnostic_Array :=
               Node.P_Nameres_Diagnostics;
@@ -139,8 +133,9 @@ package body LSP.Ada_Semantic_Diagnostics is
         or else Document = null
         or else not Document.Is_Same (Self.Document_Signature)
       then
-         --  Project was reloaded, server is shutting down, document was
-         --  closed, or the document changed/reopened since job creation.
+         --  Stop if semantic checks are disabled or the server is stopping.
+         --  Also stop if the project or document changed, or the document
+         --  was closed or reopened, since this job was queued.
          Me_Debug.Trace
            ("Cancelling semantic diagnostics job for "
             & Self.File_Name.Display_Base_Name
@@ -151,7 +146,7 @@ package body LSP.Ada_Semantic_Diagnostics is
          return;
       end if;
 
-      --  First Execute call: create the iterator.
+      --  On the first call, choose which part of the tree to check.
       if Self.Cursor = null then
          declare
             Context : constant LSP.Ada_Context_Sets.Context_Access :=
@@ -161,10 +156,9 @@ package body LSP.Ada_Semantic_Diagnostics is
             Unit    : constant Analysis_Unit := Context.Get_AU (File);
             Start   : Ada_Node := Unit.Root;
          begin
-            --  When processing only a specific set of ranges, start the
-            --  traversal from the xref entry-point ancestor of the first
-            --  changed position rather than from Unit.Root. This avoids
-            --  visiting nodes that are entirely before the first change.
+            --  For a partial check, start at a node containing the first
+            --  edit. This avoids walking the whole file just to check the
+            --  changed declaration.
             if not Self.Ranges.Is_Empty then
 
                Me_Debug.Trace
@@ -182,17 +176,16 @@ package body LSP.Ada_Semantic_Diagnostics is
                     Document.To_Source_Location (First_Pos);
                   Node      : Ada_Node := Unit.Root.Lookup (Sloc);
                begin
-                  --  Walk up to the nearest xref entry-point ancestor.
+                  --  Move up the tree until Libadalang can check this node
+                  --  on its own.
                   while not Node.Is_Null and then not Node.P_Xref_Entry_Point
                   loop
                      Node := Node.Parent;
                   end loop;
 
-                  --  Start directly from the xref entry-point that contains
-                  --  the change.  The full-document job covers every other
-                  --  entry point in the file, so there is no need to start
-                  --  from Node.Parent (which could be a CompilationUnit and
-                  --  would cause the traversal to span the whole file).
+                  --  Start at this node, not its parent, which could cover
+                  --  the whole file. A later full check handles the rest of
+                  --  the file.
                   if not Node.Is_Null then
                      Start := Node;
                   end if;
@@ -201,9 +194,10 @@ package body LSP.Ada_Semantic_Diagnostics is
                     (Is_Set => True,
                      Value  => Document.To_A_Range (Start.Sloc_Range));
 
-                  --  Fall back to the unit if any edit extends outside the
-                  --  selected root. Compare LSP positions directly: after a
-                  --  deletion, the old end line may no longer exist.
+                  --  Check the whole file if an edit extends outside this
+                  --  node. Compare LSP positions without looking up lines in
+                  --  the text. For example, an edit can end on line 10 even
+                  --  though deleting text makes the file end on line 8.
                   for R of Self.Ranges loop
                      if not LSP.Utils.In_Range
                        (R.start, Self.Traversal_Range.Value)
@@ -235,13 +229,11 @@ package body LSP.Ada_Semantic_Diagnostics is
             Node : Ada_Node;
          begin
             if not Self.Cursor.Next (Node) then
-               --  Iterator exhausted: deposit accumulated results and publish.
-               --  Pass Self.Traversal_Range as the eviction boundary:
-               --  - not set (full-document job) → the cache is fully replaced;
-               --  - set (per-range job) → only diagnostics inside the
-               --    traversal root's extent are evicted and replaced, which
-               --    correctly covers nodes larger than the original didChange
-               --    Ranges.
+               --  All selected nodes have been checked. Save the results
+               --  and publish them. For a full check, replace all saved
+               --  errors. For a partial check, replace errors in the whole
+               --  subtree we checked and keep errors elsewhere in the file.
+               --  Use the checked subtree's range, not just the edited text.
                declare
                   Semantic_Diags_Source :
                     constant LSP
@@ -262,7 +254,7 @@ package body LSP.Ada_Semantic_Diagnostics is
                      & ")");
 
                   Semantic_Diags_Source.Update_Diagnostics
-                    (Errors           => Self.Errors,
+                    (New_Diagnostics  => Self.Errors,
                      Range_To_Replace => Self.Traversal_Range);
                   Self.Handler.Publish_Diagnostics (Document);
                end;
@@ -278,10 +270,8 @@ package body LSP.Ada_Semantic_Diagnostics is
               Langkit_Support.Errors.Property_Error
               | Langkit_Support.Errors.Stale_Reference_Error
             =>
-               --  A Libadalang property (P_Xref_Entry_Point, P_Nameres_
-               --  Diagnostics, ...) was called on a node whose unit was
-               --  reparsed mid-batch (a didChange arrived while this job
-               --  was running).  Skip the node and continue in this case.
+               --  Libadalang could not check this node, or the node became
+               --  invalid after reparsing. Skip it and continue.
                null;
          end;
       end loop;
@@ -330,8 +320,8 @@ package body LSP.Ada_Semantic_Diagnostics is
            new Semantic_Diagnostics_Job (Handler => Handler);
          Job_Access : LSP.Server_Jobs.Server_Job_Access;
       begin
-         --  We fetch the document on each Execute call and compare it to this
-         --  creation-time signature to detect close/reopen or text updates.
+         --  Remember this document version. Each Execute call checks that
+         --  the text has not changed and the document has not been reopened.
 
          Job.Project_Stamp := Handler.Get_Project_Stamp;
          Job.Document_URI := Document.URI;
