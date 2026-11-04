@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2023, AdaCore                     --
+--                     Copyright (C) 2021-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,20 +30,37 @@ with Libadalang.Preprocessing;
 
 package LSP.Ada_Handlers.File_Readers is
 
+   type Preprocessing_Config is private;
+   --  Preprocessing options extracted once per project load. The default
+   --  value disables preprocessing, for use when extraction fails.
+
+   procedure Extract_Preprocessing_Config
+     (Tree   : GPR2.Project.Tree.Object;
+      View   : GPR2.Project.View.Object;
+      Config : out Preprocessing_Config);
+   --  Extract preprocessing options from View and preserve source line
+   --  numbers by forcing Blank_Lines for all enabled configurations.
+
    type LSP_File_Reader (Handler : access Message_Handler'Class) is
      new Langkit_Support.File_Readers.File_Reader_Interface with private;
 
    procedure Initialize
-     (Self : in out LSP_File_Reader'Class;
-      Tree : GPR2.Project.Tree.Object;
-      View : GPR2.Project.View.Object);
-   --  Extract the preprocessing options from the context's project
-   --  and create the file reader which will preprocess the files
-   --  accordingly.
+     (Self   : in out LSP_File_Reader'Class;
+      Tree   : GPR2.Project.Tree.Object;
+      View   : GPR2.Project.View.Object;
+      Config : Preprocessing_Config);
+   --  Create an independent preprocessor from a copy of Config. Readers
+   --  share extracted options, but not LAL's directive-parsing context.
    --  Extract IDE.Excluded_Source_Files list from the project and keep it
    --  to ignore such files when reading.
 
 private
+
+   type Preprocessing_Config is record
+      Valid          : Boolean := False;
+      Default_Config : Libadalang.Preprocessing.File_Config;
+      File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
+   end record;
 
    package Regexp_Vector is new Ada.Containers.Indefinite_Vectors
      (Index_Type   => Positive,

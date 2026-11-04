@@ -561,6 +561,10 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       Root : GNATCOLL.VFS.Virtual_File;
 
+      Config : LSP.Ada_Handlers.File_Readers.Preprocessing_Config;
+      --  All context readers use options from the root view. Keep these
+      --  options only for this load, so reloads always extract fresh data.
+
       procedure Create_Context_For_Non_Aggregate
         (View     : GPR2.Project.View.Object;
          Provider : GPR2_Provider_And_Projects);
@@ -590,27 +594,10 @@ package body LSP.Ada_Handlers.Project_Loading is
              (Self'Unchecked_Access);
 
       begin
-         begin
-            Reader.Initialize (Tree => Self.Project_Tree, View => View);
-         exception
-            --  Fallback to a degraded mode when failing to parse preprocessing
-            --  options.
-            when E : Langkit_Support.Errors.Syntax_Error =>
-               Self.Send_Messages
-                 (Show     => True,
-                  Messages =>
-                    ["Failed to load preprocessing options: please ensure"
-                     & " your preprocessing definitions are syntactically correct."],
-                  Severity => LSP.Enumerations.Error,
-                  File     => GNATCOLL.VFS.No_File);
-               Tracer.Trace_Exception
-                 (Error   => E,
-                  Message =>
-                    "Failed to parse preprocessing options for Context Id: "
-                    & (C.Id)
-                    & ", fallback to a degraded mode without support for "
-                    & "preprocessing directives");
-         end;
+         Reader.Initialize
+           (Tree   => Self.Project_Tree,
+            View   => View,
+            Config => Config);
 
          C.Initialize
            (Reader,
@@ -768,6 +755,31 @@ package body LSP.Ada_Handlers.Project_Loading is
          end;
 
          Update_Project_Predefined_Sources (Self);
+
+         begin
+            LSP.Ada_Handlers.File_Readers.Extract_Preprocessing_Config
+              (Tree   => Self.Project_Tree,
+               View   => Self.Project_Tree.Root_Project,
+               Config => Config);
+
+         exception
+            --  The default configuration leaves preprocessing disabled for
+            --  every reader. Report invalid options once per project load.
+            when E : Langkit_Support.Errors.Syntax_Error =>
+               Self.Send_Messages
+                 (Show     => True,
+                  Messages =>
+                    ["Failed to load preprocessing options: please ensure"
+                     & " your preprocessing definitions are syntactically correct."],
+                  Severity => LSP.Enumerations.Error,
+                  File     => GNATCOLL.VFS.No_File);
+               Tracer.Trace_Exception
+                 (Error   => E,
+                  Message =>
+                    "Failed to parse preprocessing options, fallback to a "
+                    & "degraded mode without support for preprocessing "
+                    & "directives");
+         end;
 
          if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
             --  For aggregated root project, use LAL to create sets of

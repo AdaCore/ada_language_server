@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2023, AdaCore                     --
+--                     Copyright (C) 2021-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,14 +75,14 @@ package body LSP.Ada_Handlers.File_Readers is
       return Boolean;
    --  Return True if Filename match a regexp in Self.Excluded_Regexps
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ----------------------------------
+   -- Extract_Preprocessing_Config --
+   ----------------------------------
 
-   procedure Initialize
-     (Self : in out LSP_File_Reader'Class;
-      Tree : GPR2.Project.Tree.Object;
-      View : GPR2.Project.View.Object)
+   procedure Extract_Preprocessing_Config
+     (Tree   : GPR2.Project.Tree.Object;
+      View   : GPR2.Project.View.Object;
+      Config : out Preprocessing_Config)
    is
       procedure Set_Line_Mode
         (Config : in out Libadalang.Preprocessing.File_Config);
@@ -102,6 +102,31 @@ package body LSP.Ada_Handlers.File_Readers is
          end if;
       end Set_Line_Mode;
 
+   begin
+      Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
+        (Tree           => Tree,
+         Project        => View,
+         Default_Config => Config.Default_Config,
+         File_Configs   => Config.File_Configs);
+
+      Libadalang.Preprocessing.Iterate
+        (Default_Config => Config.Default_Config,
+         File_Configs   => Config.File_Configs,
+         Process        => Set_Line_Mode'Access);
+
+      Config.Valid := True;
+   end Extract_Preprocessing_Config;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self   : in out LSP_File_Reader'Class;
+      Tree   : GPR2.Project.Tree.Object;
+      View   : GPR2.Project.View.Object;
+      Config : Preprocessing_Config)
+   is
       procedure Read_Excluded_Source_Files;
       --  Read IDE.Excluded_Source_Files value from the project if any
 
@@ -143,28 +168,28 @@ package body LSP.Ada_Handlers.File_Readers is
          end if;
       end Read_Excluded_Source_Files;
 
-      Default_Config : Libadalang.Preprocessing.File_Config;
-      File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
-
    begin
       Self.Preprocessing_Data := Libadalang.Preprocessing.No_Preprocessor_Data;
 
       Read_Excluded_Source_Files;  --  Read IDE.Excluded_Source_Files attr
 
-      Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
-        (Tree           => Tree,
-         Project        => View,
-         Default_Config => Default_Config,
-         File_Configs   => File_Configs);
+      if Config.Valid then
+         declare
+            --  Create_Preprocessor_Data consumes its arguments and creates
+            --  a fresh context for parsing directives. Keep the cached
+            --  options intact and the readers' parsing contexts separate.
 
-      Libadalang.Preprocessing.Iterate
-        (Default_Config => Default_Config,
-         File_Configs   => File_Configs,
-         Process        => Set_Line_Mode'Access);
+            Default_Config : Libadalang.Preprocessing.File_Config :=
+              Config.Default_Config;
+            File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map :=
+              Config.File_Configs;
 
-      Self.Preprocessing_Data :=
-        Libadalang.Preprocessing.Create_Preprocessor_Data
-          (Default_Config, File_Configs);
+         begin
+            Self.Preprocessing_Data :=
+              Libadalang.Preprocessing.Create_Preprocessor_Data
+                (Default_Config, File_Configs);
+         end;
+      end if;
    end Initialize;
 
    ---------------------
