@@ -15,12 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Containers;
+
 with GNATCOLL.Traces; use GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Libadalang;
 with Libadalang.Analysis;
 with LSP.Ada_Documents;
+with LSP.Ada_Documents.Semantic_Diagnostics;
 with LSP.Client_Message_Receivers;
 with LSP.Structures;
 with LSP.Server_Notifications.DidChange;
@@ -34,42 +37,73 @@ package body LSP.Ada_Did_Change_Document is
    type Did_Change_Job
      (Parent : not null access constant Ada_Did_Change_Handler)
    is limited new LSP.Server_Jobs.Server_Job with record
-      Message  : LSP.Server_Messages.Server_Message_Access;
+      Message : LSP.Server_Messages.Server_Message_Access;
    end record;
 
    type Did_Change_Job_Access is access all Did_Change_Job;
 
-   overriding function Priority
-     (Self : Did_Change_Job) return LSP.Server_Jobs.Job_Priority is
-       (LSP.Server_Jobs.Fence);
+   overriding
+   function Priority
+     (Self : Did_Change_Job) return LSP.Server_Jobs.Job_Priority
+   is (LSP.Server_Jobs.Fence);
 
-   overriding procedure Execute
+   overriding
+   procedure Execute
      (Self   : in out Did_Change_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status);
 
-   overriding procedure Complete
+   overriding
+   procedure Complete
      (Self : in out Did_Change_Job;
       Next : LSP.Server_Messages.Server_Message_Access);
 
-   overriding function Message (Self : Did_Change_Job)
-     return LSP.Server_Messages.Server_Message_Access is (Self.Message);
+   overriding
+   function Message
+     (Self : Did_Change_Job) return LSP.Server_Messages.Server_Message_Access
+   is (Self.Message);
 
    function Is_Incremental
      (Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector)
-       return Boolean is
-         (not Changes.Is_Empty and then Changes.First_Element.a_range.Is_Set);
-   --  Changes has incrimental form (not just full text update)
+      return Boolean
+   is (not Changes.Is_Empty and then Changes.First_Element.a_range.Is_Set);
+   --  Return True when the first change edits a range of the document.
+
+   procedure Apply_Changes_And_Rebase_Diagnostics
+     (Document : not null LSP.Ada_Documents.Document_Access;
+      Params   : LSP.Structures.DidChangeTextDocumentParams);
+   --  Apply the edits and move saved diagnostics to their new positions.
+
+   ------------------------------------------
+   -- Apply_Changes_And_Rebase_Diagnostics --
+   ------------------------------------------
+
+   procedure Apply_Changes_And_Rebase_Diagnostics
+     (Document : not null LSP.Ada_Documents.Document_Access;
+      Params   : LSP.Structures.DidChangeTextDocumentParams)
+   is
+      package Diagnostics renames LSP.Ada_Documents.Semantic_Diagnostics;
+
+      Source : constant Diagnostics.Semantic_Diagnostic_Source_Access :=
+        Diagnostics.Semantic_Diagnostic_Source_Access
+          (Document.Semantic_Diagnostic_Source);
+   begin
+      Document.Apply_Changes
+        (Params.textDocument.version, Params.contentChanges);
+      Source.Rebase_Diagnostics (Params.contentChanges);
+   end Apply_Changes_And_Rebase_Diagnostics;
 
    --------------
    -- Complete --
    --------------
 
-   overriding procedure Complete
+   overriding
+   procedure Complete
      (Self : in out Did_Change_Job;
       Next : LSP.Server_Messages.Server_Message_Access)
    is
+      use type Ada.Containers.Count_Type;
       use type LSP.Server_Messages.Server_Message_Access;
       use type GNATCOLL.VFS.Virtual_File;
       use type LSP.Ada_Documents.Document_Access;
@@ -87,20 +121,21 @@ package body LSP.Ada_Did_Change_Document is
           (Message.Params.textDocument.uri);
 
    begin
-      if Next /= null and then
-        Next.all in LSP.Server_Notifications.DidChange.Notification'Class
+      if Next /= null
+        and then
+          Next.all in LSP.Server_Notifications.DidChange.Notification'Class
       then
          declare
             Change : LSP.Server_Notifications.DidChange.Notification renames
               LSP.Server_Notifications.DidChange.Notification (Next.all);
 
-            Next_File  : constant GNATCOLL.VFS.Virtual_File :=
+            Next_File : constant GNATCOLL.VFS.Virtual_File :=
               Self.Parent.Context.To_File (Change.Params.textDocument.uri);
          begin
             if File = Next_File then
-               --  However, we should skip the Indexing part (and
-               --  non-incremental changes) if the next didChange message
-               --  will re-change the text document.
+               --  Another change to this file is already waiting. Apply it
+               --  before reparsing, indexing or checking for errors. For a
+               --  full text replacement, only the latest text is needed.
                return;
             end if;
          end;
@@ -111,14 +146,13 @@ package body LSP.Ada_Did_Change_Document is
       end if;
 
       if not Is_Incremental (Changes) then
-         Document.Apply_Changes
-           (Message.Params.textDocument.version, Changes);
+         Apply_Changes_And_Rebase_Diagnostics (Document, Message.Params);
       end if;
 
-      --  Clear the cacha of symbols now
+      --  The edits may have changed the symbols in this document.
       LSP.Ada_Documents.Reset_Symbol_Cache (Document.all);
-      --  Manually reparse the file in all context now so the AU is up-to-date
-      --  for the following requests.
+      --  Reparse the file in every context that uses it, so later requests
+      --  see the updated text.
       for Context of Self.Parent.Context.Contexts_For_File (File) loop
          declare
             Dummy : Libadalang.Analysis.Analysis_Unit;
@@ -126,28 +160,35 @@ package body LSP.Ada_Did_Change_Document is
             Dummy := Context.Get_AU (File, Reparse => True);
          end;
       end loop;
-      --  The indexing here will do PLE and fill the database of Defining_Name
-      --  in a separate job at the lowest priority
+      --  Update the index in a separate job at the lowest priority.
       if Did_Change_Indexing.Is_Active then
          Self.Parent.Context.Enqueue_Indexing (File);
       end if;
 
-      --  Emit diagnostics
+      --  Publish any diagnostics that are ready now.
       Self.Parent.Context.Publish_Diagnostics (Document);
 
-      --  Schedule the semantic diagnostics job for the changed ranges.
+      --  Schedule semantic checks for the updated text.
       declare
          Ranges : LSP.Structures.Range_Vector;
       begin
-         for Change of Changes loop
-            if Change.a_range.Is_Set then
-               Ranges.Append (Change.a_range.Value);
+         if Changes.Length > 1 then
+            --  Later edits can move text changed by earlier edits. For
+            --  example, adding an error on line 8 then inserting six lines
+            --  above it puts the error on line 14. The first range still
+            --  points to line 8, so it could make us check the wrong code.
+            --  Check all open files: changed declarations may also cause
+            --  errors in other files that use them.
+            Self.Parent.Context.Enqueue_Semantic_Diagnostics;
+         else
+            --  A single ranged edit gets a quick local check first.
+            if Is_Incremental (Changes) then
+               Ranges.Append (Changes.First_Element.a_range.Value);
             end if;
-         end loop;
 
-         Self.Parent.Context.Enqueue_Semantic_Diagnostics
-           (Document => Document,
-            Ranges   => Ranges);
+            Self.Parent.Context.Enqueue_Semantic_Diagnostics
+              (Document => Document, Ranges => Ranges);
+         end if;
       end;
    end Complete;
 
@@ -155,15 +196,15 @@ package body LSP.Ada_Did_Change_Document is
    -- Create_Job --
    ----------------
 
-   overriding function Create_Job
+   overriding
+   function Create_Job
      (Self    : Ada_Did_Change_Handler;
       Message : LSP.Server_Messages.Server_Message_Access)
       return LSP.Server_Jobs.Server_Job_Access
    is
       Result : constant Did_Change_Job_Access :=
         new Did_Change_Job'
-          (Parent   => Self'Unchecked_Access,
-           Message  => Message);
+          (Parent => Self'Unchecked_Access, Message => Message);
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
@@ -172,7 +213,8 @@ package body LSP.Ada_Did_Change_Document is
    -- Execute --
    -------------
 
-   overriding procedure Execute
+   overriding
+   procedure Execute
      (Self   : in out Did_Change_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -187,7 +229,8 @@ package body LSP.Ada_Did_Change_Document is
         Message.Params.contentChanges;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Parent.Context.Get_Open_Document (Message.Params.textDocument.uri);
+        Self.Parent.Context.Get_Open_Document
+          (Message.Params.textDocument.uri);
    begin
       Status := LSP.Server_Jobs.Done;
 
@@ -196,16 +239,10 @@ package body LSP.Ada_Did_Change_Document is
       end if;
 
       if Is_Incremental (Changes) then
-         --  If we are applying incremental changes, we can't skip the
-         --  call to Apply_Changes, since this would break synchronization.
-         Document.Apply_Changes
-           (Message.Params.textDocument.version, Changes);
-
-         --  However, we should skip the Indexing part if the next didChange
-         --  message will re-change the text document.
+         --  Apply these edits now: the next change may use their result.
+         --  Complete will reparse, index and check the updated document.
+         Apply_Changes_And_Rebase_Diagnostics (Document, Message.Params);
       end if;
-
-      --  Rest of the work in Complete routine
    exception
       when E : others =>
          Self.Parent.Context.Trace_Exception (E);

@@ -1,0 +1,2 @@
+driver: python
+title: Partial semantic results preserve diagnostics in other scopes

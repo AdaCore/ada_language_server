@@ -37,10 +37,11 @@ package LSP.Ada_Semantic_Diagnostics is
       Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Document : not null LSP.Ada_Documents.Document_Access;
       Ranges   : LSP.Structures.Range_Vector := []);
-   --  Create and enqueue a semantic diagnostics job for Document.
-   --  When Ranges is empty the entire document is (re)computed and the cache
-   --  is replaced. Otherwise only nodes overlapping Ranges are visited and
-   --  results are merged into the existing cache.
+   --  Queue a background check for semantic errors in Document.
+   --  If Ranges is empty, check the whole file and replace all saved errors.
+   --  Otherwise, check a subtree containing the ranges and keep saved errors
+   --  outside that subtree. For example, checking one procedure keeps errors
+   --  in other procedures visible until a full check updates them.
 
    type Semantic_Diagnostics_Job (<>) is
      new LSP.Server_Jobs.Server_Job with private;
@@ -59,31 +60,30 @@ private
      (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class)
    is new LSP.Server_Jobs.Server_Job with record
       Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
-      --  Used to detect if the project was reloaded during execution,
-      --  in which case results are discarded and the job is terminated.
+      --  Stop the job if the project has been reloaded since it was queued.
 
       Document_URI : LSP.Structures.DocumentUri;
-      --  Saved URI used to re-fetch Document safely on each Execute call.
+      --  Used to look up the document again on each Execute call.
 
       Document_Signature : LSP.Text_Documents.Document_Signature;
-      --  Snapshot of document URI/version/open timestamp at job creation.
+      --  The document's URI, version and opening time when the job was queued.
 
       File_Name : GNATCOLL.VFS.Virtual_File;
-      --  Saved copy of the Document's virtual file, used for traces.
+      --  The document's file name, kept for trace messages.
 
       Ranges : LSP.Structures.Range_Vector;
-      --  The vector of changed ranges to process.
+      --  The edited ranges. Empty means check the whole file.
 
       Cursor : Traverse_Iterator_Access := null;
-      --  Iterator tracking the current node being processed.
+      --  Keeps our place in the tree between Execute calls.
 
       Errors : LSP.Structures.Diagnostic_Vector;
-      --  Diagnostics accumulated across Execute calls.
+      --  Errors found so far, kept between Execute calls.
 
       Traversal_Range : LSP.Structures.A_Range_Optional;
-      --  The LSP range of the traversal root node (only set for per-range
-      --  jobs).  All xref entry-points inside this range are re-checked, so
-      --  it is also the correct eviction boundary for the diagnostic cache.
+      --  The range of the subtree checked by a partial job. Replace saved
+      --  errors in this range and keep the others. If unset, replace all
+      --  saved errors after checking the whole file.
    end record;
 
    overriding function Priority
