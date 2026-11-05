@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 import assert from 'assert';
 import {
+    copyFileSync,
     existsSync,
     mkdirSync,
     mkdtempSync,
@@ -19,6 +20,7 @@ import {
     createSparkTaskProvider,
     findTaskByName,
     getConventionalTaskLabel,
+    getProcessTaskEnvironment,
     isFromWorkspace,
     runTaskAndGetResult,
     SimpleTaskDef,
@@ -235,7 +237,9 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 assert(env);
                 assert.strictEqual(
                     env.PATH,
-                    '${env:PATH}' + path.delimiter + '${workspaceFolder}/task tools',
+                    (process.platform === 'win32' ? (process.env.PATH ?? '') : '${env:PATH}') +
+                        path.delimiter +
+                        '${workspaceFolder}/task tools',
                 );
                 assert.strictEqual(env.ALS_TASK_ENV_DIRECTORY, '${fileDirname}');
                 assert.strictEqual(env.ALS_TASK_ENV_LITERAL, 'literal value');
@@ -267,6 +271,150 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 previousEnv,
                 vscode.ConfigurationTarget.Workspace,
             );
+            rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
+    });
+
+    test('Customized task Path overrides the Windows executable search path', async () => {
+        const config = vscode.workspace.getConfiguration();
+        const previousTasks = config.get<vscode.TaskDefinition[]>('tasks.tasks');
+        const override = 'C:\\task tools\\bin';
+        try {
+            await config.update(
+                'tasks.tasks',
+                [
+                    ...(previousTasks ?? []),
+                    {
+                        type: TASK_TYPE_ADA,
+                        label: 'Task with Path override',
+                        command: 'gprbuild',
+                        args: [],
+                        options: { env: { Path: override } },
+                    },
+                ],
+                vscode.ConfigurationTarget.Workspace,
+            );
+            const definition = { type: TASK_TYPE_ADA, command: 'gprbuild', args: [] };
+            for (const [name, source] of [
+                ['Task with Path override', 'Workspace'],
+                ['An auto-detected task with another label', TASK_TYPE_ADA],
+            ]) {
+                const task = new vscode.Task(definition, vscode.TaskScope.Workspace, name, source);
+                const env = getProcessTaskEnvironment(task, 'win32');
+                assert.deepStrictEqual(
+                    Object.keys(env).filter((key) => key.toLowerCase() === 'path'),
+                    ['Path'],
+                );
+                assert(!env.Path.includes('${env:PATH}'));
+            }
+            if (process.platform !== 'win32') return;
+            const task = (await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA })).find(
+                (candidate) => candidate.name === 'Task with Path override',
+            );
+            assert(task?.execution instanceof vscode.ProcessExecution);
+            const env = task.execution.options?.env;
+            assert(env);
+            const pathKeys = Object.keys(env).filter((key) => key.toLowerCase() === 'path');
+            assert.deepStrictEqual(pathKeys, ['Path']);
+            assert.strictEqual(env.Path, override);
+        } finally {
+            await config.update('tasks.tasks', previousTasks, vscode.ConfigurationTarget.Workspace);
+        }
+    });
+
+    test('Task PATH macros are expanded before Windows executable lookup', async () => {
+        const config = vscode.workspace.getConfiguration();
+        const previousTasks = config.get<vscode.TaskDefinition[]>('tasks.tasks');
+        const terminalSetting = 'terminal.integrated.env.windows';
+        const previousEnv = config.inspect(terminalSetting)?.workspaceValue;
+        const root = mkdtempSync(path.join(tmpdir(), 'als task PATH macros '));
+        const toolDir = path.join(root, 'tools with spaces', 'bin');
+        const inheritedPath = process.env.PATH ?? '';
+        const expectedPath = inheritedPath + ';' + toolDir;
+        const probe = 'als-task-path-probe.exe';
+        try {
+            mkdirSync(toolDir, { recursive: true });
+            if (process.platform === 'win32') {
+                copyFileSync(nodeExecutable, path.join(toolDir, probe));
+            }
+            await config.update(
+                terminalSetting,
+                {
+                    ...config.get<Record<string, string | null>>(terminalSetting),
+                    ALS_TASK_PATH: inheritedPath,
+                },
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            for (const [key, macro] of [
+                ['Path', '${env:PATH}'],
+                ['PATH', '${env:PATH}'],
+                ['path', '${config:terminal.integrated.env.windows.ALS_TASK_PATH}'],
+            ]) {
+                const rawPath = macro + ';' + toolDir;
+                const reportFile = path.join(root, key + '.json');
+                const definitions = [
+                    {
+                        type: TASK_TYPE_ADA,
+                        label: 'Inherited PATH macro',
+                        command: 'gprbuild',
+                        args: ['--version'],
+                        options: { env: { [key]: rawPath } },
+                    },
+                    {
+                        type: TASK_TYPE_ADA,
+                        label: 'Executable in a PATH directory with spaces',
+                        command: probe,
+                        args: [
+                            '-e',
+                            "require('fs').writeFileSync(process.argv[1], JSON.stringify(process.env.PATH))",
+                            reportFile,
+                        ],
+                        options: { env: { [key]: rawPath } },
+                    },
+                ];
+                await config.update(
+                    'tasks.tasks',
+                    [...(previousTasks ?? []), ...definitions],
+                    vscode.ConfigurationTarget.Workspace,
+                );
+
+                if (process.platform !== 'win32') {
+                    const task = new vscode.Task(
+                        definitions[0],
+                        vscode.TaskScope.Workspace,
+                        definitions[0].label,
+                        'Workspace',
+                    );
+                    // Model VS Code's later merge, followed by its selection of
+                    // the first case-insensitive PATH key for executable lookup.
+                    const env = { ...getProcessTaskEnvironment(task, 'win32'), [key]: rawPath };
+                    assert.strictEqual(
+                        Object.entries(env).find(([name]) => name.toLowerCase() === 'path')?.[1],
+                        expectedPath,
+                    );
+                    continue;
+                }
+
+                // fetchTasks applies the built-in options.env customization.
+                // Exercise both the inherited list and the appended directory.
+                const tasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
+                for (const definition of definitions) {
+                    const task = tasks.find((candidate) => candidate.name === definition.label);
+                    assert(task?.execution instanceof vscode.ProcessExecution);
+                    assert.strictEqual(await runTaskAndGetResult(task), 0);
+                    assert.strictEqual(
+                        Object.entries(task.execution.options?.env ?? {}).find(
+                            ([name]) => name.toLowerCase() === 'path',
+                        )?.[1],
+                        expectedPath,
+                    );
+                }
+                assert.strictEqual(JSON.parse(readFileSync(reportFile, 'utf8')), expectedPath);
+            }
+        } finally {
+            await config.update('tasks.tasks', previousTasks, vscode.ConfigurationTarget.Workspace);
+            await config.update(terminalSetting, previousEnv, vscode.ConfigurationTarget.Workspace);
             rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
         }
     });

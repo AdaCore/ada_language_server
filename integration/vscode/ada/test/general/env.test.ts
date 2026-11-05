@@ -1,7 +1,28 @@
 import assert from 'assert';
 import { setTerminalEnvironment } from '../../src/helpers';
+import { matchTaskPathCasing } from '../../src/toolEnvironment';
 
 suite('Environment init', () => {
+    for (const inheritedKey of ['PATH', 'Path']) {
+        for (const overrideKey of ['PATH', 'Path', 'path']) {
+            test(`Windows task override ${overrideKey} replaces inherited ${inheritedKey}`, () => {
+                const env = { [inheritedKey]: 'inherited tools', OTHER: 'preserved' };
+                const overrides = { [overrideKey]: 'task tools' };
+                matchTaskPathCasing(env, overrides, 'win32');
+                assert.deepStrictEqual(
+                    { ...env, ...overrides },
+                    { [overrideKey]: 'task tools', OTHER: 'preserved' },
+                );
+            });
+        }
+    }
+
+    test('Unix task environment keys remain case-sensitive', () => {
+        const env = { PATH: 'inherited tools', Path: 'unrelated value' };
+        matchTaskPathCasing(env, { path: 'another variable' }, 'linux');
+        assert.deepStrictEqual(env, { PATH: 'inherited tools', Path: 'unrelated value' });
+    });
+
     test('Env init', () => {
         /**
          * We want to test the cases [existing variable, non-existing variable]
