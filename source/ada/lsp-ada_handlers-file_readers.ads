@@ -58,8 +58,16 @@ private
 
    type Preprocessing_Config is record
       Valid          : Boolean := False;
+      --  Whether preprocessing options were successfully extracted from the
+      --  project. When False, readers leave preprocessing disabled.
+
       Default_Config : Libadalang.Preprocessing.File_Config;
+      --  Preprocessing options for source files whose basenames are not
+      --  present in File_Configs.
+
       File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
+      --  Preprocessing options for individual source files, keyed by basename.
+      --  These take precedence over Default_Config.
    end record;
 
    package Regexp_Vector is new Ada.Containers.Indefinite_Vectors
