@@ -76,12 +76,11 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
             ),
             TextEdit(
                 Range(Position(14, 0), Position(17, 0)),
-                "     case X is\n          when X > 10          =>\n"
-                + "               null;\n",
+                "     case X is\n          when X > 10 =>\n" + "               null;\n",
             ),
             TextEdit(
                 Range(Position(18, 0), Position(20, 0)),
-                "          when X > 20          =>\n               null;\n",
+                "          when X > 20 =>\n               null;\n",
             ),
             TextEdit(
                 Range(Position(21, 0), Position(23, 0)),
@@ -89,8 +88,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
             ),
             TextEdit(
                 Range(Position(24, 0), Position(27, 0)),
-                "          when others          =>\n               null;\n"
-                + "     end case;\n",
+                "          when others =>\n               null;\n" + "     end case;\n",
             ),
         ],
     )
