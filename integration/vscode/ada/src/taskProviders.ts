@@ -1747,19 +1747,49 @@ export function runTaskAndGetResult(
     return new Promise((resolve, reject) => {
         let execution: vscode.TaskExecution | undefined;
         let finished = false;
+        let terminateRequested = false;
+        const nativeProcess = task.execution instanceof vscode.ProcessExecution;
+        let processStarted = !nativeProcess;
+        let startupTimeout: ReturnType<typeof setTimeout> | undefined;
         const disposables: vscode.Disposable[] = [];
         const finish = (exitCode?: number, error?: Error) => {
             if (finished) return;
             finished = true;
+            clearTimeout(startupTimeout);
             disposables.forEach((d) => {
                 d.dispose();
             });
             if (error) reject(error);
             else resolve(exitCode);
         };
-        // executeTask resolves when the task starts, so subscribe to completion
-        // before launching it, including for tasks that finish immediately.
+        // Subscribe before launching, including for tasks that finish immediately.
         disposables.push(
+            vscode.tasks.onDidStartTask((e) => {
+                if (e.execution.task !== task || processStarted || finished) return;
+                // VS Code emits this after variable resolution and dependencies.
+                // Waiting for an input or command variable must not time out.
+                clearTimeout(startupTimeout);
+                startupTimeout = setTimeout(() => {
+                    terminateRequested = true;
+                    finish(
+                        undefined,
+                        new Error(
+                            `The task '${getConventionalTaskLabel(task)}' did not start in time and was cancelled.\n`,
+                        ),
+                    );
+                    execution?.terminate();
+                }, 5000);
+            }),
+            vscode.tasks.onDidStartTaskProcess((e) => {
+                if (e.execution.task === task) {
+                    processStarted = true;
+                    clearTimeout(startupTimeout);
+                }
+            }),
+            vscode.tasks.onDidEndTask((e) => {
+                // ProcessExecution may fail before a process can be started.
+                if (e.execution.task === task) finish();
+            }),
             vscode.tasks.onDidEndTaskProcess((e) => {
                 if (e.execution.task === task && !token?.isCancellationRequested)
                     finish(e.exitCode);
@@ -1769,6 +1799,7 @@ export function runTaskAndGetResult(
             disposables.push(
                 token.onCancellationRequested(() => {
                     // Stop waiting even if task startup has not returned a handle yet.
+                    terminateRequested = true;
                     finish();
                     execution?.terminate();
                 }),
@@ -1782,8 +1813,8 @@ export function runTaskAndGetResult(
             .then(
                 (started) => {
                     execution = started;
-                    // Cancellation may have happened before executeTask resolved.
-                    if (token?.isCancellationRequested) {
+                    // Cancellation or a timeout may precede the execution handle.
+                    if (terminateRequested || token?.isCancellationRequested) {
                         finish();
                         execution.terminate();
                     }
