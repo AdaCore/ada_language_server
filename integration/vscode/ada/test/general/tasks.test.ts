@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable max-len */
 import assert from 'assert';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import {
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readFileSync,
+    rmSync,
+    writeFileSync,
+} from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
 import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
-import { exe, getProjectFile, gprScenarioArgs } from '../../src/helpers';
+import { exe, getProjectFile, gprScenarioArgs, TERMINAL_ENV_SETTING_NAME } from '../../src/helpers';
 import {
     createAdaTaskProvider,
     createSparkTaskProvider,
@@ -28,6 +35,10 @@ import {
     testTask,
     waitForExpectedDiagnostics,
 } from '../utils';
+
+// npm's Node executable can run task scripts without relying on Electron's
+// executable supporting node mode inside the Windows task terminal.
+const nodeExecutable = process.env.npm_node_execpath ?? process.execPath;
 
 suite('Task Providers', function () {
     let projectPath: string;
@@ -166,6 +177,98 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
         const expectedCmd = `gprbuild -P ${projectPath} -d`;
 
         assert.strictEqual(actualCmd, expectedCmd);
+    });
+
+    test('Process task environment macros are expanded', async () => {
+        assert(vscode.workspace.workspaceFolders);
+        const workspace = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        const config = vscode.workspace.getConfiguration();
+        const previousEnv = config.inspect(TERMINAL_ENV_SETTING_NAME)?.workspaceValue;
+        const previousRetained = process.env.ALS_TASK_ENV_RETAINED;
+        const previousRemoved = process.env.ALS_TASK_ENV_REMOVED;
+        const root = mkdtempSync(path.join(tmpdir(), 'als process environment '));
+
+        try {
+            await vscode.window.showTextDocument(
+                vscode.Uri.file(path.join(workspace, 'src', 'test.adb')),
+            );
+            process.env.ALS_TASK_ENV_RETAINED = 'inherited value';
+            process.env.ALS_TASK_ENV_REMOVED = 'remove inherited value';
+            await config.update(
+                TERMINAL_ENV_SETTING_NAME,
+                {
+                    ...(config.get(TERMINAL_ENV_SETTING_NAME) ?? {}),
+                    PATH: '${env:PATH}' + path.delimiter + '${workspaceFolder}/task tools',
+                    ALS_TASK_ENV_LITERAL: 'literal value',
+                    ALS_TASK_ENV_DIRECTORY: '${fileDirname}',
+                    ALS_TASK_ENV_REMOVED: null,
+                    ELECTRON_RUN_AS_NODE: '1',
+                },
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            for (const prov of [createAdaTaskProvider(), createSparkTaskProvider()]) {
+                const reportFile = path.join(root, prov.taskType + '.json');
+                const task = await prov.resolveTask(
+                    new vscode.Task(
+                        {
+                            type: prov.taskType,
+                            command: nodeExecutable,
+                            args: [
+                                '-e',
+                                `require('fs').writeFileSync(process.argv[1], JSON.stringify({
+                                    retained: process.env.ALS_TASK_ENV_RETAINED,
+                                    removed: 'ALS_TASK_ENV_REMOVED' in process.env,
+                                    literal: process.env.ALS_TASK_ENV_LITERAL,
+                                    directory: process.env.ALS_TASK_ENV_DIRECTORY
+                                }))`,
+                                reportFile,
+                            ],
+                        },
+                        vscode.TaskScope.Workspace,
+                        'Task with terminal environment macros',
+                        prov.taskType,
+                    ),
+                );
+                assert(task?.execution instanceof vscode.ProcessExecution);
+                const env = task.execution.options?.env;
+                assert(env);
+                assert.strictEqual(
+                    env.PATH,
+                    '${env:PATH}' + path.delimiter + '${workspaceFolder}/task tools',
+                );
+                assert.strictEqual(env.ALS_TASK_ENV_DIRECTORY, '${fileDirname}');
+                assert.strictEqual(env.ALS_TASK_ENV_LITERAL, 'literal value');
+                assert.strictEqual(env.ALS_TASK_ENV_RETAINED, 'inherited value');
+                assert(!('ALS_TASK_ENV_REMOVED' in env));
+                assert.strictEqual(process.env.ALS_TASK_ENV_REMOVED, 'remove inherited value');
+
+                assert.strictEqual(await runTaskAndGetResult(task), 0);
+                const report = JSON.parse(readFileSync(reportFile, 'utf8')) as {
+                    directory: string;
+                };
+                // VS Code variables and Uri.fsPath can use different drive-letter
+                // casing on Windows while referring to the same directory.
+                report.directory = vscode.Uri.file(report.directory).fsPath;
+                assert.deepStrictEqual(report, {
+                    retained: 'inherited value',
+                    removed: false,
+                    literal: 'literal value',
+                    directory: path.join(workspace, 'src'),
+                });
+            }
+        } finally {
+            if (previousRetained === undefined) delete process.env.ALS_TASK_ENV_RETAINED;
+            else process.env.ALS_TASK_ENV_RETAINED = previousRetained;
+            if (previousRemoved === undefined) delete process.env.ALS_TASK_ENV_REMOVED;
+            else process.env.ALS_TASK_ENV_REMOVED = previousRemoved;
+            await config.update(
+                TERMINAL_ENV_SETTING_NAME,
+                previousEnv,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
     });
 
     test('current regions and subprograms', async () => {
@@ -725,6 +828,8 @@ suite('Task Execution', function () {
         const root = mkdtempSync(path.join(tmpdir(), 'als scenario variables '));
         const projectFile = path.join(root, 'show_ip.gpr');
         const config = vscode.workspace.getConfiguration('ada');
+        const terminalConfig = vscode.workspace.getConfiguration();
+        const previousEnv = terminalConfig.inspect(TERMINAL_ENV_SETTING_NAME)?.workspaceValue;
         const previousVariables = config.inspect('scenarioVariables')?.workspaceValue;
         const scenarioCommand = vscode.commands.registerCommand(
             'ada.testScenarioArgs',
@@ -800,11 +905,37 @@ end Show_IP;
             );
             assert(runTask?.execution instanceof vscode.ProcessExecution);
             assert.strictEqual(await runTaskAndGetResult(runTask), 0);
+
+            // Also find the executable by name through a PATH setting containing
+            // spaces and an inherited list of directories.
+            await terminalConfig.update(
+                TERMINAL_ENV_SETTING_NAME,
+                {
+                    ...(terminalConfig.get(TERMINAL_ENV_SETTING_NAME) ?? {}),
+                    PATH: objectDir + path.delimiter + '${env:PATH}',
+                },
+                vscode.ConfigurationTarget.Workspace,
+            );
+            const pathTask = await prov.resolveTask(
+                new vscode.Task(
+                    { type: TASK_TYPE_ADA, command: 'main' + exe, args: [] },
+                    vscode.TaskScope.Workspace,
+                    'Find executable through terminal PATH',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(pathTask);
+            assert.strictEqual(await runTaskAndGetResult(pathTask), 0);
         } finally {
             scenarioCommand.dispose();
             await config.update(
                 'scenarioVariables',
                 previousVariables,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            await terminalConfig.update(
+                TERMINAL_ENV_SETTING_NAME,
+                previousEnv,
                 vscode.ConfigurationTarget.Workspace,
             );
             rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
