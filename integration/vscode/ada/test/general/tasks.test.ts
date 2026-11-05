@@ -23,6 +23,7 @@ import {
     getProcessTaskEnvironment,
     isFromWorkspace,
     runTaskAndGetResult,
+    runTaskSequence,
     SimpleTaskDef,
     TASK_TYPE_ADA,
     DEFAULT_PROBLEM_MATCHERS,
@@ -971,6 +972,95 @@ suite('Task Execution', function () {
         assert(resolved);
         assert.equal(await runTaskAndGetResult(resolved), 2);
     });
+
+    test('Missing executable does not hang process tasks', async () => {
+        const root = mkdtempSync(path.join(tmpdir(), 'als missing executable '));
+        try {
+            const prov = createAdaTaskProvider();
+            const task = await prov.resolveTask(
+                new vscode.Task(
+                    { type: TASK_TYPE_ADA, command: path.join(root, 'missing' + exe), args: [] },
+                    vscode.TaskScope.Workspace,
+                    'Missing executable',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(task?.execution instanceof vscode.ProcessExecution);
+            assert.notStrictEqual(await runTaskAndGetResult(task).catch(() => 1), 0);
+            assert.notStrictEqual(await runTaskSequence([task]).catch(() => 1), 0);
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('Task command variables may take longer than the process startup timeout', async () => {
+        const command = vscode.commands.registerCommand('alsTest.slowTaskArgument', async () => {
+            await new Promise((resolve) => setTimeout(resolve, 6000));
+            return '--version';
+        });
+        const task = new vscode.Task(
+            { type: TASK_TYPE_ADA },
+            vscode.TaskScope.Workspace,
+            'Task with a slow command variable',
+            TASK_TYPE_ADA,
+            new vscode.ProcessExecution(nodeExecutable, ['${command:alsTest.slowTaskArgument}'], {
+                env: { ELECTRON_RUN_AS_NODE: '1' },
+            }),
+        );
+        try {
+            assert.strictEqual(await runTaskAndGetResult(task), 0);
+        } finally {
+            command.dispose();
+        }
+    });
+
+    for (const delayedHandle of [false, true]) {
+        test(`Task startup timeout terminates a ${delayedHandle ? 'late' : 'pending'} execution`, async () => {
+            const task = new vscode.Task(
+                { type: TASK_TYPE_ADA },
+                vscode.TaskScope.Workspace,
+                'Delayed process startup',
+                TASK_TYPE_ADA,
+                new vscode.ProcessExecution('delayed-process'),
+            );
+            let terminations = 0;
+            const execution: vscode.TaskExecution = {
+                task,
+                terminate: () => {
+                    terminations++;
+                },
+            };
+            let resolveExecution!: (execution: vscode.TaskExecution) => void;
+            const pendingExecution = new Promise<vscode.TaskExecution>((resolve) => {
+                resolveExecution = resolve;
+            });
+            const executeTask = vscode.tasks.executeTask;
+            const onDidStartTask = vscode.tasks.onDidStartTask;
+            const taskStarted = new vscode.EventEmitter<vscode.TaskStartEvent>();
+            Object.assign(vscode.tasks, { onDidStartTask: taskStarted.event });
+            vscode.tasks.executeTask = (requestedTask) => {
+                if (requestedTask !== task) return executeTask(requestedTask);
+                taskStarted.fire({ execution });
+                return delayedHandle ? pendingExecution : Promise.resolve(execution);
+            };
+            try {
+                await assert.rejects(runTaskAndGetResult(task), /did not start in time/);
+                if (delayedHandle) {
+                    assert.strictEqual(terminations, 0);
+                    resolveExecution(execution);
+                    // Let the continuation of executeTask receive the late handle.
+                    await Promise.resolve();
+                    await Promise.resolve();
+                }
+                assert.strictEqual(terminations, 1);
+            } finally {
+                resolveExecution(execution);
+                vscode.tasks.executeTask = executeTask;
+                Object.assign(vscode.tasks, { onDidStartTask });
+                taskStarted.dispose();
+            }
+        });
+    }
 
     test('Scenario variables in process build task', async () => {
         const root = mkdtempSync(path.join(tmpdir(), 'als scenario variables '));
