@@ -976,14 +976,14 @@
         "taskDefinitions": [
             {
                 "type": "ada",
-                "when": "shellExecutionSupported",
+                "when": "processExecutionSupported",
                 "properties": {
                     "command": {
-                        "description": "The name of the command to call.",
+                        "description": "The executable to run directly, without a shell.",
                         "type": "string"
                     },
                     "args": {
-                        "description": "The arguments to pass to the command.",
+                        "description": "Literal arguments to pass to the executable, without shell quotes.",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -1127,14 +1127,14 @@
             },
             {
                 "type": "spark",
-                "when": "shellExecutionSupported",
+                "when": "processExecutionSupported",
                 "properties": {
                     "command": {
-                        "description": "The name of the command to call.",
+                        "description": "The executable to run directly, without a shell.",
                         "type": "string"
                     },
                     "args": {
-                        "description": "The arguments to pass to the command.",
+                        "description": "Literal arguments to pass to the executable, without shell quotes.",
                         "type": "array",
                         "items": {
                             "type": "string"

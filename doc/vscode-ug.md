@@ -140,6 +140,17 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 
 ### Task Customization
 
+Tasks of type `ada` and `spark` run executables directly, without a shell. Each
+entry in `args` is a separate argument: do not add shell quotes around paths or
+switches, including `-cargs:ada`. VS Code variables such as `${workspaceFolder}`
+and `${env:NAME}` are supported, but shell expressions, wildcard expansion, pipes
+and redirections are not evaluated. To run a script that needs a shell, specify
+its interpreter as `command` and pass the script in `args`.
+
+These tasks do not use `terminal.integrated.automationProfile.*`, including its
+environment settings. Set task environment variables through `options.env` or
+`terminal.integrated.env.*` instead.
+
 You can [customize auto-detected tasks](https://code.visualstudio.com/docs/editor/tasks#_customizing-autodetected-tasks)
 by providing extra tool command line options via the `args` property of the object in the `tasks.json`:
 

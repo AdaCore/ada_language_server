@@ -1,17 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable max-len */
 import assert from 'assert';
+import {
+    copyFileSync,
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readFileSync,
+    rmSync,
+    writeFileSync,
+} from 'fs';
+import { tmpdir } from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
 import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
-import { exe, getProjectFile } from '../../src/helpers';
+import { exe, getProjectFile, gprScenarioArgs, TERMINAL_ENV_SETTING_NAME } from '../../src/helpers';
 import {
     createAdaTaskProvider,
     createSparkTaskProvider,
     findTaskByName,
     getConventionalTaskLabel,
+    getProcessTaskEnvironment,
     isFromWorkspace,
     runTaskAndGetResult,
+    runTaskSequence,
     SimpleTaskDef,
     TASK_TYPE_ADA,
     DEFAULT_PROBLEM_MATCHERS,
@@ -26,6 +38,10 @@ import {
     testTask,
     waitForExpectedDiagnostics,
 } from '../utils';
+
+// npm's Node executable can run task scripts without relying on Electron's
+// executable supporting node mode inside the Windows task terminal.
+const nodeExecutable = process.env.npm_node_execpath ?? process.execPath;
 
 suite('Task Providers', function () {
     let projectPath: string;
@@ -72,13 +88,13 @@ ada: Build and run main - src/test.adb
     test('Ada task command lines', async function () {
         const expectedCmdLines = `
 ada: Clean current project - gprclean -P ${projectPath}
-ada: Build current project - gprbuild -P ${projectPath} '-cargs:ada' -gnatef
-ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} '-cargs:ada' -gnatef
-ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} '-cargs:ada' -gnatef
+ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
+ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
+ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
-ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb '-cargs:ada' -gnatef
+ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
 ada: Run main - src/main1.adb - .${path.sep}obj${path.sep}main1exec${exe}
-ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb '-cargs:ada' -gnatef
+ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
 ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 `.trim();
 
@@ -124,7 +140,7 @@ ada: GNATcoverage - Run all actions - src/test.adb
         const expectedCmdLines = `
 ada: GNATcoverage - Setup runtime library - gnatcov setup
 ada: GNATcoverage - Instrument project - gnatcov instrument -P ${projectPath} --level=stmt --dump-filename-simple
-ada: GNATcoverage - Build instrumented project - gprbuild -m -s -P ${projectPath} --src-subdirs=gnatcov-instr --implicit-with=gnatcov_rts.gpr '-cargs:ada' -gnatef
+ada: GNATcoverage - Build instrumented project - gprbuild -m -s -P ${projectPath} --src-subdirs=gnatcov-instr --implicit-with=gnatcov_rts.gpr -cargs:ada -gnatef
 ada: GNATcoverage - Generate report - src/main1.adb - gnatcov coverage -P ${projectPath} --level=stmt --annotate=xml --output-dir=\${command:ada.getObjectDir} -T \${workspaceFolder}/main1exec${exe}.srctrace
 ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${projectPath} --level=stmt --annotate=xml --output-dir=\${command:ada.getObjectDir} -T \${workspaceFolder}/test${exe}.srctrace
 `.trim();
@@ -152,7 +168,7 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
         assert(resolved);
         assert(resolved.execution);
 
-        const exec = resolved.execution as vscode.ShellExecution;
+        const exec = resolved.execution as vscode.ProcessExecution;
 
         const actualCmd = getCmdLine(exec);
 
@@ -164,6 +180,244 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
         const expectedCmd = `gprbuild -P ${projectPath} -d`;
 
         assert.strictEqual(actualCmd, expectedCmd);
+    });
+
+    test('Process task environment macros are expanded', async () => {
+        assert(vscode.workspace.workspaceFolders);
+        const workspace = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        const config = vscode.workspace.getConfiguration();
+        const previousEnv = config.inspect(TERMINAL_ENV_SETTING_NAME)?.workspaceValue;
+        const previousRetained = process.env.ALS_TASK_ENV_RETAINED;
+        const previousRemoved = process.env.ALS_TASK_ENV_REMOVED;
+        const root = mkdtempSync(path.join(tmpdir(), 'als process environment '));
+
+        try {
+            await vscode.window.showTextDocument(
+                vscode.Uri.file(path.join(workspace, 'src', 'test.adb')),
+            );
+            process.env.ALS_TASK_ENV_RETAINED = 'inherited value';
+            process.env.ALS_TASK_ENV_REMOVED = 'remove inherited value';
+            await config.update(
+                TERMINAL_ENV_SETTING_NAME,
+                {
+                    ...(config.get(TERMINAL_ENV_SETTING_NAME) ?? {}),
+                    PATH: '${env:PATH}' + path.delimiter + '${workspaceFolder}/task tools',
+                    ALS_TASK_ENV_LITERAL: 'literal value',
+                    ALS_TASK_ENV_DIRECTORY: '${fileDirname}',
+                    ALS_TASK_ENV_REMOVED: null,
+                    ELECTRON_RUN_AS_NODE: '1',
+                },
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            for (const prov of [createAdaTaskProvider(), createSparkTaskProvider()]) {
+                const reportFile = path.join(root, prov.taskType + '.json');
+                const task = await prov.resolveTask(
+                    new vscode.Task(
+                        {
+                            type: prov.taskType,
+                            command: nodeExecutable,
+                            args: [
+                                '-e',
+                                `require('fs').writeFileSync(process.argv[1], JSON.stringify({
+                                    retained: process.env.ALS_TASK_ENV_RETAINED,
+                                    removed: 'ALS_TASK_ENV_REMOVED' in process.env,
+                                    literal: process.env.ALS_TASK_ENV_LITERAL,
+                                    directory: process.env.ALS_TASK_ENV_DIRECTORY
+                                }))`,
+                                reportFile,
+                            ],
+                        },
+                        vscode.TaskScope.Workspace,
+                        'Task with terminal environment macros',
+                        prov.taskType,
+                    ),
+                );
+                assert(task?.execution instanceof vscode.ProcessExecution);
+                const env = task.execution.options?.env;
+                assert(env);
+                assert.strictEqual(
+                    env.PATH,
+                    (process.platform === 'win32' ? (process.env.PATH ?? '') : '${env:PATH}') +
+                        path.delimiter +
+                        '${workspaceFolder}/task tools',
+                );
+                assert.strictEqual(env.ALS_TASK_ENV_DIRECTORY, '${fileDirname}');
+                assert.strictEqual(env.ALS_TASK_ENV_LITERAL, 'literal value');
+                assert.strictEqual(env.ALS_TASK_ENV_RETAINED, 'inherited value');
+                assert(!('ALS_TASK_ENV_REMOVED' in env));
+                assert.strictEqual(process.env.ALS_TASK_ENV_REMOVED, 'remove inherited value');
+
+                assert.strictEqual(await runTaskAndGetResult(task), 0);
+                const report = JSON.parse(readFileSync(reportFile, 'utf8')) as {
+                    directory: string;
+                };
+                // VS Code variables and Uri.fsPath can use different drive-letter
+                // casing on Windows while referring to the same directory.
+                report.directory = vscode.Uri.file(report.directory).fsPath;
+                assert.deepStrictEqual(report, {
+                    retained: 'inherited value',
+                    removed: false,
+                    literal: 'literal value',
+                    directory: path.join(workspace, 'src'),
+                });
+            }
+        } finally {
+            if (previousRetained === undefined) delete process.env.ALS_TASK_ENV_RETAINED;
+            else process.env.ALS_TASK_ENV_RETAINED = previousRetained;
+            if (previousRemoved === undefined) delete process.env.ALS_TASK_ENV_REMOVED;
+            else process.env.ALS_TASK_ENV_REMOVED = previousRemoved;
+            await config.update(
+                TERMINAL_ENV_SETTING_NAME,
+                previousEnv,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
+    });
+
+    test('Customized task Path overrides the Windows executable search path', async () => {
+        const config = vscode.workspace.getConfiguration();
+        const previousTasks = config.get<vscode.TaskDefinition[]>('tasks.tasks');
+        const override = 'C:\\task tools\\bin';
+        try {
+            await config.update(
+                'tasks.tasks',
+                [
+                    ...(previousTasks ?? []),
+                    {
+                        type: TASK_TYPE_ADA,
+                        label: 'Task with Path override',
+                        command: 'gprbuild',
+                        args: [],
+                        options: { env: { Path: override } },
+                    },
+                ],
+                vscode.ConfigurationTarget.Workspace,
+            );
+            const definition = { type: TASK_TYPE_ADA, command: 'gprbuild', args: [] };
+            for (const [name, source] of [
+                ['Task with Path override', 'Workspace'],
+                ['An auto-detected task with another label', TASK_TYPE_ADA],
+            ]) {
+                const task = new vscode.Task(definition, vscode.TaskScope.Workspace, name, source);
+                const env = getProcessTaskEnvironment(task, 'win32');
+                assert.deepStrictEqual(
+                    Object.keys(env).filter((key) => key.toLowerCase() === 'path'),
+                    ['Path'],
+                );
+                assert(!env.Path.includes('${env:PATH}'));
+            }
+            if (process.platform !== 'win32') return;
+            const task = (await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA })).find(
+                (candidate) => candidate.name === 'Task with Path override',
+            );
+            assert(task?.execution instanceof vscode.ProcessExecution);
+            const env = task.execution.options?.env;
+            assert(env);
+            const pathKeys = Object.keys(env).filter((key) => key.toLowerCase() === 'path');
+            assert.deepStrictEqual(pathKeys, ['Path']);
+            assert.strictEqual(env.Path, override);
+        } finally {
+            await config.update('tasks.tasks', previousTasks, vscode.ConfigurationTarget.Workspace);
+        }
+    });
+
+    test('Task PATH macros are expanded before Windows executable lookup', async () => {
+        const config = vscode.workspace.getConfiguration();
+        const previousTasks = config.get<vscode.TaskDefinition[]>('tasks.tasks');
+        const terminalSetting = 'terminal.integrated.env.windows';
+        const previousEnv = config.inspect(terminalSetting)?.workspaceValue;
+        const root = mkdtempSync(path.join(tmpdir(), 'als task PATH macros '));
+        const toolDir = path.join(root, 'tools with spaces', 'bin');
+        const inheritedPath = process.env.PATH ?? '';
+        const expectedPath = inheritedPath + ';' + toolDir;
+        const probe = 'als-task-path-probe.exe';
+        try {
+            mkdirSync(toolDir, { recursive: true });
+            if (process.platform === 'win32') {
+                copyFileSync(nodeExecutable, path.join(toolDir, probe));
+            }
+            await config.update(
+                terminalSetting,
+                {
+                    ...config.get<Record<string, string | null>>(terminalSetting),
+                    ALS_TASK_PATH: inheritedPath,
+                },
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            for (const [key, macro] of [
+                ['Path', '${env:PATH}'],
+                ['PATH', '${env:PATH}'],
+                ['path', '${config:terminal.integrated.env.windows.ALS_TASK_PATH}'],
+            ]) {
+                const rawPath = macro + ';' + toolDir;
+                const reportFile = path.join(root, key + '.json');
+                const definitions = [
+                    {
+                        type: TASK_TYPE_ADA,
+                        label: 'Inherited PATH macro',
+                        command: 'gprbuild',
+                        args: ['--version'],
+                        options: { env: { [key]: rawPath } },
+                    },
+                    {
+                        type: TASK_TYPE_ADA,
+                        label: 'Executable in a PATH directory with spaces',
+                        command: probe,
+                        args: [
+                            '-e',
+                            "require('fs').writeFileSync(process.argv[1], JSON.stringify(process.env.PATH))",
+                            reportFile,
+                        ],
+                        options: { env: { [key]: rawPath } },
+                    },
+                ];
+                await config.update(
+                    'tasks.tasks',
+                    [...(previousTasks ?? []), ...definitions],
+                    vscode.ConfigurationTarget.Workspace,
+                );
+
+                if (process.platform !== 'win32') {
+                    const task = new vscode.Task(
+                        definitions[0],
+                        vscode.TaskScope.Workspace,
+                        definitions[0].label,
+                        'Workspace',
+                    );
+                    // Model VS Code's later merge, followed by its selection of
+                    // the first case-insensitive PATH key for executable lookup.
+                    const env = { ...getProcessTaskEnvironment(task, 'win32'), [key]: rawPath };
+                    assert.strictEqual(
+                        Object.entries(env).find(([name]) => name.toLowerCase() === 'path')?.[1],
+                        expectedPath,
+                    );
+                    continue;
+                }
+
+                // fetchTasks applies the built-in options.env customization.
+                // Exercise both the inherited list and the appended directory.
+                const tasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
+                for (const definition of definitions) {
+                    const task = tasks.find((candidate) => candidate.name === definition.label);
+                    assert(task?.execution instanceof vscode.ProcessExecution);
+                    assert.strictEqual(await runTaskAndGetResult(task), 0);
+                    assert.strictEqual(
+                        Object.entries(task.execution.options?.env ?? {}).find(
+                            ([name]) => name.toLowerCase() === 'path',
+                        )?.[1],
+                        expectedPath,
+                    );
+                }
+                assert.strictEqual(JSON.parse(readFileSync(reportFile, 'utf8')), expectedPath);
+            }
+        } finally {
+            await config.update('tasks.tasks', previousTasks, vscode.ConfigurationTarget.Workspace);
+            await config.update(terminalSetting, previousEnv, vscode.ConfigurationTarget.Workspace);
+            rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
     });
 
     test('current regions and subprograms', async () => {
@@ -234,9 +488,9 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 for (const name of ['Prove subprogram', 'Examine subprogram']) {
                     const task = tasks.find((t) => t.name === name);
 
-                    // Both tasks must remain available as shell invocations.
+                    // Both tasks must remain available as process invocations.
                     assert(task, `${name} should still be offered without document symbols`);
-                    assert(task.execution instanceof vscode.ShellExecution);
+                    assert(task.execution instanceof vscode.ProcessExecution);
 
                     // Without a subprogram's start line, defer to VS Code's
                     // current file and cursor line when the task runs.
@@ -269,7 +523,7 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 args: [
                     '${command:ada.gprProjectArgs}',
                     '--no-object-check',
-                    "'-cargs:ada'",
+                    '-cargs:ada',
                     '-gnatef',
                 ],
                 label: 'ada: Build current project',
@@ -291,13 +545,13 @@ ada: GNATcoverage - Generate report - src/test.adb - gnatcov coverage -P ${proje
                 'Build task does not come from workspace. Source is: ' + resolved.source,
             );
 
-            const exec = buildTask.execution as vscode.ShellExecution;
+            const exec = buildTask.execution as vscode.ProcessExecution;
             const actualCmd = getCmdLine(exec);
 
             // The '--no-object-check' switch has been added to the 'ada: Build current project'
             // predefined task in the workspace's tasks.json file: check that it's indeed present
             // in the returned task's command line.
-            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check '-cargs:ada' -gnatef`;
+            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs:ada -gnatef`;
 
             assert.strictEqual(actualCmd, expectedCmd);
         } finally {
@@ -633,8 +887,8 @@ suite('Task Execution', function () {
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that
      * produce the executable at the root of the workspace. In that case it is
-     * necessary to use a leading `./` for the shell to be able to spawn the
-     * executable.
+     * necessary to preserve the executable's relative path rather than look
+     * up its name on PATH.
      */
     test('Build and run main task when exec at workspace root', async () => {
         // Load a custom project that does not define any object dir by
@@ -656,7 +910,7 @@ suite('Task Execution', function () {
             const runTask = (await vscode.tasks.fetchTasks({ type: 'ada' })).find((t) =>
                 t.name.includes('Run main'),
             );
-            assert(runTask?.execution instanceof vscode.ShellExecution);
+            assert(runTask?.execution instanceof vscode.ProcessExecution);
             const cmdLine = getCmdLine(runTask.execution);
             assert(
                 cmdLine.startsWith('.' + path.sep),
@@ -717,6 +971,213 @@ suite('Task Execution', function () {
         resolved = await prov.resolveTask(task);
         assert(resolved);
         assert.equal(await runTaskAndGetResult(resolved), 2);
+    });
+
+    test('Missing executable does not hang process tasks', async () => {
+        const root = mkdtempSync(path.join(tmpdir(), 'als missing executable '));
+        try {
+            const prov = createAdaTaskProvider();
+            const task = await prov.resolveTask(
+                new vscode.Task(
+                    { type: TASK_TYPE_ADA, command: path.join(root, 'missing' + exe), args: [] },
+                    vscode.TaskScope.Workspace,
+                    'Missing executable',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(task?.execution instanceof vscode.ProcessExecution);
+            assert.notStrictEqual(await runTaskAndGetResult(task).catch(() => 1), 0);
+            assert.notStrictEqual(await runTaskSequence([task]).catch(() => 1), 0);
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('Task command variables may take longer than the process startup timeout', async () => {
+        const command = vscode.commands.registerCommand('alsTest.slowTaskArgument', async () => {
+            await new Promise((resolve) => setTimeout(resolve, 6000));
+            return '--version';
+        });
+        const task = new vscode.Task(
+            { type: TASK_TYPE_ADA },
+            vscode.TaskScope.Workspace,
+            'Task with a slow command variable',
+            TASK_TYPE_ADA,
+            new vscode.ProcessExecution(nodeExecutable, ['${command:alsTest.slowTaskArgument}'], {
+                env: { ELECTRON_RUN_AS_NODE: '1' },
+            }),
+        );
+        try {
+            assert.strictEqual(await runTaskAndGetResult(task), 0);
+        } finally {
+            command.dispose();
+        }
+    });
+
+    for (const delayedHandle of [false, true]) {
+        test(`Task startup timeout terminates a ${delayedHandle ? 'late' : 'pending'} execution`, async () => {
+            const task = new vscode.Task(
+                { type: TASK_TYPE_ADA },
+                vscode.TaskScope.Workspace,
+                'Delayed process startup',
+                TASK_TYPE_ADA,
+                new vscode.ProcessExecution('delayed-process'),
+            );
+            let terminations = 0;
+            const execution: vscode.TaskExecution = {
+                task,
+                terminate: () => {
+                    terminations++;
+                },
+            };
+            let resolveExecution!: (execution: vscode.TaskExecution) => void;
+            const pendingExecution = new Promise<vscode.TaskExecution>((resolve) => {
+                resolveExecution = resolve;
+            });
+            const executeTask = vscode.tasks.executeTask;
+            const onDidStartTask = vscode.tasks.onDidStartTask;
+            const taskStarted = new vscode.EventEmitter<vscode.TaskStartEvent>();
+            Object.assign(vscode.tasks, { onDidStartTask: taskStarted.event });
+            vscode.tasks.executeTask = (requestedTask) => {
+                if (requestedTask !== task) return executeTask(requestedTask);
+                taskStarted.fire({ execution });
+                return delayedHandle ? pendingExecution : Promise.resolve(execution);
+            };
+            try {
+                await assert.rejects(runTaskAndGetResult(task), /did not start in time/);
+                if (delayedHandle) {
+                    assert.strictEqual(terminations, 0);
+                    resolveExecution(execution);
+                    // Let the continuation of executeTask receive the late handle.
+                    await Promise.resolve();
+                    await Promise.resolve();
+                }
+                assert.strictEqual(terminations, 1);
+            } finally {
+                resolveExecution(execution);
+                vscode.tasks.executeTask = executeTask;
+                Object.assign(vscode.tasks, { onDidStartTask });
+                taskStarted.dispose();
+            }
+        });
+    }
+
+    test('Scenario variables in process build task', async () => {
+        const root = mkdtempSync(path.join(tmpdir(), 'als scenario variables '));
+        const projectFile = path.join(root, 'show_ip.gpr');
+        const config = vscode.workspace.getConfiguration('ada');
+        const terminalConfig = vscode.workspace.getConfiguration();
+        const previousEnv = terminalConfig.inspect(TERMINAL_ENV_SETTING_NAME)?.workspaceValue;
+        const previousVariables = config.inspect('scenarioVariables')?.workspaceValue;
+        const scenarioCommand = vscode.commands.registerCommand(
+            'ada.testScenarioArgs',
+            gprScenarioArgs,
+        );
+
+        try {
+            mkdirSync(path.join(root, 'src'));
+            writeFileSync(
+                path.join(root, 'src', 'main.adb'),
+                'procedure Main is begin null; end Main;\n',
+            );
+            writeFileSync(
+                projectFile,
+                `project Show_IP is
+   Target_IP := external ("TARGET_IP", "127.0.0.1");
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj/" & Target_IP;
+   for Main use ("main.adb");
+end Show_IP;
+`,
+            );
+            await config.update(
+                'scenarioVariables',
+                { TARGET_IP: '192.168.0.10' },
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            const prov = createAdaTaskProvider();
+            const task = await prov.resolveTask(
+                new vscode.Task(
+                    {
+                        type: TASK_TYPE_ADA,
+                        command: 'gprbuild',
+                        args: [
+                            '-p',
+                            '-P',
+                            projectFile,
+                            '${command:ada.testScenarioArgs}',
+                            '-cargs:ada',
+                            '-gnatef',
+                        ],
+                    },
+                    vscode.TaskScope.Workspace,
+                    'Build project with dotted scenario variable',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(task?.execution instanceof vscode.ProcessExecution);
+            assert.deepStrictEqual(task.execution.args, [
+                '-p',
+                '-P',
+                projectFile,
+                '-XTARGET_IP=192.168.0.10',
+                '-cargs:ada',
+                '-gnatef',
+            ]);
+            assert.strictEqual(await runTaskAndGetResult(task), 0);
+
+            const objectDir = path.join(root, 'obj', '192.168.0.10');
+            const executable = path.join(objectDir, 'main' + exe);
+            assert(existsSync(path.join(objectDir, 'main.ali')));
+            assert(existsSync(executable));
+            assert(!existsSync(path.join(root, 'obj', '192')));
+
+            const runTask = await prov.resolveTask(
+                new vscode.Task(
+                    { type: TASK_TYPE_ADA, command: executable, args: [] },
+                    vscode.TaskScope.Workspace,
+                    'Run executable with spaces in its path',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(runTask?.execution instanceof vscode.ProcessExecution);
+            assert.strictEqual(await runTaskAndGetResult(runTask), 0);
+
+            // Also find the executable by name through a PATH setting containing
+            // spaces and an inherited list of directories.
+            await terminalConfig.update(
+                TERMINAL_ENV_SETTING_NAME,
+                {
+                    ...(terminalConfig.get(TERMINAL_ENV_SETTING_NAME) ?? {}),
+                    PATH: objectDir + path.delimiter + '${env:PATH}',
+                },
+                vscode.ConfigurationTarget.Workspace,
+            );
+            const pathTask = await prov.resolveTask(
+                new vscode.Task(
+                    { type: TASK_TYPE_ADA, command: 'main' + exe, args: [] },
+                    vscode.TaskScope.Workspace,
+                    'Find executable through terminal PATH',
+                    TASK_TYPE_ADA,
+                ),
+            );
+            assert(pathTask);
+            assert.strictEqual(await runTaskAndGetResult(pathTask), 0);
+        } finally {
+            scenarioCommand.dispose();
+            await config.update(
+                'scenarioVariables',
+                previousVariables,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            await terminalConfig.update(
+                TERMINAL_ENV_SETTING_NAME,
+                previousEnv,
+                vscode.ConfigurationTarget.Workspace,
+            );
+            rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
     });
 
     test('All tasks tested', function () {

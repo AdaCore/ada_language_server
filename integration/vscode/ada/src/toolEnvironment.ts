@@ -42,6 +42,23 @@ export function applyManagedToolEnvironment(
     ].join(delimiter);
 }
 
+/** Match task overrides before VS Code merges environment keys case-sensitively. */
+export function matchTaskPathCasing(
+    env: NodeJS.ProcessEnv,
+    overrides: Record<string, string> | undefined,
+    platform: NodeJS.Platform = process.platform,
+) {
+    if (platform !== 'win32' || !overrides) return;
+    const overrideKey = Object.keys(overrides).find((key) => key.toLowerCase() === 'path');
+    const inheritedKey = Object.keys(env).find((key) => key.toLowerCase() === 'path');
+    if (!overrideKey || !inheritedKey) return;
+    const value = env[inheritedKey];
+    for (const key of Object.keys(env)) {
+        if (key.toLowerCase() === 'path') delete env[key];
+    }
+    env[overrideKey] = value;
+}
+
 /** Read Alire's Unix export format without evaluating shell expressions. */
 export function parseAlireEnvironment(output: string): Record<string, string> {
     const env: Record<string, string> = {};

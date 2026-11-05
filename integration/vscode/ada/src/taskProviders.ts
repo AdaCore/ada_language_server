@@ -34,9 +34,14 @@ import { getGnatTestDriverProjectPath, loadGnatCoverageReport } from './gnattest
 import {
     AdaMain,
     getAdaMains,
+    getArgValue,
+    getTerminalEnv,
     getToolEnvironment,
+    setTerminalEnvironment,
     showErrorMessageWithOpenLogButton,
 } from './helpers';
+import { matchTaskPathCasing } from './toolEnvironment';
+import { isDeepStrictEqual } from 'util';
 
 export const TASK_TYPE_ADA = 'ada';
 export const TASK_TYPE_SPARK = 'spark';
@@ -100,7 +105,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
     taskDef: {
         type: TASK_TYPE_ADA,
         command: 'gprbuild',
-        args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, "'-cargs:ada'", '-gnatef'],
+        args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, '-cargs:ada', '-gnatef'],
     },
     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     taskGroup: vscode.TaskGroup.Build,
@@ -171,7 +176,7 @@ export const TASK_GNATCOV_BUILD_INSTRUMENTED: PredefinedTask = {
             `\${command:${CMD_GPR_PROJECT_ARGS}}`,
             '--src-subdirs=gnatcov-instr',
             '--implicit-with=gnatcov_rts.gpr',
-            "'-cargs:ada'",
+            '-cargs:ada',
             '-gnatef',
         ],
     },
@@ -249,7 +254,7 @@ export const adaTasks: PredefinedTask[] = [
                 '-gnatc',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '${fileBasename}',
-                "'-cargs:ada'",
+                '-cargs:ada',
                 '-gnatef',
             ],
         },
@@ -267,7 +272,7 @@ export const adaTasks: PredefinedTask[] = [
                 '-u',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '${fileBasename}',
-                "'-cargs:ada'",
+                '-cargs:ada',
                 '-gnatef',
             ],
         },
@@ -576,7 +581,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             args: [
                                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                                 main.mainRelPath(),
-                                "'-cargs:ada'",
+                                '-cargs:ada',
                                 '-gnatef',
                             ],
                         },
@@ -587,9 +592,9 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     let execRelPath = main.execRelPath();
                     /**
                      * Always prepend ./ to the relative path. When the path
-                     * only has one component, ./ is necessary for the shell to
-                     * spawn the executable. We choose to always prepend ./ for
-                     * consistency.
+                     * only has one component, ./ distinguishes its relative
+                     * path from a command to look up on PATH. We choose to
+                     * always prepend ./ for consistency.
                      *
                      * We can't use path.join() because it calls
                      * path.normalize() which removes ./
@@ -753,7 +758,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     taskDef: {
                         type: TASK_TYPE_ADA,
                         command: 'gprbuild',
-                        args: ['-P', harnessPrj, "'-cargs:ada'", '-gnatef'],
+                        args: ['-P', harnessPrj, '-cargs:ada', '-gnatef'],
                     },
                     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
                     taskGroup: vscode.TaskGroup.Build,
@@ -861,7 +866,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 : new SequentialExecutionByName(task.name, taskDef.compound);
         } else {
             /**
-             * It's a shell invocation task.
+             * Invoke the executable directly, preserving argument boundaries.
              */
             assert(taskDef.command);
             /**
@@ -872,7 +877,11 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             try {
                 const evaluatedArgs: (string | vscode.ShellQuotedString)[] =
                     await evaluateArgs(args);
-                execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
+                execution = new vscode.ProcessExecution(
+                    getArgValue(taskDef.command),
+                    evaluatedArgs.map(getArgValue),
+                    { env: getProcessTaskEnvironment(task) },
+                );
             } catch (err) {
                 if (err instanceof vscode.CancellationError) {
                     // It's just a cancellation, propagate as is
@@ -946,6 +955,106 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             throw Error(msg);
         }
     }
+}
+
+/** Leave task variable resolution to VS Code, including Windows executable lookup. */
+export function getProcessTaskEnvironment(
+    task: vscode.Task,
+    platform: NodeJS.Platform = process.platform,
+): Record<string, string> {
+    const resource =
+        typeof task.scope === 'object'
+            ? task.scope.uri
+            : vscode.workspace.workspaceFolders?.[0]?.uri;
+    const env = { ...process.env };
+    setTerminalEnvironment(env, getTerminalEnv(resource));
+
+    if (platform === 'win32') {
+        // VS Code splits PATH before resolving its entries. Expand references
+        // that may contain a list of directories before that split, leaving
+        // folder/editor variables for VS Code to resolve in the task's context.
+        const settings = vscode.workspace.getConfiguration(undefined, resource);
+        const expandPath = (value: string): string =>
+            value.replace(
+                /\$\{(env|config):([^}]+)\}/g,
+                (match: string, kind: string, name: string) => {
+                    const replacement =
+                        kind === 'env' ? (process.env[name] ?? '') : settings.get(name);
+                    return typeof replacement === 'string' ? replacement : match;
+                },
+            );
+        for (const key of Object.keys(env)) {
+            if (key.toLowerCase() !== 'path') continue;
+            const value = env[key];
+            if (value !== undefined) env[key] = expandPath(value);
+        }
+        // TaskProvider receives the definition without the built-in options field.
+        // Read its configured spelling so VS Code's later merge replaces the same
+        // PATH key that its executable resolver will select.
+        type ConfiguredTask = SimpleTaskDef & {
+            label?: string;
+            options?: vscode.ProcessExecutionOptions;
+            windows?: { options?: vscode.ProcessExecutionOptions };
+        };
+        const config = vscode.workspace.getConfiguration('tasks', resource);
+        const definitions = config.inspect<ConfiguredTask[]>('tasks');
+        const candidates = [
+            ...(definitions?.workspaceFolderValue ?? []),
+            ...(definitions?.workspaceValue ?? []),
+            ...(definitions?.globalValue ?? []),
+        ].filter((candidate) => candidate.type === task.definition.type);
+        const configured =
+            candidates.find((candidate) => candidate.label === getConventionalTaskLabel(task)) ??
+            candidates.find((candidate) =>
+                // An auto-detected task can be customized under a different label.
+                ['command', 'args', 'compound'].every((key) =>
+                    isDeepStrictEqual(candidate[key], task.definition[key]),
+                ),
+            );
+        const overriddenPathKeys = new Set<string>();
+        let overriddenPath: string | undefined;
+        for (const options of [
+            config.get<vscode.ProcessExecutionOptions>('options'),
+            config.get<ConfiguredTask['windows']>('windows')?.options,
+            configured?.options,
+            configured?.windows?.options,
+        ]) {
+            matchTaskPathCasing(env, options?.env, platform);
+            for (const [key, value] of Object.entries(options?.env ?? {})) {
+                if (key.toLowerCase() === 'path') {
+                    overriddenPathKeys.add(key);
+                    if (typeof value === 'string') overriddenPath = value;
+                }
+            }
+        }
+        if (overriddenPath !== undefined) {
+            const expandedPath = expandPath(overriddenPath);
+            if (expandedPath !== overriddenPath) {
+                // VS Code later merges the raw options.env, but its executable
+                // resolver selects the first case-insensitive PATH key. Keep the
+                // expanded value first under a spelling that merge cannot replace.
+                // The terminal then merges both spellings as one Windows variable.
+                let lookupKey: string | undefined;
+                for (let mask = 0; mask < 16 && lookupKey === undefined; mask++) {
+                    const key = [...'PATH']
+                        .map((letter, index) =>
+                            mask & (1 << index) ? letter.toLowerCase() : letter,
+                        )
+                        .join('');
+                    if (!overriddenPathKeys.has(key)) lookupKey = key;
+                }
+                assert(lookupKey, 'Task options use every spelling of PATH');
+                for (const key of Object.keys(env)) {
+                    if (key.toLowerCase() === 'path') delete env[key];
+                }
+                env[lookupKey] = expandedPath;
+            }
+        }
+    }
+
+    return Object.fromEntries(
+        Object.entries(env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+    );
 }
 
 /**
@@ -1539,7 +1648,7 @@ export async function findBuildMainTask(adaMain: AdaMain): Promise<vscode.Task |
  */
 function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
     /**
-     * Only process shell command tasks, if they are not already using ALIRE
+     * Only process executable tasks, if they are not already using ALIRE
      */
     if (taskDef.command && !isAlire(taskDef.command)) {
         /**
@@ -1561,7 +1670,7 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
              * scenario args because they are managed by ALIRE.
              *
              */
-            args.splice(0, args.length, 'build', '--', "'-cargs:ada'", '-gnatef');
+            args.splice(0, args.length, 'build', '--', '-cargs:ada', '-gnatef');
         } else if (taskDef == TASK_CLEAN_PROJECT.taskDef) {
             /**
              * Replace the entire command with `alr clean`. Ignore project and
@@ -1638,19 +1747,49 @@ export function runTaskAndGetResult(
     return new Promise((resolve, reject) => {
         let execution: vscode.TaskExecution | undefined;
         let finished = false;
+        let terminateRequested = false;
+        const nativeProcess = task.execution instanceof vscode.ProcessExecution;
+        let processStarted = !nativeProcess;
+        let startupTimeout: ReturnType<typeof setTimeout> | undefined;
         const disposables: vscode.Disposable[] = [];
         const finish = (exitCode?: number, error?: Error) => {
             if (finished) return;
             finished = true;
+            clearTimeout(startupTimeout);
             disposables.forEach((d) => {
                 d.dispose();
             });
             if (error) reject(error);
             else resolve(exitCode);
         };
-        // executeTask resolves when the task starts, so subscribe to completion
-        // before launching it, including for tasks that finish immediately.
+        // Subscribe before launching, including for tasks that finish immediately.
         disposables.push(
+            vscode.tasks.onDidStartTask((e) => {
+                if (e.execution.task !== task || processStarted || finished) return;
+                // VS Code emits this after variable resolution and dependencies.
+                // Waiting for an input or command variable must not time out.
+                clearTimeout(startupTimeout);
+                startupTimeout = setTimeout(() => {
+                    terminateRequested = true;
+                    finish(
+                        undefined,
+                        new Error(
+                            `The task '${getConventionalTaskLabel(task)}' did not start in time and was cancelled.\n`,
+                        ),
+                    );
+                    execution?.terminate();
+                }, 5000);
+            }),
+            vscode.tasks.onDidStartTaskProcess((e) => {
+                if (e.execution.task === task) {
+                    processStarted = true;
+                    clearTimeout(startupTimeout);
+                }
+            }),
+            vscode.tasks.onDidEndTask((e) => {
+                // ProcessExecution may fail before a process can be started.
+                if (e.execution.task === task) finish();
+            }),
             vscode.tasks.onDidEndTaskProcess((e) => {
                 if (e.execution.task === task && !token?.isCancellationRequested)
                     finish(e.exitCode);
@@ -1660,6 +1799,7 @@ export function runTaskAndGetResult(
             disposables.push(
                 token.onCancellationRequested(() => {
                     // Stop waiting even if task startup has not returned a handle yet.
+                    terminateRequested = true;
                     finish();
                     execution?.terminate();
                 }),
@@ -1673,8 +1813,8 @@ export function runTaskAndGetResult(
             .then(
                 (started) => {
                     execution = started;
-                    // Cancellation may have happened before executeTask resolved.
-                    if (token?.isCancellationRequested) {
+                    // Cancellation or a timeout may precede the execution handle.
+                    if (terminateRequested || token?.isCancellationRequested) {
                         finish();
                         execution.terminate();
                     }

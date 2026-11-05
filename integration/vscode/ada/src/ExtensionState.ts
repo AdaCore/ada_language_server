@@ -1454,7 +1454,10 @@ async function openSARIFViewerIfNeeded(e: vscode.TaskProcessEndEvent) {
                 const execution = task.execution;
                 let cwd = undefined;
 
-                if (execution instanceof vscode.ShellExecution) {
+                if (
+                    execution instanceof vscode.ProcessExecution ||
+                    execution instanceof vscode.ShellExecution
+                ) {
                     cwd = execution.options?.cwd;
                 }
 

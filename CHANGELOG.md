@@ -5,6 +5,7 @@ section below it for the last release. -->
 ## \<next>
 
 * Completion snippets are now pretty printed using GNATformat
+* VS Code Ada and SPARK tasks now run tools directly, preserving scenario variable values such as IP addresses. Customized tasks should pass arguments without shell quotes and configure their environment through `options.env` or `terminal.integrated.env.*`; see [Task Customization](./doc/vscode-ug.md#task-customization).
 
 ## 2027.0.202610121
 
