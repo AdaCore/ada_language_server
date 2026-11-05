@@ -40,6 +40,8 @@ import {
     setTerminalEnvironment,
     showErrorMessageWithOpenLogButton,
 } from './helpers';
+import { matchTaskPathCasing } from './toolEnvironment';
+import { isDeepStrictEqual } from 'util';
 
 export const TASK_TYPE_ADA = 'ada';
 export const TASK_TYPE_SPARK = 'spark';
@@ -958,6 +960,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
 /** Leave task variable resolution to VS Code, including Windows executable lookup. */
 export function getProcessTaskEnvironment(
     task: vscode.Task,
+    platform: NodeJS.Platform = process.platform,
 ): Record<string, string> {
     const resource =
         typeof task.scope === 'object'
@@ -965,6 +968,89 @@ export function getProcessTaskEnvironment(
             : vscode.workspace.workspaceFolders?.[0]?.uri;
     const env = { ...process.env };
     setTerminalEnvironment(env, getTerminalEnv(resource));
+
+    if (platform === 'win32') {
+        // VS Code splits PATH before resolving its entries. Expand references
+        // that may contain a list of directories before that split, leaving
+        // folder/editor variables for VS Code to resolve in the task's context.
+        const settings = vscode.workspace.getConfiguration(undefined, resource);
+        const expandPath = (value: string): string =>
+            value.replace(
+                /\$\{(env|config):([^}]+)\}/g,
+                (match: string, kind: string, name: string) => {
+                    const replacement =
+                        kind === 'env' ? (process.env[name] ?? '') : settings.get(name);
+                    return typeof replacement === 'string' ? replacement : match;
+                },
+            );
+        for (const key of Object.keys(env)) {
+            if (key.toLowerCase() !== 'path') continue;
+            const value = env[key];
+            if (value !== undefined) env[key] = expandPath(value);
+        }
+        // TaskProvider receives the definition without the built-in options field.
+        // Read its configured spelling so VS Code's later merge replaces the same
+        // PATH key that its executable resolver will select.
+        type ConfiguredTask = SimpleTaskDef & {
+            label?: string;
+            options?: vscode.ProcessExecutionOptions;
+            windows?: { options?: vscode.ProcessExecutionOptions };
+        };
+        const config = vscode.workspace.getConfiguration('tasks', resource);
+        const definitions = config.inspect<ConfiguredTask[]>('tasks');
+        const candidates = [
+            ...(definitions?.workspaceFolderValue ?? []),
+            ...(definitions?.workspaceValue ?? []),
+            ...(definitions?.globalValue ?? []),
+        ].filter((candidate) => candidate.type === task.definition.type);
+        const configured =
+            candidates.find((candidate) => candidate.label === getConventionalTaskLabel(task)) ??
+            candidates.find((candidate) =>
+                // An auto-detected task can be customized under a different label.
+                ['command', 'args', 'compound'].every((key) =>
+                    isDeepStrictEqual(candidate[key], task.definition[key]),
+                ),
+            );
+        const overriddenPathKeys = new Set<string>();
+        let overriddenPath: string | undefined;
+        for (const options of [
+            config.get<vscode.ProcessExecutionOptions>('options'),
+            config.get<ConfiguredTask['windows']>('windows')?.options,
+            configured?.options,
+            configured?.windows?.options,
+        ]) {
+            matchTaskPathCasing(env, options?.env, platform);
+            for (const [key, value] of Object.entries(options?.env ?? {})) {
+                if (key.toLowerCase() === 'path') {
+                    overriddenPathKeys.add(key);
+                    if (typeof value === 'string') overriddenPath = value;
+                }
+            }
+        }
+        if (overriddenPath !== undefined) {
+            const expandedPath = expandPath(overriddenPath);
+            if (expandedPath !== overriddenPath) {
+                // VS Code later merges the raw options.env, but its executable
+                // resolver selects the first case-insensitive PATH key. Keep the
+                // expanded value first under a spelling that merge cannot replace.
+                // The terminal then merges both spellings as one Windows variable.
+                let lookupKey: string | undefined;
+                for (let mask = 0; mask < 16 && lookupKey === undefined; mask++) {
+                    const key = [...'PATH']
+                        .map((letter, index) =>
+                            mask & (1 << index) ? letter.toLowerCase() : letter,
+                        )
+                        .join('');
+                    if (!overriddenPathKeys.has(key)) lookupKey = key;
+                }
+                assert(lookupKey, 'Task options use every spelling of PATH');
+                for (const key of Object.keys(env)) {
+                    if (key.toLowerCase() === 'path') delete env[key];
+                }
+                env[lookupKey] = expandedPath;
+            }
+        }
+    }
 
     return Object.fromEntries(
         Object.entries(env).filter((entry): entry is [string, string] => entry[1] !== undefined),
