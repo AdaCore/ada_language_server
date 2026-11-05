@@ -35,7 +35,9 @@ import {
     AdaMain,
     getAdaMains,
     getArgValue,
+    getTerminalEnv,
     getToolEnvironment,
+    setTerminalEnvironment,
     showErrorMessageWithOpenLogButton,
 } from './helpers';
 
@@ -876,6 +878,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 execution = new vscode.ProcessExecution(
                     getArgValue(taskDef.command),
                     evaluatedArgs.map(getArgValue),
+                    { env: getProcessTaskEnvironment(task) },
                 );
             } catch (err) {
                 if (err instanceof vscode.CancellationError) {
@@ -950,6 +953,22 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             throw Error(msg);
         }
     }
+}
+
+/** Leave task variable resolution to VS Code, including Windows executable lookup. */
+export function getProcessTaskEnvironment(
+    task: vscode.Task,
+): Record<string, string> {
+    const resource =
+        typeof task.scope === 'object'
+            ? task.scope.uri
+            : vscode.workspace.workspaceFolders?.[0]?.uri;
+    const env = { ...process.env };
+    setTerminalEnvironment(env, getTerminalEnv(resource));
+
+    return Object.fromEntries(
+        Object.entries(env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+    );
 }
 
 /**

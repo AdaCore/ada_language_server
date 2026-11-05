@@ -174,8 +174,10 @@ export async function applyLanguageOverrideToDocument(
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * without evaluation of macros such as `${env:...}`.
  */
-export function getTerminalEnv(): EnvTable {
-    const custom_env = vscode.workspace.getConfiguration().get<EnvTable>(TERMINAL_ENV_SETTING_NAME);
+export function getTerminalEnv(resource?: vscode.Uri): EnvTable {
+    const custom_env = vscode.workspace
+        .getConfiguration(undefined, resource)
+        .get<EnvTable>(TERMINAL_ENV_SETTING_NAME);
 
     return custom_env ?? {};
 }
