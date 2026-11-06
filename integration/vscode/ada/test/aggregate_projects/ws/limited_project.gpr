@@ -1,0 +1,3 @@
+project Limited_Project is
+   for Source_Dirs use ("lib");
+end Limited_Project;
