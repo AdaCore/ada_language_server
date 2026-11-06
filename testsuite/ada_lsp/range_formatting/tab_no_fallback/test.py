@@ -75,11 +75,11 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
             ),
             TextEdit(
                 Range(Position(14, 0), Position(17, 0)),
-                "\tcase X is\n\t\twhen X > 10          =>\n\t\t\tnull;\n",
+                "\tcase X is\n\t\twhen X > 10 =>\n\t\t\tnull;\n",
             ),
             TextEdit(
                 Range(Position(18, 0), Position(20, 0)),
-                "\t\twhen X > 20          =>\n\t\t\tnull;\n",
+                "\t\twhen X > 20 =>\n\t\t\tnull;\n",
             ),
             TextEdit(
                 Range(Position(21, 0), Position(23, 0)),
@@ -87,7 +87,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
             ),
             TextEdit(
                 Range(Position(24, 0), Position(27, 0)),
-                "\t\twhen others          =>\n\t\t\tnull;\n\tend case;\n",
+                "\t\twhen others =>\n\t\t\tnull;\n\tend case;\n",
             ),
         ],
     )
