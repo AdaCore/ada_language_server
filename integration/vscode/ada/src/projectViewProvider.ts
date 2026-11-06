@@ -78,6 +78,7 @@ interface Raw_ProjectInfo {
 interface Raw_ProjectEntry {
     project: Raw_ProjectInfo;
     imports?: string[];
+    'limited-imports'?: string[];
     aggregated?: string[];
     extended?: string[];
     extending?: { 'extending-all': boolean; 'project-id': string };
@@ -183,7 +184,8 @@ export function parseProjectViewResponse(raw: Raw_ProjectViewResponse): ProjectV
                 source_directories: p['source-directories'] ?? [],
                 object_dir: p['object-directory'],
             },
-            imports: rawEntry.imports ?? [],
+            //  Fold limited imports into import view
+            imports: (rawEntry.imports ?? []).concat(rawEntry['limited-imports'] ?? []),
             aggregated: rawEntry.aggregated ?? [],
             extended: rawEntry.extended ?? [],
             extending: rawEntry.extending

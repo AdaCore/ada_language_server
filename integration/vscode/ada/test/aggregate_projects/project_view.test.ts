@@ -348,6 +348,15 @@ suite('Project View', function () {
             0,
             '"empty_src" must have no children because it contains no source files',
         );
+
+        // Check that limited imports are included as sub-projects
+        const project2Item = aggrSubProjects.find((i) => String(i.label) === 'Project_2');
+        assert.ok(project2Item, 'Expected to find Project_2 in sub-projects');
+        const projectImport = provider
+            .getChildren(project2Item)
+            .find((i) => i.itemKind === ProjectViewItemKind.SUB_PROJECT);
+        assert.ok(projectImport, 'Project_2 should include limited import as a sub-project');
+        assert.deepStrictEqual(projectImport.label, 'Limited_Project');
     });
 
     test('Set project view filter command updates provider and tree contents', async () => {
@@ -850,8 +859,9 @@ suite('Project View', function () {
 
         // project_1.gpr and project_2.gpr both use the 'src' directory, so every
         // source is reported by two projects. They must appear only once.
+        // project_2.gpr also imports limited_project, so pkg.ads should be included
         const labels = items.map((i) => i.label).sort();
-        assert.deepStrictEqual(labels, ['main_1.adb', 'main_2.adb', 'main_3.adb']);
+        assert.deepStrictEqual(labels, ['main_1.adb', 'main_2.adb', 'main_3.adb', 'pkg.ads']);
 
         const paths = items.map((i) => i.uri.fsPath);
         assert.strictEqual(

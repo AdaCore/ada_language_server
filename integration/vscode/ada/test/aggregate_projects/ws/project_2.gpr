@@ -1,3 +1,5 @@
+limited with "limited_project.gpr";
+
 project Project_2 is
    for Source_Dirs use ("src");
    for Main use ("main_3.adb");
