@@ -138,13 +138,13 @@ package body LSP.Ada_Documents is
 
    begin
       if not Unparsing_Diagnostics.Is_Empty then
-         Self.Tracer.Trace
+         Self.Tracer.Trace_Debug
            ("Diagnostics found while loading the unparsing "
             & "configuration for "
             & Context.URI_To_File (Self.URI).Display_Base_Name
             & ":");
          for Diagnostic of Unparsing_Diagnostics loop
-            Self.Tracer.Trace
+            Self.Tracer.Trace_Debug
               (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
          end loop;
       end if;
@@ -473,7 +473,7 @@ package body LSP.Ada_Documents is
          return;
       end if;
 
-      Self.Tracer.Trace
+      Self.Tracer.Trace_Debug
         ("Getting completions, Pos = ("
          & Sloc.Line'Image & ", " & Sloc.Column'Image & ") Node = "
          & Libadalang.Analysis.Image (Node));
@@ -877,12 +877,12 @@ package body LSP.Ada_Documents is
       Ok : Boolean;
    begin
       if not Unparsing_Diagnostics.Is_Empty then
-         Self.Tracer.Trace
+         Self.Tracer.Trace_Debug
            ("Diagnostics found while loading the unparsing configuration for "
             & Source_Filename
             & ":");
          for Diagnostic of Unparsing_Diagnostics loop
-            Self.Tracer.Trace
+            Self.Tracer.Trace_Debug
               (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
          end loop;
       end if;

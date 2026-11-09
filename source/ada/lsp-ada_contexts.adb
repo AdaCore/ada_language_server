@@ -121,7 +121,7 @@ package body LSP.Ada_Contexts is
       Is_Not_Found_Error : Boolean) is
    begin
       if not Found then
-         Self.Tracer.Trace
+         Self.Tracer.Trace_Debug
            ("Failed to request the following unit: "
             & Langkit_Support.Text.To_UTF8 (Name));
       end if;

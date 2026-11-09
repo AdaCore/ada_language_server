@@ -115,7 +115,7 @@ package body LSP.Ada_Definition is
                  .Display_Method_Ancestry_Policy);
 
       Trace : constant GNATCOLL.Traces.Trace_Handle :=
-        Self.Parent.Context.Get_Trace_Handle;
+        Self.Parent.Context.Get_Trace_Handle (Debug => True);
 
       Name_Node               : Libadalang.Analysis.Name;
       Definition              : Libadalang.Analysis.Defining_Name;

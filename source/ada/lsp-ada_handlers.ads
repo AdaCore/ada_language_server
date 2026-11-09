@@ -597,7 +597,9 @@ private
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String);
 
-   overriding function Get_Trace_Handle (Self : Message_Handler)
+   overriding function Get_Trace_Handle
+     (Self  : Message_Handler;
+      Debug : Boolean := False)
      return GNATCOLL.Traces.Trace_Handle;
 
    overriding function Get_Highlighter

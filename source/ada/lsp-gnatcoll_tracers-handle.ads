@@ -16,4 +16,6 @@
 ------------------------------------------------------------------------------
 
 function LSP.GNATCOLL_Tracers.Handle
-  (Self : LSP.Tracers.Tracer'Class) return GNATCOLL.Traces.Trace_Handle;
+  (Self  : LSP.Tracers.Tracer'Class;
+   Debug : Boolean := False) return GNATCOLL.Traces.Trace_Handle;
+--  Return the main trace, or the debug trace for details such as source text.

@@ -1011,13 +1011,13 @@ package body LSP.Ada_Completions is
                        Diagnostics     => Unparsing_Diagnostics));
 
                if not Unparsing_Diagnostics.Is_Empty then
-                  Context.Tracer.Trace
+                  Context.Tracer.Trace_Debug
                     ("Diagnostics found while loading the unparsing "
                      & "configuration for "
                      & Context.URI_To_File (Document.URI).Display_Base_Name
                      & ":");
                   for Diagnostic of Unparsing_Diagnostics loop
-                     Context.Tracer.Trace
+                     Context.Tracer.Trace_Debug
                        (Langkit_Support.Diagnostics.To_Pretty_String
                           (Diagnostic));
                   end loop;

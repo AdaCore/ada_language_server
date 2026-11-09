@@ -192,8 +192,7 @@ package body LSP.GPR_Handlers is
          --  not open: this is not supposed to happen, log it.
 
          Self.Tracer.Trace
-           ("received a didCloseTextDocument for non-open document with uri: "
-            & VSS.Strings.Conversions.To_UTF_8_String (URI));
+           ("received a didCloseTextDocument for non-open document");
       end if;
 
       --  Clean diagnostics up on closing document
@@ -218,7 +217,7 @@ package body LSP.GPR_Handlers is
         new LSP.GPR_Documents.Document (Self.Tracer);
    begin
       Self.Tracer.Trace ("In Text_Document_Did_Open");
-      Self.Tracer.Trace
+      Self.Tracer.Trace_Debug
         ("Uri : " & VSS.Strings.Conversions.To_UTF_8_String (URI));
 
       --  We have received a document: add it to the documents container
@@ -429,7 +428,8 @@ package body LSP.GPR_Handlers is
 
             Error.Prepend ("Error while setting up environment: ");
 
-            Self.Tracer.Trace_Text (Error);
+            Self.Tracer.Trace ("Error while setting up environment");
+            Self.Tracer.Trace_Debug_Text (Error);
 
             Self.Sender.On_ShowMessage_Notification
               ((LSP.Enumerations.Error, Error));
@@ -583,7 +583,7 @@ package body LSP.GPR_Handlers is
             for Message of Messages loop
                Self.Sender.On_LogMessage_Notification
                  ((LSP.Enumerations.Warning, Message));
-               Self.Tracer.Trace_Text (Message);
+               Self.Tracer.Trace_Debug_Text (Message);
             end loop;
 
             --  Set it as the current configuration.
@@ -1054,7 +1054,7 @@ package body LSP.GPR_Handlers is
       for Message of Messages loop
          Self.Sender.On_LogMessage_Notification
            ((LSP.Enumerations.Warning, Message));
-         Self.Tracer.Trace_Text (Message);
+         Self.Tracer.Trace_Debug_Text (Message);
       end loop;
 
       for Document of Self.Open_Documents loop
@@ -1070,10 +1070,7 @@ package body LSP.GPR_Handlers is
          exception
             when E : others =>
                Self.Tracer.Trace_Exception
-                 (E,
-                  VSS.Strings.Conversions.To_Virtual_String
-                    ("On_DidChangeConfiguration_Notification for " &
-                       String (Document.File.Value)));
+                 (E, "On_DidChangeConfiguration_Notification");
 
          end;
       end loop;

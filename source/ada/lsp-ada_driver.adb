@@ -605,9 +605,9 @@ begin
 
    Tracer.Trace ("Initializing server ...");
 
-   Tracer.Trace
+   Tracer.Trace_Debug
      ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (LSP.Env.GPR_Path));
-   Tracer.Trace
+   Tracer.Trace_Debug
      ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (LSP.Env.Path));
 
    --  Log any exception that occured while parsing the user's traces

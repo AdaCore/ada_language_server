@@ -24,22 +24,37 @@ with VSS.JSON.Pull_Readers.Simple;
 with VSS.JSON.Push_Writers;
 with VSS.JSON.Streams;
 with VSS.Strings;
+with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
 
 with LSP.Client_Message_Writers;
+with LSP.Client_Requests;
+with LSP.Client_Responses;
 with LSP.Enumerations;
 with LSP.Errors;
 with LSP.Known_Requests;
 with LSP.Lifecycle_Checkers;
 with LSP.Server_Notification_Readers;
 with LSP.Server_Request_Readers;
+with LSP.Server_Responses;
 with LSP.Register_Fallbacks;
 
 package body LSP.Servers is
 
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
+
+   function Id_Image
+     (Id : LSP.Structures.Integer_Or_Virtual_String) return String;
+   --  String ids may contain paths or other private data.
+
+   function Message_Image
+     (Message : LSP.Server_Messages.Server_Message'Class) return String;
+
+   function Message_Image
+     (Message : LSP.Client_Messages.Client_Message'Class) return String;
+   --  Describe messages without reading their parameters or results.
 
    procedure Process_One_Message
      (Self    : in out Server'Class;
@@ -79,6 +94,58 @@ package body LSP.Servers is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object => LSP.Client_Messages.Client_Message'Class,
       Name   => Client_Message_Access);
+
+   --------------
+   -- Id_Image --
+   --------------
+
+   function Id_Image
+     (Id : LSP.Structures.Integer_Or_Virtual_String) return String
+   is (if Id.Is_Integer then " id=" & Id.Integer'Image
+       elsif Id.Virtual_String.Is_Null then ""
+       else " id=<string>");
+
+   -------------------
+   -- Message_Image --
+   -------------------
+
+   function Message_Image
+     (Message : LSP.Server_Messages.Server_Message'Class) return String is
+   begin
+      if Message in LSP.Server_Requests.Server_Request'Class then
+         declare
+            Request : LSP.Server_Requests.Server_Request'Class renames
+              LSP.Server_Requests.Server_Request'Class (Message);
+         begin
+            return "request "
+              & VSS.Strings.Conversions.To_UTF_8_String (Request.Method)
+              & Id_Image (Request.Id);
+         end;
+      elsif Message in LSP.Server_Responses.Server_Response'Class then
+         return "response " & Ada.Tags.Expanded_Name (Message'Tag)
+           & Id_Image (LSP.Server_Responses.Server_Response'Class (Message).Id);
+      else
+         return "notification " & Ada.Tags.Expanded_Name (Message'Tag);
+      end if;
+   end Message_Image;
+
+   -------------------
+   -- Message_Image --
+   -------------------
+
+   function Message_Image
+     (Message : LSP.Client_Messages.Client_Message'Class) return String is
+   begin
+      if Message in LSP.Client_Requests.Client_Request'Class then
+         return "request " & Ada.Tags.Expanded_Name (Message'Tag)
+           & Id_Image (LSP.Client_Requests.Client_Request'Class (Message).Id);
+      elsif Message in LSP.Client_Responses.Client_Response'Class then
+         return "response " & Ada.Tags.Expanded_Name (Message'Tag)
+           & Id_Image (LSP.Client_Responses.Client_Response'Class (Message).Id);
+      else
+         return "notification " & Ada.Tags.Expanded_Name (Message'Tag);
+      end if;
+   end Message_Image;
 
    -------------------------
    -- Allocate_Request_Id --
@@ -393,10 +460,9 @@ package body LSP.Servers is
          if Method.Is_Null then
             --  TODO: Process client responses here.
 
-            if Error.Is_Set then
-               Self.Tracer.Trace ("Got Error response:");
-               Self.Tracer.Trace_Text (Error.Value.message);
-            end if;
+            Self.Tracer.Trace
+              ("Received " & (if Error.Is_Set then "error " else "")
+               & "response" & Id_Image (Request_Id));
 
             return;
 
@@ -472,6 +538,8 @@ package body LSP.Servers is
 
             Message := Server_Message_Access (Notification);
          end if;
+
+         Self.Tracer.Trace ("Received " & Message_Image (Message.all));
 
          if Logger /= null then
             Message.Visit_Server_Message_Visitor (Logger.all);
@@ -776,6 +844,8 @@ package body LSP.Servers is
          select
             --  Process all available outputs before acceptiong Stop
             Output_Queue.Dequeue (Message);
+
+            Server.Tracer.Trace ("Sending " & Message_Image (Message.all));
 
             if Logger /= null then
                Message.Visit_Client_Message_Visitor (Logger.all);
