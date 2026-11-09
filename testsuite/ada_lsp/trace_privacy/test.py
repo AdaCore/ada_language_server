@@ -20,8 +20,7 @@ def trace_privacy(wd):
                 f">{run_dir / 'trace.log'}:buffer_size=0\n"
                 f"ALS.MAIN=yes >{run_dir / 'main.log'}:buffer_size=0\n"
                 "ALS.IN=no\n"
-                "ALS.OUT=no\n"
-                + ("ALS.MAIN.DEBUG=yes\n" if debug else "")
+                "ALS.OUT=no\n" + ("ALS.MAIN.DEBUG=yes\n" if debug else "")
             )
             command = [os.environ["ALS"], "--tracefile=traces.cfg"]
             if language == "gpr":
