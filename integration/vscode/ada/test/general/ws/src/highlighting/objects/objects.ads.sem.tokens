@@ -23,4 +23,4 @@ line  17: column 13 - 14: function      [declaration]                      : S5
 line  17: column 17 - 22: parameter     [declaration, readonly]            : Param1
 line  17: column 25 - 30: parameter     [declaration, readonly]            : Param2
 line  17: column 49 - 54: parameter     [declaration, readonly]            : Param3
-line  19: column  5 - 11: namespace                                        : Objects
+line  19: column  5 - 11: namespace     [declaration]                      : Objects
