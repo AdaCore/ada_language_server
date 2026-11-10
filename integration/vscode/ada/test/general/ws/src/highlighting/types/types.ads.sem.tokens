@@ -106,7 +106,7 @@ line  98: column 15 - 20: type          [declaration]                      : Ser
 line  99: column 15 - 28: function      [declaration]                      : Next_Work_Item
 line  99: column 30 - 31: parameter     [declaration, readonly]            : WI
 line 100: column 15 - 23: function      [declaration]                      : Shut_Down
-line 101: column  9 - 14: type                                             : Server
+line 101: column  9 - 14: type          [declaration]                      : Server
 line 103: column 15 - 29: type          [declaration]                      : Keyboard_Driver
 line 103: column 31 - 32: typeParameter [declaration, readonly]            : ID
 line 104: column 13 - 25: interface                                        : Serial_Device
@@ -116,5 +116,5 @@ line 106: column 22 - 30: enum          [static, defaultLibrary]           : Cha
 line 107: column 15 - 19: function      [declaration]                      : Write
 line 107: column 21 - 21: parameter     [declaration, readonly]            : C
 line 107: column 29 - 37: enum          [static, defaultLibrary]           : Character
-line 108: column  9 - 23: type                                             : Keyboard_Driver
-line 110: column  5 -  9: namespace                                        : Types
+line 108: column  9 - 23: type          [declaration]                      : Keyboard_Driver
+line 110: column  5 -  9: namespace     [declaration]                      : Types

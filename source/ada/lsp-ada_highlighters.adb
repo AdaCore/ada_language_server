@@ -881,30 +881,45 @@ package body LSP.Ada_Highlighters is
          Highlight_Token (Node.Token_Start, readonly);
 
          return;
-      elsif Node.Kind not in Ada_Identifier | Ada_String_Literal then
-         --  Highlight only identifiers and operator symbols
+      elsif Node.Kind not in Ada_Identifier | Ada_String_Literal |
+        Ada_Dotted_Name | Ada_End_Name
+      then
+         --  Highlight identifiers, operator symbols, defining and end names
          return;
       end if;
 
-      if Node.P_Is_Defining then
-         Def := Node.P_Enclosing_Defining_Name;
+      if Node.Kind = Ada_End_Name or else Node.P_Is_Defining then
+         Def :=
+           (if Node.Kind = Ada_End_Name
+            then Node.As_End_Name.P_Basic_Decl.P_Defining_Name
+            else Node.P_Enclosing_Defining_Name);
+         declare
+            Modifier : LSP.Enumerations.SemanticTokenModifiers := declaration;
          begin
-            declare
-               Is_Canonical : constant Boolean :=
-                 not Def.Is_Null and then Def.P_Canonical_Part = Def;
             begin
-               if Is_Canonical then
-                  Highlight_Token (Node.Token_Start, declaration);
-               else
-                  Highlight_Token (Node.Token_Start, definition);
+               if not Def.Is_Null and then Def.P_Canonical_Part /= Def then
+                  Modifier := definition;
                end if;
+            exception
+               when Property_Error =>
+                  --  In case of errors (e.g. incomplete code) consider it
+                  --  a canonical declaration.
+                  null;
             end;
-         exception
-            when Property_Error =>
-               --  In case of errors (e.g. incomplete code) consider it
-               --  a canonical declaration.
-               Highlight_Token (Node.Token_Start, declaration);
+
+            if Self.Token_Modifiers.Contains (Modifier) then
+               Holder.Set_Token_Modifier
+                 (Node.Token_Start, Node.Token_End, Modifier);
+            end if;
          end;
+
+         if Node.Kind in Ada_Dotted_Name | Ada_End_Name then
+            --  Let child names provide the token types. Apply the modifier to
+            --  the whole name so that qualified names have one style.
+            return;
+         end if;
+      elsif Node.Kind = Ada_Dotted_Name then
+         return;
       else
          Failsafe_Decl := Node.P_Failsafe_Referenced_Decl (True);
          Def :=  Libadalang.Analysis.Defining_Name (Failsafe_Decl.Def_Name);

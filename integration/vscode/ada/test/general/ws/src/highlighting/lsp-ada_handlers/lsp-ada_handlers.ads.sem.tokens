@@ -22,7 +22,7 @@ line  54: column  6 -  8: namespace                                        : LSP
 line  55: column  6 -  8: namespace                                        : LSP
 line  56: column  6 -  8: namespace                                        : LSP
 line  57: column  6 -  8: namespace                                        : LSP
-line  59: column  9 - 11: namespace                                        : LSP
+line  59: column  9 - 11: namespace     [declaration]                      : LSP
 line  59: column 13 - 24: namespace     [declaration]                      : Ada_Handlers
 line  61: column  9 - 23: type          [declaration]                      : Message_Handler
 line  62: column  7 - 12: typeParameter [declaration, readonly]            : Server
@@ -435,5 +435,5 @@ line 722: column  7 - 13: parameter     [declaration, readonly]            : Req
 line 725: column 14 - 27: function      [declaration]                      : Reload_Project
 line 725: column 30 - 33: parameter     [declaration, readonly]            : Self
 line 725: column 44 - 58: type                                             : Message_Handler
-line 728: column  5 -  7: namespace                                        : LSP
-line 728: column  9 - 20: namespace                                        : Ada_Handlers
+line 728: column  5 -  7: namespace     [declaration]                      : LSP
+line 728: column  9 - 20: namespace     [declaration]                      : Ada_Handlers

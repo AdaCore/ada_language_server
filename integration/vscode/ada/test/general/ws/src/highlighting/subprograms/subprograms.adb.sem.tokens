@@ -17,4 +17,4 @@ line  15: column 26 - 31: parameter     [declaration, readonly]            : Par
 line  16: column 13 - 17: function      [declaration]                      : "xor"
 line  16: column 20 - 25: parameter     [declaration, readonly]            : Param1
 line  16: column 28 - 33: parameter     [declaration, readonly]            : Param2
-line  18: column  5 - 15: namespace                                        : Subprograms
+line  18: column  5 - 15: namespace     [declaration]                      : Subprograms

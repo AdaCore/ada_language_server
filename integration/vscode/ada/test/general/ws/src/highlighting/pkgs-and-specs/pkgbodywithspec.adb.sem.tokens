@@ -14,7 +14,7 @@ line  13: column 10 - 12: variable      [globalVariable]                   : Ptr
 line  13: column 17 - 20: variable      [readonly]                         : null
 line  14: column 10 - 12: variable      [modification, globalVariable]     : Ptr
 line  14: column 17 - 20: variable      [readonly]                         : null
-line  16: column  8 - 16: function                                         : Reset_Ptr
+line  16: column  8 - 16: function      [declaration]                      : Reset_Ptr
 line  18: column 14 - 18: function      [declaration]                      : Proc1
 line  18: column 21 - 24: parameter     [declaration, readonly]            : Arg1
 line  18: column 27 - 30: parameter     [declaration, readonly]            : Arg2
@@ -24,7 +24,7 @@ line  19: column 11 - 17: type          [static, defaultLibrary]           : Int
 line  19: column 22 - 25: parameter     [readonly]                         : Arg1
 line  19: column 29 - 32: parameter     [readonly]                         : Arg2
 line  19: column 36 - 42: variable      [globalVariable]                   : Global1
-line  22: column  8 - 12: function                                         : Proc1
+line  22: column  8 - 12: function      [declaration]                      : Proc1
 line  24: column 13 - 20: function      [declaration]                      : Expr_Fct
 line  24: column 23 - 26: parameter     [declaration, readonly]            : Arg1
 line  24: column 29 - 32: parameter     [declaration, readonly]            : Arg2
@@ -47,5 +47,5 @@ line  29: column 18 - 21: parameter     [readonly]                         : Arg
 line  29: column 25 - 28: parameter     [readonly]                         : Arg3
 line  29: column 32 - 35: parameter     [readonly]                         : Arg4
 line  29: column 39 - 45: variable      [globalVariable]                   : Global1
-line  32: column  8 - 12: function                                         : Proc2
-line  34: column  5 - 19: namespace                                        : PkgBodyWithSpec
+line  32: column  8 - 12: function      [declaration]                      : Proc2
+line  34: column  5 - 19: namespace     [definition]                       : PkgBodyWithSpec
