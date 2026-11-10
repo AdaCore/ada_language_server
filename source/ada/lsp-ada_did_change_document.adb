@@ -153,13 +153,22 @@ package body LSP.Ada_Did_Change_Document is
       LSP.Ada_Documents.Reset_Symbol_Cache (Document.all);
       --  Reparse the file in every context that uses it, so later requests
       --  see the updated text.
-      for Context of Self.Parent.Context.Contexts_For_File (File) loop
-         declare
-            Dummy : Libadalang.Analysis.Analysis_Unit;
-         begin
-            Dummy := Context.Get_AU (File, Reparse => True);
-         end;
-      end loop;
+      begin
+         for Context of Self.Parent.Context.Contexts_For_File (File) loop
+            declare
+               Dummy : Libadalang.Analysis.Analysis_Unit;
+            begin
+               Dummy := Context.Get_AU (File, Reparse => True);
+            end;
+         end loop;
+      exception
+         when others =>
+            --  Failed reparsing may leave Libadalang contexts unusable.
+            --  Reload from the open documents and cancel old background jobs.
+            Self.Parent.Context.Reload_Project;
+            Self.Parent.Context.Refresh_Diagnostics;
+            raise;
+      end;
       --  Update the index in a separate job at the lowest priority.
       if Did_Change_Indexing.Is_Active then
          Self.Parent.Context.Enqueue_Indexing (File);
