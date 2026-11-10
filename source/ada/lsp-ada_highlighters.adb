@@ -275,10 +275,10 @@ package body LSP.Ada_Highlighters is
          then
             --  Skip uninteresting nodes to speedup traversal
             return Libadalang.Common.Over;
-         elsif Is_Ghost_Root_Node (Node) and then
-           Self.Token_Modifiers.Contains (documentation)
+         elsif Self.Token_Modifiers.Contains (documentation)
+           and then Is_Ghost_Root_Node (Node)
          then
-            --  Mark all tokens in a ghost element as `documentation`
+            --  Mark all tokens in a ghost element as 'documentation'
             Holder.Set_Token_Modifier
               (ST, ET, documentation);
          end if;
@@ -821,9 +821,6 @@ package body LSP.Ada_Highlighters is
             use Libadalang.Analysis;
             use Langkit_Support.Slocs;
 
-            Node_Enclosing_Declarative_Part : constant Declarative_Part :=
-                Laltools.Common.Get_Enclosing_Declarative_Part (Node);
-
             Parent : Ada_Node := Decl.Parent;
          begin
             while not Parent.Is_Null loop
@@ -832,7 +829,8 @@ package body LSP.Ada_Highlighters is
                then
                   if not Only_Global
                     and then Compare
-                      (Node_Enclosing_Declarative_Part.Sloc_Range,
+                      (Laltools.Common.Get_Enclosing_Declarative_Part
+                         (Node).Sloc_Range,
                        Decl.Sloc_Range.Start_Sloc) = Inside
                   then
                      Highlight_Token (Node.Token_Start, localVariable);
@@ -867,7 +865,130 @@ package body LSP.Ada_Highlighters is
       Failsafe_Decl : Libadalang.Analysis.Refd_Decl;
       Def           : Libadalang.Analysis.Defining_Name;
       Decl          : Libadalang.Analysis.Basic_Decl;
-      Kind          : LSP.Enumerations.SemanticTokenTypes;
+      Kind          : LSP.Enumerations.SemanticTokenTypes := Skip;
+
+      procedure Highlight_Modifiers (Context : Modifier_Context);
+      --  Compute only the semantic token modifiers supported by the client.
+      --  Context selects checks whose inputs are available: a defining name,
+      --  a name occurrence, or the declaration of the referenced entity.
+
+      -------------------------
+      -- Highlight_Modifiers --
+      -------------------------
+
+      procedure Highlight_Modifiers (Context : Modifier_Context) is
+         Defining_Modifier : LSP.Enumerations.SemanticTokenModifiers :=
+           declaration;
+         Canonical_Part_Known : Boolean := False;
+         Variable_Modifiers_Known : Boolean := False;
+         --  Some supported modifiers share a query. Cache its result within
+         --  this call so that requesting both does not repeat the work.
+      begin
+         --  These lists are built from the client's tokenModifiers capability
+         --  during initialization. Unsupported modifiers never reach their
+         --  semantic queries here.
+         for Modifier of Self.Supported_Modifiers (Context) loop
+            declare
+               Applies : Boolean := False;
+            begin
+               case Modifier is
+                  when declaration | definition =>
+                     --  The canonical part gets 'declaration'; later parts,
+                     --  such as a body or type completion, get 'definition'.
+                     --  Both modifiers share the same canonical part query.
+                     if not Canonical_Part_Known then
+                        Canonical_Part_Known := True;
+                        begin
+                           if not Def.Is_Null
+                             and then Def.P_Canonical_Part /= Def
+                           then
+                              Defining_Modifier := definition;
+                           end if;
+                        exception
+                           when Property_Error =>
+                              --  Use 'declaration' for incomplete code.
+                              null;
+                        end;
+                     end if;
+                     Applies := Modifier = Defining_Modifier;
+
+                  when modification =>
+                     --  This describes the name occurrence, rather than the
+                     --  entity it denotes: it is used to write a value.
+                     Applies := Node.P_Is_Write_Reference (True);
+
+                  when dispatchingCall =>
+                     Applies := Is_Dispatching_Call;
+
+                  when globalVariable | localVariable =>
+                     --  Both modifiers share one scope investigation. A
+                     --  client requesting only 'globalVariable' does not
+                     --  need the local declaration's source location.
+                     if Kind = variable and then not Variable_Modifiers_Known
+                     then
+                        Variable_Modifiers_Known := True;
+                        Get_Variable_Modifiers
+                          (Decl,
+                           Only_Global =>
+                             not Self.Token_Modifiers.Contains (localVariable)
+                             or else Laltools.Common.Find_First_Common_Parent
+                               (Decl, Node, True) = Decl);
+                     end if;
+
+                  when readonly =>
+                     Applies :=
+                       Kind in variable | parameter | typeParameter | property
+                       and then Decl.P_Is_Constant_Object;
+
+                  when static =>
+                     Applies := Decl.P_Is_Static_Decl;
+
+                  when deprecated =>
+                     --  P_Has_Aspect also checks pragmas.
+                     Applies := Def.P_Has_Aspect (Obsolescent);
+
+                  when an_abstract =>
+                     Applies := Has_Abstract (Decl);
+
+                  when defaultLibrary =>
+                     Applies := Is_Predefined (Decl);
+
+                  when others =>
+                     null;
+               end case;
+
+               if Applies then
+                  --  In 'package Pkg.Child is' and 'end Pkg.Child;', apply
+                  --  'declaration' or 'definition' to the whole name so that
+                  --  Pkg and Child have the same style at both ends.
+                  --
+                  --  Other modifiers describe an individual identifier.
+                  --  In 'Pkg.Counter := 1;', only Counter is modified, so
+                  --  apply 'modification' to Counter without marking Pkg.
+                  --  These contexts process each identifier separately.
+                  if Context = Defining_Name_Modifiers then
+                     Holder.Set_Token_Modifier
+                       (Node.Token_Start, Node.Token_End, Modifier);
+                  else
+                     Holder.Set_Token_Modifier (Node.Token_Start, Modifier);
+                  end if;
+               end if;
+            exception
+               when Property_Error =>
+                  if Modifier in globalVariable | localVariable |
+                    an_abstract | defaultLibrary
+                  then
+                     --  Stop processing this name, keeping tokens already
+                     --  emitted. Highlight_Node catches the error and lets
+                     --  traversal continue with the next node.
+                     raise;
+                  end if;
+
+                  --  The other checks already recovered locally. Omit the
+                  --  failed modifier and try the next supported modifier.
+            end;
+         end loop;
+      end Highlight_Modifiers;
    begin
       if Node.Kind = Ada_Null_Literal then
          --  The TextMate grammar classifies every `null` as a keyword, since
@@ -888,30 +1009,22 @@ package body LSP.Ada_Highlighters is
          return;
       end if;
 
+      if Node.Kind in Ada_Dotted_Name | Ada_End_Name
+        and then Self.Supported_Modifiers (Defining_Name_Modifiers).Is_Empty
+      then
+         --  Child names still provide semantic token types. These enclosing
+         --  names only contribute 'declaration' or 'definition' modifiers.
+         return;
+      end if;
+
       if Node.Kind = Ada_End_Name or else Node.P_Is_Defining then
+         --  Use the block's defining name for its end name too, so both get
+         --  the same 'declaration' or 'definition' semantic token modifier.
          Def :=
            (if Node.Kind = Ada_End_Name
             then Node.As_End_Name.P_Basic_Decl.P_Defining_Name
             else Node.P_Enclosing_Defining_Name);
-         declare
-            Modifier : LSP.Enumerations.SemanticTokenModifiers := declaration;
-         begin
-            begin
-               if not Def.Is_Null and then Def.P_Canonical_Part /= Def then
-                  Modifier := definition;
-               end if;
-            exception
-               when Property_Error =>
-                  --  In case of errors (e.g. incomplete code) consider it
-                  --  a canonical declaration.
-                  null;
-            end;
-
-            if Self.Token_Modifiers.Contains (Modifier) then
-               Holder.Set_Token_Modifier
-                 (Node.Token_Start, Node.Token_End, Modifier);
-            end if;
-         end;
+         Highlight_Modifiers (Defining_Name_Modifiers);
 
          if Node.Kind in Ada_Dotted_Name | Ada_End_Name then
             --  Let child names provide the token types. Apply the modifier to
@@ -925,23 +1038,9 @@ package body LSP.Ada_Highlighters is
          Def :=  Libadalang.Analysis.Defining_Name (Failsafe_Decl.Def_Name);
       end if;
 
-      if Node.Kind in Libadalang.Common.Ada_Name then
-         begin
-            if Node.As_Name.P_Is_Write_Reference (True) then
-               Highlight_Token (Node.Token_Start, modification);
-            end if;
-         exception
-            when Libadalang.Common.Property_Error => null;
-         end;
-
-         begin
-            if Is_Dispatching_Call then
-               Highlight_Token (Node.Token_Start, dispatchingCall);
-            end if;
-         exception
-            when Libadalang.Common.Property_Error => null;
-         end;
-      end if;
+      --  Occurrence modifiers do not require a resolved declaration. They
+      --  can still apply when name resolution below yields no declaration.
+      Highlight_Modifiers (Name_Modifiers);
 
       if not Def.Is_Null then
          Decl := Def.P_Basic_Decl;
@@ -952,48 +1051,9 @@ package body LSP.Ada_Highlighters is
                Highlight_Token (Node.Token_Start, Kind);
             end if;
 
-            if Kind = variable then
-               Get_Variable_Modifiers
-                 (Decl        => Decl,
-                  Only_Global => Laltools.Common.Find_First_Common_Parent
-                    (Decl, Node, True) = Decl);
-            end if;
-
-            begin
-               if Kind in variable | parameter | typeParameter | property
-                 and then Decl.P_Is_Constant_Object
-               then
-                  Highlight_Token (Node.Token_Start, readonly);
-               end if;
-            exception
-               when Libadalang.Common.Property_Error => null;
-            end;
-
-            begin
-               if Decl.P_Is_Static_Decl then
-                  Highlight_Token (Node.Token_Start, static);
-               end if;
-            exception
-               when Libadalang.Common.Property_Error => null;
-            end;
-
-            begin
-               --  P_Has_Aspect checks the existence of either an aspect or
-               --  a pragma.
-               if Def.P_Has_Aspect (Obsolescent) then
-                  Highlight_Token (Node.Token_Start, deprecated);
-               end if;
-            exception
-               when Libadalang.Common.Property_Error => null;
-            end;
-
-            if Has_Abstract (Decl) then
-               Highlight_Token (Node.Token_Start, an_abstract);
-            end if;
-
-            if Is_Predefined (Decl) then
-               Highlight_Token (Node.Token_Start, defaultLibrary);
-            end if;
+            --  These modifiers describe the declared entity, so run their
+            --  checks only after resolving the declaration and token type.
+            Highlight_Modifiers (Declaration_Modifiers);
 
             return;
          end if;
@@ -1023,10 +1083,10 @@ package body LSP.Ada_Highlighters is
    begin
       Highlighter_Debug.Trace ("Node trying to highlight: " & Node_Img);
 
-      if Is_Ghost_Root_Node (Node)
-        and Self.Token_Modifiers.Contains (LSP.Enumerations.documentation)
+      if Self.Token_Modifiers.Contains (LSP.Enumerations.documentation)
+        and then Is_Ghost_Root_Node (Node)
       then
-         --  Mark all tokens in a ghost element as `documentation`
+         --  Mark all tokens in a ghost element as 'documentation'
          Holder.Value.Set_Token_Modifier
            (Node.Token_Start, Node.Token_End, LSP.Enumerations.documentation);
       end if;
@@ -1101,6 +1161,27 @@ package body LSP.Ada_Highlighters is
               (Kind, Natural (2 ** Modifiers.Length));
 
             Modifiers.Append (Image);
+
+            --  Select semantic token modifier computations once, using the
+            --  client's tokenModifiers capability. Group the checks by the
+            --  inputs they need. Keep scope checks before other declaration
+            --  modifiers to preserve the order of error recovery.
+            case Kind is
+               when declaration | definition =>
+                  Self.Supported_Modifiers
+                    (Defining_Name_Modifiers).Append (Kind);
+               when modification | dispatchingCall =>
+                  Self.Supported_Modifiers (Name_Modifiers).Append (Kind);
+               when globalVariable | localVariable =>
+                  Self.Supported_Modifiers
+                    (Declaration_Modifiers).Prepend (Kind);
+               when documentation =>
+                  --  This modifier is applied to whole syntax subtrees.
+                  null;
+               when others =>
+                  Self.Supported_Modifiers
+                    (Declaration_Modifiers).Append (Kind);
+            end case;
          end if;
       end Append_Modifier;
 
@@ -1213,14 +1294,23 @@ package body LSP.Ada_Highlighters is
    -- Need_Highlighting --
    -----------------------
 
-   function Need_Highlighting return Libadalang.Iterators.Ada_Node_Predicate is
+   function Need_Highlighting
+     (Self : Ada_Highlighter'Class)
+      return Libadalang.Iterators.Ada_Node_Predicate
+   is
       use Libadalang.Iterators;
 
+      Result : Libadalang.Iterators.Ada_Node_Predicate :=
+        Kind_In (Ada_Name'First, Ada_Name'Last)
+          or Kind_Is (Ada_Finally_Part);
    begin
-      return Libadalang.Iterators.Kind_In
-        (Libadalang.Common.Ada_Name'First, Libadalang.Common.Ada_Name'Last)
-          or Is_Ghost_Root
-          or Libadalang.Iterators.Kind_Is (Libadalang.Common.Ada_Finally_Part);
+      if Self.Token_Modifiers.Contains (LSP.Enumerations.documentation) then
+         --  Ghost code uses the LSP 'documentation' modifier. Do not inspect
+         --  declarations for ghost aspects when the client omits it.
+         Result := Result or Is_Ghost_Root;
+      end if;
+
+      return Result;
    end Need_Highlighting;
 
    ------------

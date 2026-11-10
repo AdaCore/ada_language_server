@@ -99,7 +99,8 @@ package body LSP.Ada_Tokens_Full is
               Cursor             =>
                 new Libadalang.Iterators.Traverse_Iterator'Class'
                   (Libadalang.Iterators.Find
-                     (Unit.Root, LSP.Ada_Highlighters.Need_Highlighting)),
+                     (Unit.Root,
+                      Self.Context.Get_Highlighter.Need_Highlighting)),
               Holder             => <>,
               Document_Signature => Document.Signature);
 
