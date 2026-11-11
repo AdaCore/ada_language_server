@@ -854,7 +854,8 @@ package body LSP.Servers is
                begin
                   --  Call Process_Job at least once to complete a fenced
                   --  job if any.
-                  Server.Scheduler.Process_Job (Server.all, Waste);
+                  Server.Scheduler.Process_Job
+                    (Server.all, Waste, Server.Tracer.all);
 
                   if Waste /= null then
                      Server.Destroy_Queue.Enqueue (Waste);
@@ -877,7 +878,7 @@ package body LSP.Servers is
       procedure Process_Message (Message : in out Server_Message_Access) is
          Waste : Server_Message_Access;
       begin
-         Server.Scheduler.Create_Job (Message, Waste);
+         Server.Scheduler.Create_Job (Message, Waste, Server.Tracer.all);
 
          if Waste /= null then
             Server.Destroy_Queue.Enqueue (Waste);
@@ -889,7 +890,8 @@ package body LSP.Servers is
          end if;
 
          loop
-            Server.Scheduler.Process_High_Priority_Job (Server.all, Waste);
+            Server.Scheduler.Process_High_Priority_Job
+              (Server.all, Waste, Server.Tracer.all);
 
             exit when Waste = null;
 

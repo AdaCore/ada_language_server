@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2024, AdaCore                       --
+--                     Copyright (C) 2024-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,15 +19,18 @@ with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with System.Storage_Elements;
 
+with VSS.Strings.Conversions;
+
 package body LSP.Job_Schedulers is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (LSP.Server_Jobs.Server_Job'Class, LSP.Server_Jobs.Server_Job_Access);
 
    procedure Complete_Last_Fence_Job
-     (Self  : in out Job_Scheduler'Class;
-      Next  : LSP.Server_Messages.Server_Message_Access;
-      Waste : out LSP.Server_Messages.Server_Message_Access);
+     (Self   : in out Job_Scheduler'Class;
+      Next   : LSP.Server_Messages.Server_Message_Access;
+      Waste  : out LSP.Server_Messages.Server_Message_Access;
+      Tracer : in out LSP.Tracers.Tracer'Class);
    --  Call Complete on the last done Fence job (if any) and free it
 
    -----------------------------
@@ -35,14 +38,27 @@ package body LSP.Job_Schedulers is
    -----------------------------
 
    procedure Complete_Last_Fence_Job
-     (Self  : in out Job_Scheduler'Class;
-      Next  : LSP.Server_Messages.Server_Message_Access;
-      Waste : out LSP.Server_Messages.Server_Message_Access)
+     (Self   : in out Job_Scheduler'Class;
+      Next   : LSP.Server_Messages.Server_Message_Access;
+      Waste  : out LSP.Server_Messages.Server_Message_Access;
+      Tracer : in out LSP.Tracers.Tracer'Class)
    is
       use type LSP.Server_Jobs.Server_Job_Access;
    begin
       if Self.Done /= null then
-         Self.Done.Complete (Next);
+         begin
+            Self.Done.Complete (Next);
+         exception
+            when E : others =>
+               --  The Complete call raised an exception: log the error and
+               --  continue
+               Tracer.Trace_Exception
+                 (E,
+                  VSS.Strings.Conversions.To_Virtual_String
+                    ("Complete raised error for job: "
+                     & Ada.Tags.Expanded_Name (Self.Done.all'Tag)));
+         end;
+
          Waste := Self.Done.Message;
          Free (Self.Done);
       end if;
@@ -55,7 +71,8 @@ package body LSP.Job_Schedulers is
    procedure Create_Job
      (Self    : in out Job_Scheduler'Class;
       Message : in out LSP.Server_Messages.Server_Message_Access;
-      Waste   : out LSP.Server_Messages.Server_Message_Access)
+      Waste   : out LSP.Server_Messages.Server_Message_Access;
+      Tracer  : in out LSP.Tracers.Tracer'Class)
    is
       use type LSP.Server_Jobs.Server_Job_Access;
       Cursor : constant Handler_Maps.Cursor :=
@@ -65,7 +82,7 @@ package body LSP.Job_Schedulers is
    begin
       if Handler_Maps.Has_Element (Cursor) then
 
-         Self.Complete_Last_Fence_Job (Message, Waste);
+         Self.Complete_Last_Fence_Job (Message, Waste, Tracer);
          Job := Handler_Maps.Element (Cursor).Create_Job (Message);
 
          if Job /= null then
@@ -122,7 +139,8 @@ package body LSP.Job_Schedulers is
      (Self   : in out Job_Scheduler'Class;
       Client : in out
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste  : out LSP.Server_Messages.Server_Message_Access)
+      Waste  : out LSP.Server_Messages.Server_Message_Access;
+      Tracer : in out LSP.Tracers.Tracer'Class)
    is
       use all type LSP.Server_Jobs.Job_Priority;
       use all type LSP.Server_Jobs.Execution_Status;
@@ -143,7 +161,7 @@ package body LSP.Job_Schedulers is
          while
            (for some List of Self.Jobs (Low .. High) => not List.Is_Empty)
          loop
-            Self.Process_Job (Client, Waste, From => Low);
+            Self.Process_Job (Client, Waste, Tracer, From => Low);
 
             if Waste /= null then
                return;
@@ -173,12 +191,13 @@ package body LSP.Job_Schedulers is
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Waste  : out LSP.Server_Messages.Server_Message_Access;
+      Tracer : in out LSP.Tracers.Tracer'Class;
       From   : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Lowest)
    is
       use type LSP.Server_Messages.Server_Message_Access;
       Status : LSP.Server_Jobs.Execution_Status;
    begin
-      Self.Complete_Last_Fence_Job (null, Waste);
+      Self.Complete_Last_Fence_Job (null, Waste, Tracer);
 
       if Waste = null then
          for List of reverse Self.Jobs (From .. LSP.Server_Jobs.High)

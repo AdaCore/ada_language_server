@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2024, AdaCore                       --
+--                     Copyright (C) 2024-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,6 +23,7 @@ with LSP.Client_Message_Receivers;
 with LSP.Server_Jobs;
 with LSP.Server_Message_Handlers;
 with LSP.Server_Messages;
+with LSP.Tracers;
 
 package LSP.Job_Schedulers is
    pragma Preelaborate;
@@ -41,7 +42,8 @@ package LSP.Job_Schedulers is
    procedure Create_Job
      (Self    : in out Job_Scheduler'Class;
       Message : in out LSP.Server_Messages.Server_Message_Access;
-      Waste   : out LSP.Server_Messages.Server_Message_Access);
+      Waste   : out LSP.Server_Messages.Server_Message_Access;
+      Tracer  : in out LSP.Tracers.Tracer'Class);
    --  Create a job to process a server message. The scheduler takes ownership
    --  of the message and will return it to the server when the job is done.
    --  If there is no handler for the message, then the scheduler doesn't
@@ -58,7 +60,8 @@ package LSP.Job_Schedulers is
      (Self   : in out Job_Scheduler'Class;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste  : out LSP.Server_Messages.Server_Message_Access);
+      Waste  : out LSP.Server_Messages.Server_Message_Access;
+      Tracer : in out LSP.Tracers.Tracer'Class);
    --  Execute jobs with highest priority (Immediate, Fence).
    --  When a job is done the routine returns (in Waste) the message to be
    --  deallocated by the server. The Client is used to send messages during
@@ -69,6 +72,7 @@ package LSP.Job_Schedulers is
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Waste  : out LSP.Server_Messages.Server_Message_Access;
+      Tracer : in out LSP.Tracers.Tracer'Class;
       From   : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Lowest);
    --  Execute (already created) jobs with ordinal priority (From .. High).
    --  When a job is done the routine returns (in Waste) the message to be
