@@ -123,7 +123,7 @@ package body LSP.Ada_Declaration is
           Self.Parent.Context.Get_Configuration.Display_Method_Ancestry_Policy;
 
       Trace : constant GNATCOLL.Traces.Trace_Handle :=
-        Self.Parent.Context.Get_Trace_Handle;
+        Self.Parent.Context.Get_Trace_Handle (Debug => True);
 
       Name_Node               : Libadalang.Analysis.Name;
 

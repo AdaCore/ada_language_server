@@ -74,10 +74,26 @@ be sensitive or confidential; review the logs before sharing them. Use this way:
 
 ### `ALS.MAIN` (default: yes)
 
-Trace requests, notifications and responses in ALS log files. Will
-also log any exception that occurs when handling LSP requests.
+Trace requests, notifications and responses without their parameters or results.
+Entries show the direction, message name and numeric request ID when available.
+String IDs are replaced with `<string>` because they may contain private data.
+Incoming requests use their LSP method name; other messages use their Ada type
+name. Outgoing messages are traced before serialization and transmission.
+
+Exception entries show the operation and exception name. Source text, paths,
+diagnostic details and full exceptions are available through `ALS.MAIN.DEBUG`.
+Other trace channels, such as `ALS.PROJECT` and `ALS.CONFIG`, may still log paths
+or configuration values.
 
     ALS.MAIN=yes
+
+### `ALS.MAIN.DEBUG` (default: no)
+
+Include detailed server diagnostics, full exceptions and raw messages that failed
+to decode. These can contain source text, URIs, paths and other private data.
+Review the logs before sharing them.
+
+    ALS.MAIN.DEBUG=yes
 
 ### `DEBUG.ABSOLUTE_TIME` (default: yes)
 

@@ -584,14 +584,14 @@ package body LSP.Ada_Configurations is
               VSS.Strings.Conversions.To_Virtual_String
                 (File.Display_Full_Name);
          begin
-            Tracer.Trace_Text ("Trying config file: " & F_Path);
+            Tracer.Trace_Debug_Text ("Trying config file: " & F_Path);
 
             if File.Is_Regular_File then
-               Tracer.Trace_Text ("Loading config file: " & F_Path);
+               Tracer.Trace_Debug_Text ("Loading config file: " & F_Path);
                Self.Read_File (F_Path, Messages);
                Processed := True;
             else
-               Tracer.Trace_Text (F_Path & " doesn't exist");
+               Tracer.Trace_Debug_Text (F_Path & " doesn't exist");
             end if;
 
             if not Messages.Is_Empty then

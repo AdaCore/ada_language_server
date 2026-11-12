@@ -18,7 +18,10 @@
 with GNATCOLL.Traces;
 
 function LSP.GNATCOLL_Tracers.Handle
-  (Self : LSP.Tracers.Tracer'Class) return GNATCOLL.Traces.Trace_Handle is
+  (Self  : LSP.Tracers.Tracer'Class;
+   Debug : Boolean := False) return GNATCOLL.Traces.Trace_Handle is
 begin
-   return GNATCOLL.Traces.Trace_Handle (Server_Tracer (Self).Server_Trace);
+   return GNATCOLL.Traces.Trace_Handle
+     (if Debug then Server_Tracer (Self).Debug_Trace
+      else Server_Tracer (Self).Server_Trace);
 end LSP.GNATCOLL_Tracers.Handle;

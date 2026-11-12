@@ -206,7 +206,7 @@ package body LSP.GPR_Documents is
             Self.Has_Messages := not New_Messages.Is_Empty;
 
             for Msg of New_Messages loop
-               Self.Tracer.Trace (Msg.Format);
+               Self.Tracer.Trace_Debug (Msg.Format);
             end loop;
          end if;
       end Update_Diagnostics;

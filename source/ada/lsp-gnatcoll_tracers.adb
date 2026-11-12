@@ -142,7 +142,7 @@ package body LSP.GNATCOLL_Tracers is
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
    begin
-      Self.Server_Trace.Trace (Text);
+      Self.Debug_Trace.Trace (Text);
    end Trace;
 
    ---------------------
@@ -156,8 +156,33 @@ package body LSP.GNATCOLL_Tracers is
         VSS.Strings.Empty_Virtual_String)
    is
    begin
-      Self.Server_Trace.Trace_Exception (Error, Message);
+      Self.Server_Trace.Trace_Text
+        (if Message.Is_Empty then "Exception:" else Message);
+      Self.Server_Trace.Trace (Ada.Exceptions.Exception_Name (Error));
+      Self.Debug_Trace.Trace_Exception (Error, Message);
    end Trace_Exception;
+
+   -----------------
+   -- Trace_Debug --
+   -----------------
+
+   overriding procedure Trace_Debug
+     (Self : in out Server_Tracer;
+      Text : String) is
+   begin
+      Self.Debug_Trace.Trace (Text);
+   end Trace_Debug;
+
+   ----------------------
+   -- Trace_Debug_Text --
+   ----------------------
+
+   overriding procedure Trace_Debug_Text
+     (Self : in out Server_Tracer;
+      Text : VSS.Strings.Virtual_String'Class) is
+   begin
+      Self.Debug_Trace.Trace_Text (Text);
+   end Trace_Debug_Text;
 
    -----------------
    -- Trace_Input --

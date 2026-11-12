@@ -130,20 +130,12 @@ package body LSP.Ada_Handlers is
    --  Clean diagnostics up for the document
 
    function To_DocumentUri
-     (X : VSS.Strings.Virtual_String) return LSP.Structures.DocumentUri
-   is (X with null record);
-
-   function To_DocumentUri
      (X : LSP.Structures.URI) return LSP.Structures.DocumentUri
    is (VSS.Strings.Virtual_String (X) with null record);
 
-   EmptyDocumentUri : constant LSP.Structures.DocumentUri :=
-     To_DocumentUri (VSS.Strings.Empty_Virtual_String);
-
    procedure Log_Method_In
      (Self : in out Message_Handler;
-      Name : String;
-      URI  : LSP.Structures.DocumentUri := EmptyDocumentUri);
+      Name : String);
 
    procedure Log_Method_Out (Self : in out Message_Handler; Name : String);
    --  Save method in/out in a log file
@@ -682,7 +674,7 @@ package body LSP.Ada_Handlers is
       return Libadalang.Analysis.Defining_Name
    is
       Trace : constant GNATCOLL.Traces.Trace_Handle :=
-        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all, Debug => True);
 
       Ref_Kind : Libadalang.Common.Ref_Result_Kind;
    begin
@@ -814,15 +806,9 @@ package body LSP.Ada_Handlers is
 
    procedure Log_Method_In
      (Self : in out Message_Handler;
-      Name : String;
-      URI  : LSP.Structures.DocumentUri := EmptyDocumentUri) is
+      Name : String) is
    begin
-      if not URI.Is_Empty then
-         Self.Tracer.Trace ("In Message_Handler " & Name & " URI:");
-         Self.Tracer.Trace_Text (URI);
-      else
-         Self.Tracer.Trace ("In Message_Handler " & Name);
-      end if;
+      Self.Tracer.Trace ("In Message_Handler " & Name);
    end Log_Method_In;
 
    --------------------
@@ -2448,7 +2434,7 @@ package body LSP.Ada_Handlers is
                Context.Include_File (File);
                Context.Index_File (File);
 
-               Self.Tracer.Trace
+               Self.Tracer.Trace_Debug
                  ("Included "
                   & File.Display_Base_Name
                   & " in context "
@@ -2554,7 +2540,7 @@ package body LSP.Ada_Handlers is
                Context.Include_File (File);
                Context.Index_File (File);
 
-               Self.Tracer.Trace
+               Self.Tracer.Trace_Debug
                  ("Included "
                   & File.Display_Base_Name
                   & " in context "
@@ -2637,9 +2623,7 @@ package body LSP.Ada_Handlers is
          --  not open: this is not supposed to happen, log it.
 
          Self.Tracer.Trace
-           ("received a On_DidClose_Notification for non-open document "
-            & "with uri: ");
-         Self.Tracer.Trace_Text (URI);
+           ("received a On_DidClose_Notification for non-open document");
       end if;
    end On_DidClose_Notification;
 
@@ -2693,7 +2677,7 @@ package body LSP.Ada_Handlers is
       Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self.Tracer);
    begin
-      Self.Log_Method_In ("Text_Document_Did_Open", URI);
+      Self.Log_Method_In ("Text_Document_Did_Open");
 
       --  Some clients don't properly call initialize, or don't pass the
       --  project to didChangeConfiguration: fallback here on loading a
@@ -2962,7 +2946,7 @@ package body LSP.Ada_Handlers is
    is
 
       Trace : constant GNATCOLL.Traces.Trace_Handle :=
-        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all, Debug => True);
 
       Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
 
@@ -4237,11 +4221,11 @@ package body LSP.Ada_Handlers is
       Definition  : Libadalang.Analysis.Defining_Name;
       Result_Kind : Libadalang.Common.Ref_Result_Kind;
       Trace       : constant GNATCOLL.Traces.Trace_Handle :=
-        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all, Debug => True);
       Id_Image    : constant String :=
         (if Id.Is_Integer
          then Id.Integer'Image
-         else VSS.Strings.Conversions.To_UTF_8_String (Id.Virtual_String));
+         else "<string>");
    begin
       Imprecise := False;
 
@@ -4270,7 +4254,7 @@ package body LSP.Ada_Handlers is
          begin
             if Document /= null then
                --  Internal tracing of failed resolution with context info
-               Self.Tracer.Trace
+               Self.Tracer.Trace_Debug
                  (Err_Msg
                   & " in context "
                   & VSS.Strings.Conversions.To_UTF_8_String (Context.Id)
@@ -4319,7 +4303,7 @@ package body LSP.Ada_Handlers is
 
       elsif Result_Kind in Libadalang.Common.Imprecise then
          --  Internal tracing of imprecise resolving
-         Self.Tracer.Trace
+         Self.Tracer.Trace_Debug
            ("Imprecise result when resolving "
             & Name_Node.Image
             & " in context "
@@ -4370,7 +4354,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          Self.Sender.On_LogMessage_Notification ((Severity, Prefix & Message));
-         Self.Tracer.Trace_Text (Message);
+         Self.Tracer.Trace_Debug_Text (Message);
       end loop;
    end Send_Messages;
 
@@ -4750,7 +4734,8 @@ package body LSP.Ada_Handlers is
 
    overriding
    function Get_Trace_Handle
-     (Self : Message_Handler) return GNATCOLL.Traces.Trace_Handle
-   is (LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all));
+     (Self  : Message_Handler;
+      Debug : Boolean := False) return GNATCOLL.Traces.Trace_Handle
+   is (LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all, Debug));
 
 end LSP.Ada_Handlers;

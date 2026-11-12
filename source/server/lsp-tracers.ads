@@ -49,7 +49,17 @@ package LSP.Tracers is
    procedure Trace
      (Self : in out Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector) is abstract;
-   --  Append raw data as text to default trace file
+   --  Append raw data as text to debug trace file
+
+   procedure Trace_Debug
+     (Self : in out Tracer;
+      Text : String) is null;
+   --  Append details that may contain source text or paths to debug trace file
+
+   procedure Trace_Debug_Text
+     (Self : in out Tracer;
+      Text : VSS.Strings.Virtual_String'Class) is null;
+   --  Append details that may contain source text or paths to debug trace file
 
    procedure Trace_Input
      (Self : in out Tracer;

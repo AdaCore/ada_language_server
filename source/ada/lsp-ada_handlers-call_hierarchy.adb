@@ -213,7 +213,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
       use Laltools.Common.References_Sets;
 
       Trace     : constant GNATCOLL.Traces.Trace_Handle :=
-        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all, Debug => True);
 
       Result : Laltools.Common.References_By_Subprogram.Map;
 

@@ -226,7 +226,8 @@ package LSP.Ada_Job_Contexts is
    is abstract;
 
    function Get_Trace_Handle
-     (Self : Ada_Job_Context) return GNATCOLL.Traces.Trace_Handle
+     (Self  : Ada_Job_Context;
+      Debug : Boolean := False) return GNATCOLL.Traces.Trace_Handle
    is abstract;
 
 end LSP.Ada_Job_Contexts;

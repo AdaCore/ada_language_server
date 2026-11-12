@@ -85,6 +85,14 @@ package LSP.GNATCOLL_Tracers is
      (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
 
+   overriding procedure Trace_Debug
+     (Self : in out Server_Tracer;
+      Text : String);
+
+   overriding procedure Trace_Debug_Text
+     (Self : in out Server_Tracer;
+      Text : VSS.Strings.Virtual_String'Class);
+
    overriding procedure Trace_Output
      (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
@@ -96,6 +104,7 @@ private
 
    type Server_Tracer is limited new LSP.Tracers.Tracer with record
       Server_Trace    : Tracer;
+      Debug_Trace     : Tracer := Create ("ALS.MAIN.DEBUG", GNATCOLL.Traces.Off);
       In_Trace        : Tracer;
       Out_Trace       : Tracer;
    end record;
