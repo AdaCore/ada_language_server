@@ -25,7 +25,7 @@ with GNATCOLL.VFS;
 with Gnatformat;
 with Gnatformat.Formatting;
 
-with Langkit_Support.Diagnostics;
+with Langkit_Support.Generic_API.Unparsing;
 
 with VSS.Characters.Latin;
 with VSS.Regular_Expressions;
@@ -986,42 +986,35 @@ package body LSP.Ada_Completions is
                Full : constant String :=
                  VSS.Strings.Conversions.To_UTF_8_String
                    (Prefix & Encode_String (Result.insertText));
-               Unparsing_Diagnostics :
-                 Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
+               Error : VSS.Strings.Virtual_String;
+               --  The temporary unit has no filename. Use the destination
+               --  document's base name to honour its source-specific layout
+               --  and keyword casing options when formatting the snippet.
+               Configuration : constant Langkit_Support.Generic_API.Unparsing
+                 .Unparsing_Configuration :=
+                   Context.Get_Unparsing_Configuration
+                     (Format_Options  => Context.Get_Format_Options,
+                      Source_Filename =>
+                        Context.URI_To_File (Document.URI).Display_Base_Name,
+                      Error           => Error);
             begin
+               --  The loader has logged the diagnostics. Keep the generated
+               --  snippet intact when its requested layout cannot be loaded.
+               if not Error.Is_Empty then
+                  return;
+               end if;
+
                Tmp_Unit :=
                  Libadalang.Analysis.Get_From_Buffer
                    (Context  => Tmp_Context,
                     Filename => "",
                     Buffer   => Full,
                     Rule     => Rule);
-               --  Tmp_Unit above is a synthetic buffer with Filename => "",
-               --  but we deliberately resolve the unparsing configuration
-               --  using Document's base name: this honours any source-specific
-               --  formatting overrides of the destination document (e.g.
-               --  keyword casing) when formatting the snippet.
                Output := Gnatformat.Formatting.Format
                  (Unit           => Tmp_Unit,
                   Format_Options => Context.Get_Format_Options,
-                  Configuration  =>
-                    Context.Get_Unparsing_Configuration
-                      (Format_Options  => Context.Get_Format_Options,
-                       Source_Filename =>
-                         Context.URI_To_File (Document.URI).Display_Base_Name,
-                       Diagnostics     => Unparsing_Diagnostics));
+                  Configuration  => Configuration);
 
-               if not Unparsing_Diagnostics.Is_Empty then
-                  Context.Tracer.Trace_Debug
-                    ("Diagnostics found while loading the unparsing "
-                     & "configuration for "
-                     & Context.URI_To_File (Document.URI).Display_Base_Name
-                     & ":");
-                  for Diagnostic of Unparsing_Diagnostics loop
-                     Context.Tracer.Trace_Debug
-                       (Langkit_Support.Diagnostics.To_Pretty_String
-                          (Diagnostic));
-                  end loop;
-               end if;
             exception
                when E : others =>
                   --  Failed to pretty print the snippet, keep the previous

@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Characters.Handling;     use Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
 
@@ -34,6 +35,7 @@ with VSS.Strings.Conversions;
 
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Generic_API.Unparsing;
+with Langkit_Support.Diagnostics;
 with Langkit_Support.Slocs;
 
 with Langkit_Support.Text;
@@ -788,27 +790,65 @@ package body LSP.Ada_Contexts is
      (Self            : Context;
       Format_Options  : Gnatformat.Configuration.Format_Options_Type;
       Source_Filename : String;
-      Diagnostics     :
-        out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
+      Error           : out VSS.Strings.Virtual_String)
       return Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration
    is
-      Configuration :
-        constant Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration
-          := Self.Unparsing_Config_Cache.Get
-               (Source_Filename => Source_Filename,
-                Format_Options  => Format_Options,
-                Diagnostics     => Diagnostics);
+      use Ada.Strings.Unbounded;
+      use type Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration;
+
+      --  The cache replays loading diagnostics on every lookup. Keep them
+      --  local so a cached failure reports only this configuration's errors.
+      Diagnostics : Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
+      Configuration : constant
+        Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration :=
+          Self.Unparsing_Config_Cache.Get
+            (Source_Filename => Source_Filename,
+             Format_Options  => Format_Options,
+             Diagnostics     => Diagnostics);
    begin
-      --  On error, Langkit reports diagnostics and returns
-      --  No_Unparsing_Configuration, which cannot be used for formatting.
-      --  Fall back to the default configuration so that callers always get a
-      --  usable result; Diagnostics is left populated for them to log.
-      if Diagnostics.Is_Empty then
-         return Configuration;
-      else
-         return Gnatformat.Configuration.Default_Unparsing_Configuration;
+      Error.Clear;
+
+      --  Follow the CLI failure policy, including when the engine returns a
+      --  configuration alongside diagnostics.
+      --  Never format with a fallback.
+      if Configuration = Langkit_Support.Generic_API.Unparsing
+                           .No_Unparsing_Configuration
+        or else not Diagnostics.Is_Empty
+      then
+         declare
+            Message : Unbounded_String := To_Unbounded_String
+              ("GNATformat: could not load unparsing configuration for "
+               & Source_Filename);
+         begin
+            --  Engine diagnostics do not always identify the offending file.
+            --  Include the effective project overrides as separate context.
+            for File of Format_Options.Get_Override_Layout (Source_Filename)
+            loop
+               Append
+                 (Message, Ada.Characters.Latin_1.LF
+                  & "Layout override: " & File.Display_Full_Name);
+            end loop;
+
+            --  Preserve the engine's available line and column information.
+            for Diagnostic of Diagnostics loop
+               Append
+                 (Message, Ada.Characters.Latin_1.LF
+                  & Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
+            end loop;
+
+            --  Pass the complete message through the result parameter. Ada
+            --  exception messages can truncate long paths and diagnostics
+            --  before the formatting handler builds the LSP error response.
+            Error := VSS.Strings.Conversions.To_Virtual_String
+              (To_String (Message));
+            Self.Tracer.Trace (To_String (Message));
+            return Langkit_Support.Generic_API.Unparsing
+              .No_Unparsing_Configuration;
+         end;
       end if;
-   end Get_Unparsing_Configuration;
+
+      return Configuration;
+end Get_Unparsing_Configuration;
 
    --------
    -- Id --

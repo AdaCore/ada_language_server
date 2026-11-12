@@ -174,8 +174,12 @@ package LSP.Ada_Documents is
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Options : Gnatformat.Configuration.Format_Options_Type;
-      Result  : out LSP.Structures.TextEdit_Vector);
-   --  Format Self with formatting options based on Context
+      Result  : out LSP.Structures.TextEdit_Vector;
+      Error   : out VSS.Strings.Virtual_String);
+   --  Format Self with formatting options based on Context.
+   --  Error is empty on success; otherwise it contains the complete layout
+   --  loading diagnostics and Result is empty. Loading errors are returned
+   --  directly so the request handler can report them without truncation.
 
    procedure Range_Format
      (Self    : Document;
@@ -183,11 +187,15 @@ package LSP.Ada_Documents is
       Span    : LSP.Structures.A_Range;
       Options : Gnatformat.Configuration.Format_Options_Type;
       Narrow  : Boolean;
-      Result  : out LSP.Structures.TextEdit_Vector)
+      Result  : out LSP.Structures.TextEdit_Vector;
+      Error   : out VSS.Strings.Virtual_String)
      with Pre => not LSP.Utils.Is_Empty_Range (Span);
    --  Format part of Self defined by Span with formatting options based on
    --  Context.
    --  When Narrow, restrict the edits to only affect the lines in Span.
+   --  Error is empty on success; otherwise it contains the complete layout
+   --  loading diagnostics and Result is empty. Loading errors are returned
+   --  directly so the request handler can report them without truncation.
 
    procedure Find_All_References
      (Self       : Document;

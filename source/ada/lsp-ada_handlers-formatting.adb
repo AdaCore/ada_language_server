@@ -97,7 +97,9 @@ package body LSP.Ada_Handlers.Formatting is
       Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Error    : out LSP.Errors.ResponseError) is
+      Error    : out LSP.Errors.ResponseError)
+   is
+      Error_Message : VSS.Strings.Virtual_String;
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
@@ -109,8 +111,19 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      Document.Format (Context, Options, Response);
-      Success := True;
+      --  Layout loading failures are expected errors. Return their complete
+      --  diagnostics to the client instead of the generic exception message
+      --  used for unexpected formatter failures below.
+
+      Document.Format (Context, Options, Response, Error_Message);
+      Success := Error_Message.Is_Empty;
+
+      if not Success then
+         Error :=
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => Error_Message);
+      end if;
 
    exception
       when E : others =>
@@ -134,7 +147,9 @@ package body LSP.Ada_Handlers.Formatting is
       Narrow   : Boolean;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Error    : out LSP.Errors.ResponseError) is
+      Error    : out LSP.Errors.ResponseError)
+   is
+      Error_Message : VSS.Strings.Virtual_String;
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
@@ -146,8 +161,18 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      Document.Range_Format (Context, Span, Options, Narrow, Response);
-      Success := True;
+      --  Use the same failure response for full and narrow selections as for
+      --  document formatting, preserving all layout loading diagnostics.
+
+      Document.Range_Format
+        (Context, Span, Options, Narrow, Response, Error_Message);
+      Success := Error_Message.Is_Empty;
+      if not Success then
+         Error :=
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => Error_Message);
+      end if;
 
    exception
       when E : others =>

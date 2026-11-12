@@ -201,18 +201,16 @@ package LSP.Ada_Contexts is
      (Self            : Context;
       Format_Options  : Gnatformat.Configuration.Format_Options_Type;
       Source_Filename : String;
-      Diagnostics     :
-        out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
+      Error           : out VSS.Strings.Virtual_String)
       return Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration;
    --  Return the GNATformat unparsing configuration for Source_Filename,
    --  derived from Format_Options.
-   --  The result is cached for the lifetime of the context: per source when
-   --  Source_Filename has source-specific options, otherwise at language
-   --  level. A source with no source-specific options falls back to the
-   --  language-level configuration.
-   --  Diagnostics is set to any problems encountered while loading the
-   --  configuration and is empty on success. The returned configuration is
-   --  always usable: callers may log Diagnostics and continue.
+   --  Configurations and loading diagnostics are cached by the effective
+   --  format options. Error is empty on success, otherwise it contains the
+   --  configuration paths and all loading diagnostics, including on cache
+   --  hits. A failure returns No_Unparsing_Configuration and is logged here
+   --  so callers can report Error or preserve an unformatted completion.
+   --  Configurations and diagnostics remain cached for the context's lifetime.
 
    function Get_Documentation_Style
      (Self : Context) return GNATdoc.Comments.Options.Documentation_Style;
@@ -393,7 +391,7 @@ private
       Format_Options : Gnatformat.Configuration.Format_Options_Type;
 
       Unparsing_Config_Cache : Unparsing_Configuration_Cache_Access;
-      --  GNATformat unparsing configurations, cached per source.
+      --  GNATformat unparsing configurations, cached by effective options.
       --  Allocated in Initialize and released in Free.
 
       Style : GNATdoc.Comments.Options.Documentation_Style :=
