@@ -1,0 +1,469 @@
+[
+   {
+      "comment": [
+         "Check unit hierarchy metadata before and after loading an aggregate project.",
+         "Keep duplicate package names in distinct namespaces. Check custom filenames,",
+         "multi-unit navigation, separates, declaration flags, runtime sources, and invalid Ada.",
+         "Nested packages must not become library units."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-unit-hierarchy-information"
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "no-project",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-unit-hierarchy-information",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "id": "no-project",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{aggr.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "window/workDoneProgress/create"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "hierarchy",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-unit-hierarchy-information",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "id": "hierarchy",
+               "result": {
+                  "root-project": {
+                     "name": "Aggr",
+                     "uri": "$URI{aggr.gpr}",
+                     "is-runtime": false,
+                     "is-externally-built": false
+                  },
+                  "namespaces": [
+                     "<HAS>",
+                     {
+                        "id": "$$FILE{first.gpr}",
+                        "name": "First",
+                        "uri": "$URI{first.gpr}",
+                        "is-runtime": false,
+                        "is-externally-built": false
+                     },
+                     {
+                        "id": "$$FILE{second.gpr}",
+                        "name": "Second",
+                        "uri": "$URI{second.gpr}",
+                        "is-runtime": false,
+                        "is-externally-built": false
+                     }
+                  ],
+                  "units": [
+                     "<HAS>",
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "A",
+                        "simple-name": "A",
+                        "parent-name": "",
+                        "kind": "package",
+                        "is-generic": false,
+                        "is-instantiation": false,
+                        "is-renaming": false,
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{first/a.ads}",
+                              "unit-index": 0,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "A.B",
+                        "simple-name": "B",
+                        "parent-name": "A",
+                        "kind": "package",
+                        "is-generic": false,
+                        "is-instantiation": false,
+                        "is-renaming": false,
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{first/custom.ada}",
+                              "unit-index": 1,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "range": {
+                                 "start": { "line": 0, "character": 0 },
+                                 "end": { "line": 2, "character": 8 }
+                              },
+                              "selection-range": {
+                                 "start": { "line": 0, "character": 8 },
+                                 "end": { "line": 0, "character": 11 }
+                              }
+                           },
+                           {
+                              "kind": "body",
+                              "uri": "$URI{first/custom.ada}",
+                              "unit-index": 2,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "range": {
+                                 "start": { "line": 4, "character": 0 },
+                                 "end": { "line": 6, "character": 8 }
+                              },
+                              "selection-range": {
+                                 "start": { "line": 4, "character": 13 },
+                                 "end": { "line": 4, "character": 16 }
+                              }
+                           },
+                           {
+                              "kind": "separate",
+                              "uri": "$URI{first/a-b-run.adb}",
+                              "unit-index": 0,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "separate-name": "RUN",
+                              "range": {
+                                 "start": { "line": 1, "character": 0 },
+                                 "end": { "line": 4, "character": 8 }
+                              },
+                              "selection-range": {
+                                 "start": { "line": 1, "character": 10 },
+                                 "end": { "line": 1, "character": 13 }
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{second.gpr}",
+                        "name": "A.B",
+                        "simple-name": "B",
+                        "parent-name": "A",
+                        "kind": "package",
+                        "is-generic": false,
+                        "is-instantiation": false,
+                        "is-renaming": false,
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{second/a-b.ads}",
+                              "unit-index": 0,
+                              "project": {
+                                 "id": "$$FILE{second.gpr}",
+                                 "name": "Second",
+                                 "uri": "$URI{second.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "range": {
+                                 "start": { "line": 0, "character": 0 },
+                                 "end": { "line": 1, "character": 8 }
+                              },
+                              "selection-range": {
+                                 "start": { "line": 0, "character": 8 },
+                                 "end": { "line": 0, "character": 11 }
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "GENERIC_PKG",
+                        "simple-name": "GENERIC_PKG",
+                        "parent-name": "",
+                        "kind": "package",
+                        "is-generic": true,
+                        "is-instantiation": false,
+                        "is-renaming": false,
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{first/custom.ada}",
+                              "unit-index": 3,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "selection-range": {
+                                 "start": { "line": 9, "character": 8 },
+                                 "end": { "line": 9, "character": 19 }
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "INSTANCE_PKG",
+                        "simple-name": "INSTANCE_PKG",
+                        "parent-name": "",
+                        "kind": "package",
+                        "is-generic": false,
+                        "is-instantiation": true,
+                        "is-renaming": false,
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{first/custom.ada}",
+                              "unit-index": 4,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "selection-range": {
+                                 "start": { "line": 13, "character": 8 },
+                                 "end": { "line": 13, "character": 20 }
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "ALIAS_PKG",
+                        "simple-name": "ALIAS_PKG",
+                        "parent-name": "",
+                        "kind": "package",
+                        "is-generic": false,
+                        "is-instantiation": false,
+                        "is-renaming": true,
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{first/custom.ada}",
+                              "unit-index": 5,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "selection-range": {
+                                 "start": { "line": 16, "character": 8 },
+                                 "end": { "line": 16, "character": 17 }
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "MAIN",
+                        "simple-name": "MAIN",
+                        "parent-name": "",
+                        "kind": "subprogram",
+                        "is-generic": false,
+                        "is-instantiation": false,
+                        "is-renaming": false,
+                        "parts": [
+                           {
+                              "kind": "body",
+                              "uri": "$URI{first/custom.ada}",
+                              "unit-index": 6,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              },
+                              "range": {
+                                 "start": { "line": 18, "character": 0 },
+                                 "end": { "line": 21, "character": 9 }
+                              },
+                              "selection-range": {
+                                 "start": { "line": 18, "character": 10 },
+                                 "end": { "line": 18, "character": 14 }
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "namespace-id": "$$FILE{first.gpr}",
+                        "name": "BROKEN",
+                        "kind": "unknown",
+                        "parts": [
+                           {
+                              "kind": "specification",
+                              "uri": "$URI{first/broken.ads}",
+                              "unit-index": 0,
+                              "project": {
+                                 "id": "$$FILE{first.gpr}",
+                                 "name": "First",
+                                 "uri": "$URI{first.gpr}",
+                                 "is-runtime": false,
+                                 "is-externally-built": false
+                              }
+                           }
+                        ]
+                     },
+                     {
+                        "name": "ADA.TEXT_IO",
+                        "kind": "package",
+                        "parts": [
+                           "<HAS>",
+                           {
+                              "kind": "specification",
+                              "unit-index": 0,
+                              "project": {
+                                 "name": "runtime",
+                                 "is-runtime": true,
+                                 "is-externally-built": true
+                              }
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ],
+         "waitFactor": "4"
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "no-nested-packages",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-unit-hierarchy-information",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "id": "no-nested-packages",
+               "result": {
+                  "units": [
+                     "<DOES_NOT_HAVE>",
+                     {
+                        "name": "A.NESTED"
+                     }
+                  ]
+               }
+            }
+         ],
+         "waitFactor": "4"
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [
+            {
+               "id": "shutdown",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "exit"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

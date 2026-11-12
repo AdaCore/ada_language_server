@@ -1,0 +1,3 @@
+aggregate project Aggr is
+   for Project_Files use ("first.gpr", "second.gpr");
+end Aggr;

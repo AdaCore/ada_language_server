@@ -65,6 +65,7 @@ related resources.
  * [Initialization](initialization.md)
  * [Object dir](object_dir.md)
  * [Project file](project_file.md)
+ * [Unit hierarchy information](unit_hierarchy_information.md)
  * [Source dirs](source_dirs.md)
  * [Workspace symbol params](workspace_symbol_params.md)
  * [Global/local variables](global_local_variables.md)
@@ -88,6 +89,7 @@ get_project_attribute_value
 initialization
 object_dir
 project_file
+unit_hierarchy_information
 source_dirs
 workspace_symbol_params
 global_local_variables

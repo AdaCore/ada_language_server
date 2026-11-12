@@ -1,0 +1,12 @@
+project First is
+   for Source_Dirs use ("first");
+
+   package Naming is
+      for Specification ("A.B") use "custom.ada" at 1;
+      for Body ("A.B") use "custom.ada" at 2;
+      for Specification ("Generic_Pkg") use "custom.ada" at 3;
+      for Specification ("Instance_Pkg") use "custom.ada" at 4;
+      for Specification ("Alias_Pkg") use "custom.ada" at 5;
+      for Body ("Main") use "custom.ada" at 6;
+   end Naming;
+end First;
