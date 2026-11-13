@@ -19,9 +19,29 @@ import { ReferencesRequest } from 'vscode-languageclient/node';
 import { ALSReferenceLocation } from './alsProtocolExtensions';
 import { AdaLanguageClient } from './clients';
 
+/** Reference kinds reported by ALS. */
+type ReferenceKind = NonNullable<ALSReferenceLocation['alsKind']>[number];
+
+/** Labels used in the filter menu and in the message above the results. */
+const REFERENCE_KIND_LABELS: Record<ReferenceKind, string> = {
+    write: 'Writes',
+    reference: 'Reads',
+    call: 'Calls',
+    'dispatching call': 'Dispatching calls',
+    access: 'Accesses',
+    parent: 'Parent references',
+    child: 'Child references',
+    overriding: 'Overriding declarations',
+};
+
+/** A filter menu item. An absent referenceKind selects all results. */
+interface ReferenceKindOption extends vscode.QuickPickItem {
+    referenceKind?: ReferenceKind;
+}
+
 /**
  * The part of the References extension's API that this file uses.
- * Activating vscode.references-view returns an object with this method.
+ * Activating vscode.references-view returns an object with these methods.
  * This interface describes that object; it does not create another view.
  *
  * @see https://github.com/microsoft/vscode/blob/main/extensions/references-view/src/references-view.d.ts
@@ -29,6 +49,13 @@ import { AdaLanguageClient } from './clients';
 interface ReferencesView {
     /** Replaces the view's current search with the search described by input. */
     setInput(input: ReferencesInput): void;
+    /** Returns the search currently displayed. Another extension may have supplied it. */
+    getInput(): unknown;
+}
+
+/** Gets the API of VS Code's References extension, activating it if needed. */
+async function getReferencesView(): Promise<ReferencesView | undefined> {
+    return vscode.extensions.getExtension<ReferencesView>('vscode.references-view')?.activate();
 }
 
 /**
@@ -44,6 +71,8 @@ interface ReferencesView {
  */
 export async function findReferences(client: AdaLanguageClient): Promise<void> {
     const editor = vscode.window.activeTextEditor;
+
+    // Programmatic calls bypass UI conditions, so require an active Ada text editor.
     if (!editor || editor.document.languageId !== 'ada') {
         return;
     }
@@ -53,8 +82,7 @@ export async function findReferences(client: AdaLanguageClient): Promise<void> {
 
     // Get the extension that VS Code includes for the References view, then activate
     // it to obtain its API. Activating it does not install a separate extension.
-    const extension = vscode.extensions.getExtension<ReferencesView>('vscode.references-view');
-    const view = await extension?.activate();
+    const view = await getReferencesView();
 
     if (!view || typeof view.setInput !== 'function') {
         // Keep the usual reference search available if this installation of VS Code
@@ -68,12 +96,37 @@ export async function findReferences(client: AdaLanguageClient): Promise<void> {
     view.setInput(new ReferencesInput(client, location));
 }
 
+/**
+ * Handles the Filter by Reference Kind toolbar button.
+ * Only our Ada searches have the data and methods needed to filter by ALS kind.
+ * Other extensions can also use the References view, so check its current input.
+ */
+export async function filterReferences(): Promise<void> {
+    const view = await getReferencesView();
+    const input = view?.getInput?.();
+    if (view && input instanceof ReferencesInput) {
+        await input.selectKind(view);
+    }
+}
+
+/**
+ * Handles the filled funnel button shown when a filter is active.
+ * Clicking it shows every result again, without sending another request to ALS.
+ */
+export async function showAllReferences(): Promise<void> {
+    const view = await getReferencesView();
+    const input = view?.getInput?.();
+    if (input instanceof ReferencesInput) {
+        input.setFilter(undefined);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Search description used by the References extension
 // ---------------------------------------------------------------------------
 
 /**
- * Describes what to search for, without storing a list of results.
+ * Describes a reference search and remembers its selected kind.
  *
  * The References extension expects an input object with title, contextValue,
  * location, resolve, and with. These names are defined by that extension's API.
@@ -81,6 +134,8 @@ export async function findReferences(client: AdaLanguageClient): Promise<void> {
  * The extension saves this object in its search history. It calls resolve again
  * when the user refreshes or reruns the search, so results are requested from ALS
  * each time. It also tracks the search position when the user edits the source.
+ * The selected kind belongs to this search too. Refresh and history keep it,
+ * while a new Find All References command creates an input with no filter.
  */
 export class ReferencesInput {
     /** Heading displayed above the results in the References view. */
@@ -92,14 +147,20 @@ export class ReferencesInput {
      */
     readonly contextValue = 'ada.references';
 
+    /** Most recent results for this search. Undefined while ALS is loading them. */
+    private model?: ReferencesModel;
+
     /**
      * @param client - The language client used to ask ALS for references.
      * @param location - The file and cursor position that identify the symbol to
      * search for. This is the search position, not the position of a result.
+     * @param kind - The selected kind, copied when history updates the search position.
+     * Undefined shows all results.
      */
     constructor(
         private readonly client: AdaLanguageClient,
         readonly location: vscode.Location,
+        private kind?: ReferenceKind,
     ) {}
 
     /**
@@ -109,9 +170,14 @@ export class ReferencesInput {
      * The returned object tells the extension which methods to use for the rows,
      * navigation, and source highlights.
      * Returning 'undefined' tells the extension to clear the results and show
-     *  ts usual empty-results message and history.
+     * its usual empty-results message and history. A filter with no matches still
+     * returns a model, so the user can clear the filter without losing the search.
      */
     async resolve() {
+        // Do not let a toolbar action change old results while Refresh is loading
+        // new ones. Also restore the toolbar state when reopening a search from history.
+        this.model = undefined;
+        void vscode.commands.executeCommand('setContext', 'ada.referencesFiltered', !!this.kind);
         try {
             // Ask ALS directly so we can keep 'alsKind', its extra field containing
             // kinds such as write and call. The language client's standard reference
@@ -136,19 +202,26 @@ export class ReferencesInput {
                 return undefined;
             }
 
-            const model = new ReferencesModel(this.client, locations);
+            const model = new ReferencesModel(this.client, locations, this.kind);
+            this.model = model;
             return {
                 // getChildren, getParent, and getTreeItem describe the rows to display.
                 provider: model,
 
-                // The References extension displays this text above the result rows.
-                message: `${model.references.length} references in ${model.files.length} files`,
+                // The References extension reads this again when the provider fires
+                // a change event. A getter keeps counts and the filter label current.
+                get message() {
+                    return model.message;
+                },
 
                 // nearest, next, previous, and location support result navigation.
                 navigation: model,
 
                 // getEditorHighlights supplies the ranges to mark in source editors.
                 highlights: model,
+
+                // The References extension calls this when replacing or clearing results.
+                dispose: () => model.dispose(),
             };
         } catch (error) {
             // The exported setInput method does not return our request's promise.
@@ -156,6 +229,38 @@ export class ReferencesInput {
             void vscode.window.showErrorMessage(`Could not find Ada references: ${String(error)}`);
             return undefined;
         }
+    }
+
+    /**
+     * Opens the toolbar's filter menu for the results currently displayed.
+     * Counts include all results, so choosing a different kind is always possible.
+     * Closing the menu without making a choice leaves the filter unchanged.
+     */
+    async selectKind(view: ReferencesView): Promise<void> {
+        const model = this.model;
+        if (!model) {
+            return;
+        }
+
+        const selected = await vscode.window.showQuickPick(model.getFilterOptions(), {
+            placeHolder: 'Show references of kind…',
+        });
+
+        // A user can start another search or refresh results while the menu is open.
+        // Apply the choice only if it still belongs to this input and these results.
+        if (selected && view.getInput() === this && this.model === model) {
+            this.setFilter(selected.referenceKind);
+        }
+    }
+
+    /**
+     * Preserves the selected kind for refresh and history, updates the toolbar
+     * context, and filters loaded results.
+     */
+    setFilter(kind: ReferenceKind | undefined): void {
+        this.kind = kind;
+        void vscode.commands.executeCommand('setContext', 'ada.referencesFiltered', !!kind);
+        this.model?.setFilter(kind);
     }
 
     /**
@@ -168,7 +273,7 @@ export class ReferencesInput {
      * @param location - The search position updated by the References extension.
      */
     with(location: vscode.Location): ReferencesInput {
-        return new ReferencesInput(this.client, location);
+        return new ReferencesInput(this.client, location, this.kind);
     }
 }
 
@@ -178,11 +283,10 @@ export class ReferencesInput {
 
 /**
  * Represents an expandable file row in the References view.
- * Its children are references in that file, ordered by their position in the source.
+ * The provider stores its matching children separately in referencesByFile,
+ * so changing a filter does not require replacing this file object.
  */
 class ReferenceFile {
-    readonly references: ReferenceItem[] = [];
-
     constructor(readonly uri: vscode.Uri) {}
 }
 
@@ -207,27 +311,41 @@ type ReferenceNode = ReferenceFile | ReferenceItem;
  * It implements the methods the References extension calls to display and browse results.
  *
  * The view has two levels: file rows, then reference rows below each file.
- * A separate list of all references has the same order as those rows.
- * The Next and Previous commands (F4 and Shift+F4) use that list to
- * move between files too.
+ * Visible references follow the tree order and support Next and Previous
+ * (F4 and Shift+F4) across files.
  *
- * A model is created only when ALS returns at least one result. Each file row
- * therefore has at least one reference, and the navigation list is never empty.
+ * All ALS results are kept so that filters can change without another request.
+ * Only matching references are used for rows, navigation, and source highlights.
+ * The filtered list can be empty even when ALS returned results.
  */
 class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
-    /** File rows in display order. Each file holds its own reference rows. */
-    readonly files: ReferenceFile[];
+    /** All results from ALS, including results hidden by the selected filter. */
+    private readonly allReferences: ReferenceItem[];
 
-    /** All reference rows in display order, used by Next and Previous. */
-    readonly references: ReferenceItem[];
+    /** Matching reference rows in display order, used by Next and Previous. */
+    private visibleReferences: ReferenceItem[] = [];
 
-    constructor(client: AdaLanguageClient, locations: ALSReferenceLocation[]) {
+    /** File rows with at least one match, and only the children to display below them. */
+    private readonly referencesByFile = new Map<ReferenceFile, ReferenceItem[]>();
+
+    /**
+     * Tell VS Code when filtering changes the rows. The References extension also
+     * listens to this event to update its message and the source editor highlights.
+     */
+    private readonly changed = new vscode.EventEmitter<ReferenceNode | undefined>();
+    readonly onDidChangeTreeData = this.changed.event;
+
+    constructor(
+        client: AdaLanguageClient,
+        locations: ALSReferenceLocation[],
+        private kind?: ReferenceKind,
+    ) {
         const files = new Map<string, ReferenceFile>();
 
         // Convert locations to the types expected by VS Code, keeping ALS kinds in
         // a separate field. Sort by file, start position, then end position before
         // grouping results, so the row order and navigation order agree.
-        this.references = locations
+        this.allReferences = locations
             .map((reference) => ({
                 location: client.protocol2CodeConverter.asLocation(reference),
                 kinds: reference.alsKind,
@@ -246,11 +364,98 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
                     file = new ReferenceFile(location.uri);
                     files.set(uri, file);
                 }
-                const item = new ReferenceItem(location, kinds, file);
-                file.references.push(item);
-                return item;
+                return new ReferenceItem(location, kinds, file);
             });
-        this.files = [...files.values()];
+        this.setFilter(kind);
+    }
+
+    /** Only files with visible matches are returned to the References extension. */
+    get files(): ReferenceFile[] {
+        return [...this.referencesByFile.keys()];
+    }
+
+    /** Every navigation method uses this same filtered list. */
+    get references(): ReferenceItem[] {
+        return this.visibleReferences;
+    }
+
+    /**
+     * Text above the results. When filtered, show the selected kind and the number
+     * of matches out of the full result count, so hidden results are easy to notice.
+     */
+    get message(): string {
+        const count = this.references.length;
+        const fileCount = this.referencesByFile.size;
+        const files = `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`;
+        if (!this.kind) {
+            return `${count} ${count === 1 ? 'reference' : 'references'} in ${files}`;
+        }
+
+        const message =
+            `${REFERENCE_KIND_LABELS[this.kind]} only — ` +
+            `${count} of ${this.allReferences.length} references in ${files}`;
+        return count ? message : `${message}. Use Show All References to clear the filter.`;
+    }
+
+    /**
+     * Build choices from the original results, not the filtered list. Show kinds
+     * that occur in the results, plus the selected kind even if Refresh removed
+     * its last match. A reference with several kinds is counted once for each kind.
+     */
+    getFilterOptions(): ReferenceKindOption[] {
+        const total = this.allReferences.length;
+        const options: ReferenceKindOption[] = [
+            {
+                label: 'All references',
+                description:
+                    `${total} ${total === 1 ? 'reference' : 'references'}` +
+                    (this.kind ? '' : ' (current)'),
+            },
+        ];
+        for (const kind of Object.keys(REFERENCE_KIND_LABELS) as ReferenceKind[]) {
+            const count = this.allReferences.filter((reference) =>
+                reference.kinds?.includes(kind),
+            ).length;
+            if (count || kind === this.kind) {
+                options.push({
+                    referenceKind: kind,
+                    label: REFERENCE_KIND_LABELS[kind],
+                    description:
+                        `${count} ${count === 1 ? 'reference' : 'references'}` +
+                        (kind === this.kind ? ' (current)' : ''),
+                });
+            }
+        }
+        return options;
+    }
+
+    /**
+     * Change which results are visible without changing the original ALS results.
+     * File and reference objects are reused, so existing selections still identify
+     * the same source locations. Files without matches are left out of the tree.
+     */
+    setFilter(kind: ReferenceKind | undefined): void {
+        this.kind = kind;
+        this.visibleReferences = this.allReferences.filter(
+            (reference) => !kind || reference.kinds?.includes(kind),
+        );
+        this.referencesByFile.clear();
+        for (const reference of this.references) {
+            let references = this.referencesByFile.get(reference.file);
+            if (!references) {
+                references = [];
+                this.referencesByFile.set(reference.file, references);
+            }
+            references.push(reference);
+        }
+        // Undefined asks VS Code to reload the whole tree, since filtering can
+        // remove complete file rows as well as individual references.
+        this.changed.fire(undefined);
+    }
+
+    /** Disposes the change event emitter when the References extension releases these results. */
+    dispose(): void {
+        this.changed.dispose();
     }
 
     /**
@@ -259,7 +464,10 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
      * return its references. A reference row has no children.
      */
     getChildren(element?: ReferenceNode): ReferenceNode[] {
-        return element instanceof ReferenceItem ? [] : (element?.references ?? this.files);
+        if (!element) {
+            return this.files;
+        }
+        return element instanceof ReferenceFile ? (this.referencesByFile.get(element) ?? []) : [];
     }
 
     /**
@@ -284,6 +492,8 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
                 element.uri,
                 vscode.TreeItemCollapsibleState.Collapsed,
             );
+            // Keep the same row identity when filtering hides other files with the same name.
+            item.id = JSON.stringify(['file', element.uri.toString()]);
             item.description = true;
             item.iconPath = vscode.ThemeIcon.File;
             return item;
@@ -311,6 +521,10 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
             // They make VS Code emphasize the referenced symbol within the row.
             highlights: [[before.length, before.length + inside.length]],
         });
+        // Several references can have the same preview text, even on the same line.
+        // A source-based ID keeps selection tied to the correct reference when
+        // filtering removes or restores other rows with that same text.
+        item.id = JSON.stringify(['reference', uri.toString(), range.start, range.end]);
 
         // ALS uses the kind "reference" when no more specific kind applies. Display
         // it as "read", following ALS's existing documentHighlight behavior.
@@ -337,10 +551,14 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
 
     /**
      * Called by the References extension to get the source location for a row.
-     * A reference has its own location. For a file row, use its first reference.
+     * Use only visible matches. A previously selected row may have been hidden
+     * by a filter; returning undefined prevents navigation from opening that row.
      */
-    location(item: ReferenceNode): vscode.Location {
-        return item instanceof ReferenceItem ? item.location : item.references[0].location;
+    location(item: ReferenceNode): vscode.Location | undefined {
+        if (item instanceof ReferenceFile) {
+            return this.referencesByFile.get(item)?.[0]?.location;
+        }
+        return this.references.includes(item) ? item.location : undefined;
     }
 
     /**
@@ -354,10 +572,11 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
      */
     nearest(uri: vscode.Uri, position: vscode.Position): ReferenceItem | undefined {
         const file = this.files.find((item) => item.uri.toString() === uri.toString());
+        const references = file ? this.referencesByFile.get(file) : undefined;
         return (
-            file?.references.find((item) => item.location.range.contains(position)) ??
-            file?.references.find((item) => item.location.range.start.isAfterOrEqual(position)) ??
-            file?.references[file.references.length - 1] ??
+            references?.find((item) => item.location.range.contains(position)) ??
+            references?.find((item) => item.location.range.start.isAfterOrEqual(position)) ??
+            references?.[references.length - 1] ??
             this.references[0]
         );
     }
@@ -365,29 +584,42 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
     /**
      * Called for Next (F4). Return the reference after the current one, or the
      * first result if the current one is last. If a file row is selected, treat
-     * its first reference as the current one.
+     * its first visible reference as the current one. If filtering hid the selected
+     * row, start at the first visible result. With no matches, leave the row alone;
+     * location returns undefined so the References extension will not open it.
      */
-    next(item: ReferenceNode): ReferenceItem {
-        const reference = item instanceof ReferenceItem ? item : item.references[0];
-        return this.references[(this.references.indexOf(reference) + 1) % this.references.length];
+    next(item: ReferenceNode): ReferenceNode {
+        if (!this.references.length) {
+            return item;
+        }
+        const reference =
+            item instanceof ReferenceItem ? item : this.referencesByFile.get(item)?.[0];
+        const index = reference ? this.references.indexOf(reference) : -1;
+        return this.references[(index + 1) % this.references.length] ?? item;
     }
 
     /**
      * Called for Previous (Shift+F4). Return the reference before the current one,
      * or the last result if the current one is first. If a file row is selected,
-     * treat its first reference as the current one.
+     * treat its first visible reference as the current one. If filtering hid the
+     * selected row, start at the last visible result. With no matches, keep the
+     * row and let location prevent opening it.
      */
-    previous(item: ReferenceNode): ReferenceItem {
-        const reference = item instanceof ReferenceItem ? item : item.references[0];
-        return this.references[
-            (this.references.indexOf(reference) + this.references.length - 1) %
-                this.references.length
-        ];
+    previous(item: ReferenceNode): ReferenceNode {
+        const reference =
+            item instanceof ReferenceItem ? item : this.referencesByFile.get(item)?.[0];
+        const index = reference ? this.references.indexOf(reference) : -1;
+        if (index < 0) {
+            return this.references[this.references.length - 1] ?? item;
+        }
+        return (
+            this.references[(index + this.references.length - 1) % this.references.length] ?? item
+        );
     }
 
     /**
      * Called by the References extension to mark results in a source editor.
-     * Return all reference ranges for uri, regardless of which result is selected.
+     * Return the visible reference ranges for uri, regardless of which result is selected.
      * This is why _item, the selected row, is not used here.
      *
      * This part of the extension's API takes only ranges, with no kind information.
@@ -395,8 +627,9 @@ class ReferencesModel implements vscode.TreeDataProvider<ReferenceNode> {
      * labels are provided separately by getTreeItem in the References view.
      */
     getEditorHighlights(_item: ReferenceNode, uri: vscode.Uri): vscode.Range[] | undefined {
-        return this.files
-            .find((file) => file.uri.toString() === uri.toString())
-            ?.references.map((reference) => reference.location.range);
+        const file = this.files.find((item) => item.uri.toString() === uri.toString());
+        return file
+            ? this.referencesByFile.get(file)?.map((reference) => reference.location.range)
+            : [];
     }
 }
