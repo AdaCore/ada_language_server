@@ -1291,6 +1291,12 @@
         ],
         "commands": [
             {
+                "command": "ada.findReferences",
+                "title": "Find All References",
+                "category": "Ada",
+                "enablement": "editorLangId == ada && editorHasReferenceProvider"
+            },
+            {
                 "command": "ada.installAlire",
                 "title": "Install Alire",
                 "category": "Ada"
@@ -1675,7 +1681,7 @@
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
-                "command": "references-view.findReferences",
+                "command": "ada.findReferences",
                 "key": "shift+f12",
                 "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
             },
@@ -1688,6 +1694,10 @@
         ],
         "menus": {
             "commandPalette": [
+                {
+                    "command": "ada.findReferences",
+                    "when": "editorLangId == ada && editorHasReferenceProvider"
+                },
                 {
                     "command": "ada.otherFile",
                     "when": "editorLangId == ada"

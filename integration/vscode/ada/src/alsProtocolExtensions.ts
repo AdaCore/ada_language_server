@@ -20,7 +20,27 @@
  * a request to the server, that checks the validity of some input according to a sert of rules
  */
 
-import { LanguageClient } from 'vscode-languageclient/node';
+import { LanguageClient, Location } from 'vscode-languageclient/node';
+
+/**
+ * Extra fields ALS adds to each location in a textDocument/references response.
+ * Keep these fields when converting locations for VS Code.
+ */
+export interface ALSReferenceLocation extends Location {
+    /** Kinds reported by ALS; a reference can have more than one kind. */
+    alsKind?: (
+        | 'reference'
+        | 'write'
+        | 'access'
+        | 'call'
+        | 'dispatching call'
+        | 'parent'
+        | 'child'
+        | 'overriding'
+    )[];
+    /** True when the location comes from a hidden source in an extended project. */
+    hidden?: boolean;
+}
 
 /**
  * Enum with the available grammar rules for Ada. These must match the Ada_Node_Kind_Type literals

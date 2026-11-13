@@ -41,3 +41,17 @@ the code on the fly.
 
 [documentHighlight]: https://microsoft.github.io/language-server-protocol/specification#textDocument_documentHighlight
 
+## VS Code
+
+In Ada files, Shift+F12 and **Ada: Find All References** in the Command Palette
+show reference kinds in VS Code's existing References view. Results are grouped
+by file and show labels such as `read`, `write`, and `call`. Plain `reference`
+occurrences are displayed as `read`, following the document highlight convention.
+The declaration is excluded from this search.
+
+F4 and Shift+F4 navigate between results. The view's Refresh and history actions
+rerun the Ada search and preserve the kind labels.
+
+VS Code's built-in context-menu command and Peek References keep their standard
+presentation.
+
