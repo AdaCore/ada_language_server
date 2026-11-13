@@ -5,6 +5,8 @@ stages:
   - check
 
 include:
+  - component: $CI_SERVER_FQDN/it/gitlab-templates/gitleaks@~latest
+
   # Issue check
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/check-issue@~latest
 
