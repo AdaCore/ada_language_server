@@ -1,0 +1,16 @@
+project Default is
+   for Source_Dirs use (".");
+   package Format is
+      for Layout ("Ada") use "tall";
+      for Layout ("semantic.adb") use "default";
+      for Layout ("valid.adb") use "default";
+      for Override_Layout ("syntax.adb") use ("syntax.json");
+      for Override_Layout ("syntax_again.adb") use ("syntax.json");
+      for Override_Layout ("semantic.adb") use
+        ("semantic_layout_with_a_long_name_to_check_that_the_complete_configuration_diagnostic_is_returned_to_the_client_without_truncation.json");
+      for Override_Layout ("missing.adb") use ("missing.json");
+      for Override_Layout ("non_object.adb") use ("non_object.json");
+      for Override_Layout ("snippet.adb") use
+        ("semantic_layout_with_a_long_name_to_check_that_the_complete_configuration_diagnostic_is_returned_to_the_client_without_truncation.json");
+   end Format;
+end Default;

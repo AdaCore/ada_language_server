@@ -1,0 +1,10 @@
+project Default is
+   for Source_Dirs use (".");
+   package Format is
+      for Layout ("Ada") use "tall";
+      for Layout ("default_layout.adb") use "default";
+      for Keyword_Casing ("Ada") use "upper";
+      for Override_Layout ("Ada") use ("lower.json");
+      for Override_Layout ("overridden.adb") use ("upper.json");
+   end Format;
+end Default;

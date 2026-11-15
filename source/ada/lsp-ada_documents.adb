@@ -22,7 +22,7 @@ with Gnatformat.Edits;
 with Gnatformat.Formatting;
 with Gnatformat.Identifier_Casing;
 
-with Langkit_Support.Diagnostics;
+with Langkit_Support.Generic_API.Unparsing;
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 with Langkit_Support.Token_Data_Handlers;
@@ -88,33 +88,32 @@ package body LSP.Ada_Documents is
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Options : Gnatformat.Configuration.Format_Options_Type;
-      Result  : out LSP.Structures.TextEdit_Vector)
-   is
-      function Format
-        (Unparsing_Diagnostics :
-           out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
-         return VSS.Strings.Virtual_String;
-      --  Helper to  format Self with formatting options based on Context
-
-      ------------
-      -- Format --
-      ------------
-
-      function Format
-        (Unparsing_Diagnostics :
-           out Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
-         return VSS.Strings.Virtual_String
+      Result  : out LSP.Structures.TextEdit_Vector;
+      Error   : out VSS.Strings.Virtual_String)
       is
-         Unit            : constant Libadalang.Analysis.Analysis_Unit :=
+      Source_Filename : constant String :=
+        Context.URI_To_File (Self.URI).Display_Base_Name;
+      Configuration : constant
+        Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration :=
+          Context.Get_Unparsing_Configuration
+            (Format_Options  => Options,
+             Source_Filename => Source_Filename,
+             Error           => Error);
+   begin
+      --  Reject a failed layout before formatting or constructing replacement
+      --  text, for both document formatting and range formatting.
+      if not Error.Is_Empty then
+         Result.Clear;
+         return;
+      end if;
+
+      declare
+         Unit : constant Libadalang.Analysis.Analysis_Unit :=
            Self.Unit (Context);
-         Source_Filename : constant String :=
-           Context.URI_To_File (Self.URI).Display_Base_Name;
          Identifier_Casing : constant
            Gnatformat.Configuration.Identifier_Casing_Kind :=
              Options.Get_Identifier_Casing (Source_Filename);
-
-      begin
-         return
+         Formatted_Document : constant VSS.Strings.Virtual_String :=
            VSS.Strings.Conversions.To_Virtual_String
              (Gnatformat.Formatting.Format
                 ((case Identifier_Casing is
@@ -124,35 +123,13 @@ package body LSP.Ada_Documents is
                       Gnatformat.Identifier_Casing.Normalized_Unit
                         (Unit, Identifier_Casing)),
                  Format_Options => Options,
-                 Configuration  =>
-                   Context.Get_Unparsing_Configuration
-                     (Format_Options  => Options,
-                      Source_Filename => Source_Filename,
-                      Diagnostics     => Unparsing_Diagnostics)));
-      end Format;
-
-      Unparsing_Diagnostics :
-        Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
-      Formatted_Document    : constant VSS.Strings.Virtual_String :=
-        Format (Unparsing_Diagnostics);
-
-   begin
-      if not Unparsing_Diagnostics.Is_Empty then
-         Self.Tracer.Trace_Debug
-           ("Diagnostics found while loading the unparsing "
-            & "configuration for "
-            & Context.URI_To_File (Self.URI).Display_Base_Name
-            & ":");
-         for Diagnostic of Unparsing_Diagnostics loop
-            Self.Tracer.Trace_Debug
-              (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
-         end loop;
-      end if;
-
-      Self.Diff_C
-        (New_Text => Formatted_Document,
-         Span     => LSP.Text_Documents.Empty_Range,
-         Edit     => Result);
+                 Configuration  => Configuration));
+      begin
+         Self.Diff_C
+           (New_Text => Formatted_Document,
+            Span     => LSP.Text_Documents.Empty_Range,
+            Edit     => Result);
+      end;
    end Format;
 
    --------------------
@@ -787,7 +764,8 @@ package body LSP.Ada_Documents is
       Span    : LSP.Structures.A_Range;
       Options : Gnatformat.Configuration.Format_Options_Type;
       Narrow  : Boolean;
-      Result  : out LSP.Structures.TextEdit_Vector)
+      Result  : out LSP.Structures.TextEdit_Vector;
+      Error   : out VSS.Strings.Virtual_String)
    is
       use type LSP.Structures.A_Range;
       use type Langkit_Support.Slocs.Line_Number;
@@ -859,63 +837,60 @@ package body LSP.Ada_Documents is
 
       Text : VSS.Strings.Virtual_String;
 
-      Unparsing_Diagnostics :
-        Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
-
-      Range_Formatted_Document :
-        constant Gnatformat.Edits.Formatting_Edit_Type :=
-          Gnatformat.Formatting.Range_Format
-            (Unit            => Unit,
-             Selection_Range => Format_Range,
-             Format_Options  => Options,
-             Configuration   =>
-               Context.Get_Unparsing_Configuration
-                 (Format_Options  => Options,
-                  Source_Filename => Source_Filename,
-                  Diagnostics     => Unparsing_Diagnostics));
-
-      Ok : Boolean;
+      Configuration : constant
+        Langkit_Support.Generic_API.Unparsing.Unparsing_Configuration :=
+          Context.Get_Unparsing_Configuration
+            (Format_Options  => Options,
+             Source_Filename => Source_Filename,
+             Error           => Error);
    begin
-      if not Unparsing_Diagnostics.Is_Empty then
-         Self.Tracer.Trace_Debug
-           ("Diagnostics found while loading the unparsing configuration for "
-            & Source_Filename
-            & ":");
-         for Diagnostic of Unparsing_Diagnostics loop
-            Self.Tracer.Trace_Debug
-              (Langkit_Support.Diagnostics.To_Pretty_String (Diagnostic));
-         end loop;
+      --  Reject a failed layout before formatting or constructing replacement
+      --  text, for both document formatting and range formatting.
+      if not Error.Is_Empty then
+         Result.Clear;
+         return;
       end if;
 
-      if Narrow then
-         declare
-            Excluded : constant Langkit_Support.Slocs.Source_Location_Range :=
-              (Start_Line   => Format_Range.Start_Line,
-               Start_Column => 1,
-               End_Line     => Format_Range.End_Line + 1,
-               End_Column   => 1);
-            --  Selection range (end position is excluded)
-         begin
-            LSP.Ada_Handlers.Formatting.Narrow_Range_Format
-              (Unit, Excluded, Range_Formatted_Document, Text, Ok);
+      declare
+         Range_Formatted_Document : constant
+           Gnatformat.Edits.Formatting_Edit_Type :=
+             Gnatformat.Formatting.Range_Format
+               (Unit            => Unit,
+                Selection_Range => Format_Range,
+                Format_Options  => Options,
+                Configuration   => Configuration);
+         Ok : Boolean;
+      begin
+         if Narrow then
+            declare
+               Excluded : constant Langkit_Support.Slocs.Source_Location_Range :=
+                 (Start_Line   => Format_Range.Start_Line,
+                  Start_Column => 1,
+                  End_Line     => Format_Range.End_Line + 1,
+                  End_Column   => 1);
+               --  Selection range (end position is excluded)
+            begin
+               LSP.Ada_Handlers.Formatting.Narrow_Range_Format
+                 (Unit, Excluded, Range_Formatted_Document, Text, Ok);
 
-            if Ok then
-               Self.Diff_C
-                 (New_Text => Text,
-                  Span     => Self.To_A_Range (Format_Range),
-                  Edit     => Result);
-               return;
-            end if;
-         end;
-      end if;
+               if Ok then
+                  Self.Diff_C
+                    (New_Text => Text,
+                     Span     => Self.To_A_Range (Format_Range),
+                     Edit     => Result);
+                  return;
+               end if;
+            end;
+         end if;
 
-      Self.Diff_C
-        (New_Text =>
-           VSS.Strings.Conversions.To_Virtual_String
-             (Range_Formatted_Document.Text_Edit.Text),
-         Span     =>
-           Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
-         Edit     => Result);
+         Self.Diff_C
+           (New_Text =>
+              VSS.Strings.Conversions.To_Virtual_String
+                (Range_Formatted_Document.Text_Edit.Text),
+            Span     =>
+              Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
+            Edit     => Result);
+      end;
    end Range_Format;
 
    ------------------------
