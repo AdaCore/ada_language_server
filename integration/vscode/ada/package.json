@@ -1291,6 +1291,24 @@
         ],
         "commands": [
             {
+                "command": "ada.references.filterByKind",
+                "title": "Filter by Reference Kind...",
+                "category": "Ada",
+                "icon": "$(filter)"
+            },
+            {
+                "command": "ada.references.showAll",
+                "title": "Show All References",
+                "category": "Ada",
+                "icon": "$(filter-filled)"
+            },
+            {
+                "command": "ada.findReferences",
+                "title": "Find All References",
+                "category": "Ada",
+                "enablement": "editorLangId == ada && editorHasReferenceProvider"
+            },
+            {
                 "command": "ada.installAlire",
                 "title": "Install Alire",
                 "category": "Ada"
@@ -1675,7 +1693,7 @@
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
-                "command": "references-view.findReferences",
+                "command": "ada.findReferences",
                 "key": "shift+f12",
                 "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
             },
@@ -1688,6 +1706,18 @@
         ],
         "menus": {
             "commandPalette": [
+                {
+                    "command": "ada.references.filterByKind",
+                    "when": "reference-list.source == ada.references"
+                },
+                {
+                    "command": "ada.references.showAll",
+                    "when": "reference-list.source == ada.references && ada.referencesFiltered"
+                },
+                {
+                    "command": "ada.findReferences",
+                    "when": "editorLangId == ada && editorHasReferenceProvider"
+                },
                 {
                     "command": "ada.otherFile",
                     "when": "editorLangId == ada"
@@ -1816,6 +1846,16 @@
                 }
             ],
             "view/title": [
+                {
+                    "command": "ada.references.filterByKind",
+                    "group": "navigation@1",
+                    "when": "view == references-view.tree && reference-list.source == ada.references && !ada.referencesFiltered"
+                },
+                {
+                    "command": "ada.references.showAll",
+                    "group": "navigation@1",
+                    "when": "view == references-view.tree && reference-list.source == ada.references && ada.referencesFiltered"
+                },
                 {
                     "command": "ada.externalAnnotations.create",
                     "group": "navigation@1",

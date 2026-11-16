@@ -83,6 +83,7 @@ import { Hierarchy } from './visualizerTypes';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 import { CMD_INSTALL_ALIRE, installAndSetupAlire } from './alire';
 import { ProjectViewItem } from './projectViewProvider';
+import { filterReferences, findReferences, showAllReferences } from './referencesProvider';
 import {
     Raw_ScenarioVariablesResponse,
     ScenarioViewItem,
@@ -90,6 +91,13 @@ import {
 } from './scenarioViewProvider';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.findReferences', () =>
+            findReferences(clients.adaClient),
+        ),
+        vscode.commands.registerCommand('ada.references.filterByKind', filterReferences),
+        vscode.commands.registerCommand('ada.references.showAll', showAllReferences),
+    );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_INSTALL_ALIRE, () => installAndSetupAlire(context)),
     );

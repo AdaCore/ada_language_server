@@ -41,3 +41,30 @@ the code on the fly.
 
 [documentHighlight]: https://microsoft.github.io/language-server-protocol/specification#textDocument_documentHighlight
 
+## VS Code
+
+In Ada files, Shift+F12 and **Ada: Find All References** in the Command Palette
+show reference kinds in VS Code's existing References view. Results are grouped
+by file and show labels such as `read`, `write`, and `call`. Plain `reference`
+occurrences are displayed as `read`, following the document highlight convention.
+The declaration is excluded from this search.
+
+F4 and Shift+F4 navigate between results. The view's Refresh and history actions
+rerun the Ada search and preserve the kind labels.
+
+Use **Filter by Reference Kind...** (the funnel button in the References toolbar)
+to show only writes, reads, or another kind. The menu shows counts for each kind
+in the full results. The message above the results shows the selected kind and
+how many references remain visible. Files without matches are hidden, and F4,
+Shift+F4, and source highlights follow the filtered results.
+
+When a filter is active, the outline funnel changes to a filled funnel in the
+same toolbar position, as in the Project view. Click the filled funnel
+(**Show All References**) to clear the filter. Changing a filter uses the
+results already loaded; it does not request references again.
+Refresh and history preserve the filter for that search. A new Shift+F12 search
+starts with all references visible.
+
+VS Code's built-in context-menu command and Peek References keep their standard
+presentation.
+
