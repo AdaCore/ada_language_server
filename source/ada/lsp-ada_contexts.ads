@@ -28,7 +28,6 @@ with Gnatformat.Configuration;
 with GPR2.Project.Tree;
 with GPR2.Project.View;
 
-with Langkit_Support.Diagnostics;
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 with Langkit_Support.Generic_API.Unparsing;
 with Laltools.Common;
