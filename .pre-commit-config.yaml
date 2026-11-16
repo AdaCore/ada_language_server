@@ -36,6 +36,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: gnatformat
+        name: Run gnatformat
+        entry: gnatformat
+        language: system
+        files: '\.ad[bs]$'
+        # Test fixtures include invalid and deliberately unformatted Ada code.
+        exclude: '^(testsuite|integration|subprojects)/'
+        args: ["-P", "gnat/formatting.gpr"]
+
       # This hook checks that Python test directories are valid module names so
       # that mypy will accept to analyse multiple test.py in different
       # directories.

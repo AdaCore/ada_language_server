@@ -112,6 +112,13 @@ include:
           when: manual
           allow_failure: true
 
+pre-commit:
+  before_script:
+    - generic_anod_ci
+    - . /tmp/ci_env.sh
+    - anod install gnatformat -Qedge --latest
+    - eval "$(anod printenv gnatformat -Qedge)"
+
 .build:common:
   after_script:
     - . /tmp/ci_env.sh
