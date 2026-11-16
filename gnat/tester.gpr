@@ -27,6 +27,8 @@ project Tester is
 
    package Compiler renames LSP_Client_3_17.Compiler;
 
+   package Format renames LSP_Client_3_17.Format;
+
    package Binder is
       for Switches ("ada") use ("-Es");
    end Binder;

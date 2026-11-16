@@ -94,15 +94,8 @@ abstract project LSP_Common is
       for Local_Configuration_Pragmas use "als-gnat.adc";
    end Compiler;
 
-   package Pretty_Printer is
-      for Default_Switches ("ada") use
-        ("--no-align-modes",
-         "--no-separate-is",
-         "--comments-fill",
-         "--call-threshold=1",
-         "--par-threshold=2",
-         "--vertical-named-aggregates",
-         "--wide-character-encoding=8");
-   end Pretty_Printer;
+   package Format is
+      for Charset ("Ada") use "utf-8";
+   end Format;
 
 end LSP_Common;

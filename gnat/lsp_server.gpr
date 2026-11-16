@@ -80,6 +80,8 @@ project LSP_Server is
       for Local_Configuration_Pragmas use "als-gnat.adc";
    end Compiler;
 
+   package Format renames LSP_Common.Format;
+
    package Linker is
       case Library_Type is
          when "static" | "static-pic" =>

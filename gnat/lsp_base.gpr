@@ -16,6 +16,6 @@ project LSP_Base is
 
    package Compiler renames LSP_Common.Compiler;
 
-   package Pretty_Printer renames LSP_Common.Pretty_Printer;
+   package Format renames LSP_Common.Format;
 
 end LSP_Base;

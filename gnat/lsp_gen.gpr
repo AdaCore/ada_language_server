@@ -18,6 +18,7 @@
 with "vss_text";
 with "vss_json";
 with "vss_os";
+with "lsp_common";
 
 project LSP_Gen is
 
@@ -85,15 +86,6 @@ project LSP_Gen is
       for Switches ("ada") use ("-E");
    end Binder;
 
-   package Pretty_Printer is
-      for Default_Switches ("ada") use
-        ("--no-align-modes",
-         "--no-separate-is",
-         "--comments-fill",
-         "--call-threshold=1",
-         "--par-threshold=2",
-         "--vertical-named-aggregates",
-         "--wide-character-encoding=8");
-   end Pretty_Printer;
+   package Format renames LSP_Common.Format;
 
 end LSP_Gen;

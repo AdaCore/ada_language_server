@@ -19,6 +19,6 @@ project LSP_3_17 is
         LSP_Common.Common_Ada_Switches & LSP_Common.Ada_Switches & ("-O0");
    end Compiler;
 
-   package Pretty_Printer renames LSP_Common.Pretty_Printer;
+   package Format renames LSP_Common.Format;
 
 end LSP_3_17;
