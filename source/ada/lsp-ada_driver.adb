@@ -88,6 +88,7 @@ with LSP.Ada_Handlers.Scenario_Variables_Commands;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
 with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
+with LSP.Ada_Handlers.Unit_Hierarchy_Commands;
 with LSP.Ada_Handlers;
 with LSP.Ada_Hover;
 with LSP.Ada_Inline_Value;
@@ -217,6 +218,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.GPR_Dependencies_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Project_View_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Unit_Hierarchy_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Scenario_Variables_Commands.Command'Tag);
       LSP.Ada_Commands.Register
