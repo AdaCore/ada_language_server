@@ -119,6 +119,11 @@ export const CMD_GPR_PROJECT_DEPENDENCIES = 'als-gpr-dependencies';
 export const CMD_PROJECT_VIEW_INFORMATION = 'als-project-view-information';
 
 /**
+ * Identifier for the command that retrieves library units and source parts.
+ */
+export const CMD_UNIT_HIERARCHY_INFORMATION = 'als-unit-hierarchy-information';
+
+/**
  * Identifier for the command that sets a filter for the Project View.
  */
 export const CMD_SET_PROJECT_VIEW_FILTER = 'ada.setProjectViewFilter';
@@ -132,6 +137,12 @@ export const CMD_UNSET_PROJECT_VIEW_FILTER = 'ada.unsetProjectViewFilter';
  * Identifier for the command that opens the Project View display options quick-pick.
  */
 export const CMD_PROJECT_VIEW_OPTIONS = 'ada.projectView.viewOptions';
+
+/**
+ * Identifiers for the commands that select the Project View layout.
+ */
+export const CMD_PROJECT_VIEW_SHOW_FILES = 'ada.projectView.showFiles';
+export const CMD_PROJECT_VIEW_SHOW_UNITS = 'ada.projectView.showUnitHierarchy';
 
 /**
  * Identifier for the command that reveals a file selected in the Project View in the Explorer.

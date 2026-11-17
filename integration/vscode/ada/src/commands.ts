@@ -36,6 +36,8 @@ import {
     CMD_SET_PROJECT_VIEW_FILTER,
     CMD_UNSET_PROJECT_VIEW_FILTER,
     CMD_PROJECT_VIEW_OPTIONS,
+    CMD_PROJECT_VIEW_SHOW_FILES,
+    CMD_PROJECT_VIEW_SHOW_UNITS,
     CMD_PROJECT_VIEW_REVEAL_IN_EXPLORER,
     CMD_PROJECT_VIEW_REVEAL_ACTIVE_FILE,
     CMD_PROJECT_GO_TO_FILE,
@@ -82,7 +84,7 @@ import {
 import { Hierarchy } from './visualizerTypes';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 import { CMD_INSTALL_ALIRE, installAndSetupAlire } from './alire';
-import { ProjectViewItem } from './projectViewProvider';
+import { ProjectViewItem, ProjectViewMode } from './projectViewTree';
 import { filterReferences, findReferences, showAllReferences } from './referencesProvider';
 import {
     Raw_ScenarioVariablesResponse,
@@ -208,6 +210,14 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_PROJECT_VIEW_OPTIONS, showProjectViewOptions),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_SHOW_FILES, () =>
+            setProjectViewMode(ProjectViewMode.FILES),
+        ),
+        vscode.commands.registerCommand(CMD_PROJECT_VIEW_SHOW_UNITS, () =>
+            setProjectViewMode(ProjectViewMode.UNIT_HIERARCHY),
+        ),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
@@ -1689,6 +1699,25 @@ async function revealActiveFileInProjectView() {
 }
 
 /**
+ * Selects the Project View layout and remembers it for the workspace.
+ */
+async function setProjectViewMode(mode: ProjectViewMode): Promise<void> {
+    const provider = adaExtState.projectViewProvider;
+    if (!provider) return;
+
+    await vscode.workspace
+        .getConfiguration('ada')
+        .update(
+            'projectView.mode',
+            mode,
+            vscode.workspace.workspaceFolders
+                ? vscode.ConfigurationTarget.Workspace
+                : vscode.ConfigurationTarget.Global,
+        );
+    provider.setMode(mode);
+}
+
+/**
  * Shows a quick-pick for the Project View settings.
  */
 function showProjectViewOptions() {
@@ -1724,12 +1753,21 @@ function showProjectViewOptions() {
     qp.title = 'Project View Options';
     qp.placeholder = 'Toggle display options';
     qp.canSelectMany = true;
-    qp.items = items;
-    qp.selectedItems = items.filter((item) => provider[item.key]);
+    qp.items =
+        provider.mode === ProjectViewMode.UNIT_HIERARCHY
+            ? items.filter((item) => item.key === 'showRuntimeFiles')
+            : items;
+    qp.selectedItems = qp.items.filter((item) => provider[item.key]);
 
     qp.onDidChangeSelection((selected) => {
-        const flatMode = selected.some((i) => i.key === 'flatMode');
-        const showObjectDirs = selected.some((i) => i.key === 'showObjectDirs');
+        const flatMode =
+            provider.mode === ProjectViewMode.UNIT_HIERARCHY
+                ? provider.flatMode
+                : selected.some((i) => i.key === 'flatMode');
+        const showObjectDirs =
+            provider.mode === ProjectViewMode.UNIT_HIERARCHY
+                ? provider.showObjectDirs
+                : selected.some((i) => i.key === 'showObjectDirs');
         const showRuntimeFiles = selected.some((i) => i.key === 'showRuntimeFiles');
         provider.setViewSettings(flatMode, showObjectDirs, showRuntimeFiles);
 

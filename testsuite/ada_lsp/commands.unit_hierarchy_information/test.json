@@ -254,7 +254,7 @@
                      {
                         "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "GENERIC_PKG",
-                        "simple-name": "GENERIC_PKG",
+                        "simple-name": "Generic_Pkg",
                         "parent-name": "",
                         "kind": "package",
                         "is-generic": true,
@@ -282,7 +282,7 @@
                      {
                         "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "INSTANCE_PKG",
-                        "simple-name": "INSTANCE_PKG",
+                        "simple-name": "Instance_Pkg",
                         "parent-name": "",
                         "kind": "package",
                         "is-generic": false,
@@ -310,7 +310,7 @@
                      {
                         "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "ALIAS_PKG",
-                        "simple-name": "ALIAS_PKG",
+                        "simple-name": "Alias_Pkg",
                         "parent-name": "",
                         "kind": "package",
                         "is-generic": false,
@@ -338,7 +338,7 @@
                      {
                         "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "MAIN",
-                        "simple-name": "MAIN",
+                        "simple-name": "Main",
                         "parent-name": "",
                         "kind": "subprogram",
                         "is-generic": false,
@@ -370,6 +370,7 @@
                      {
                         "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "BROKEN",
+                        "simple-name": "BROKEN",
                         "kind": "unknown",
                         "parts": [
                            {

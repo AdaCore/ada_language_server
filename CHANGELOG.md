@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* VS Code's Project view now offers a **Unit Hierarchy** layout, grouping Ada library units with their specifications, bodies, separates, and child units. Switch between **Files** and **Unit Hierarchy** through **View As** in the view's **⋯** menu. See [Project View](./doc/vscode-ug.md#project-view).
 * VS Code's `Ada: Find All References` now labels results by kind, including `read`, `write`, and `call`, and lets you filter by kind in the `References` view. See [Navigating references](./doc/vscode-ug.md#navigating-references).
 * Completion snippets are now pretty printed using GNATformat
 * VS Code Ada and SPARK tasks now run tools directly, preserving scenario variable values such as IP addresses. Customized tasks should pass arguments without shell quotes and configure their environment through `options.env` or `terminal.integrated.env.*`; see [Task Customization](./doc/vscode-ug.md#task-customization).

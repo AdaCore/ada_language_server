@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
-import { ProjectViewItem } from './projectViewProvider';
+import { ProjectViewItem } from './projectViewTree';
 import { adaTasks, gnatCovTasks, TASK_TYPE_ADA } from './taskProviders';
 
 /**

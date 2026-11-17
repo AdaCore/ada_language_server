@@ -97,6 +97,7 @@ Settings taken into account only from the Ada & SPARK VS Code extension:
 * [showNotificationsOnErrors](#shownotificationsonerrors)
 * [trace.server](#traceserver)
 * [metricThresholds](#metricthresholds)
+* [projectView.mode](#projectviewmode)
 * [projectView.flatMode](#projectviewflatmode)
 * [projectView.showObjectDirectories](#projectviewshowobjectdirectories)
 * [projectView.showRuntimeFiles](#projectviewshowruntimefiles)
@@ -193,6 +194,16 @@ root folder, then ALS will use it.
 **Note for VS Code users:** Path resolution behavior differs between single-root and multi-root workspaces.
 See [Working with Multiple Projects in the Same VS Code Workspace](vscode-ug.md#working-with-multiple-projects-in-the-same-vs-code-workspace)
 in the VS Code User's Guide for details and workarounds.
+
+### projectView.mode
+
+Selects the Project view layout: `files` (the default) groups sources by GPR
+project and directory; `units` groups Ada sources by library unit and keeps
+other sources under **Other Sources**. The **View As** submenu in the Project
+view's **⋯** menu saves the selection for the current workspace. Set
+`ada.projectView.mode` in **User Settings** for a default across workspaces;
+workspace settings take precedence. See [View As](vscode-ug.md#view-as).
+This is a VS Code-only setting.
 
 ### projectView.flatMode
 

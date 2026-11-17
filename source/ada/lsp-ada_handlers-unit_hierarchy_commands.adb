@@ -25,6 +25,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with VSS.JSON.Streams;
+with VSS.Strings;
 with VSS.Strings.Conversions;
 
 with LSP.Ada_Context_Sets;
@@ -236,11 +237,17 @@ package body LSP.Ada_Handlers.Unit_Hierarchy_Commands is
       ----------------
 
       procedure Write_Unit (Unit : GPR2.Build.Compilation_Unit.Object) is
-         Name   : constant String := String (Unit.Name);
-         Parent : constant String := String (GPR2.Parent_Name (Unit.Name));
-         Decl   : Basic_Decl := No_Basic_Decl;
+         Name        : constant String := String (Unit.Name);
+         Parent      : constant String :=
+           String (GPR2.Parent_Name (Unit.Name));
+         Simple_Name : VSS.Strings.Virtual_String :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (if Parent = ""
+              then Name
+              else Name (Name'First + Parent'Length + 1 .. Name'Last));
+         Decl        : Basic_Decl := No_Basic_Decl;
       begin
-         --  Prefer the specification to preserve generic declaration flags.
+         --  Prefer the specification for declaration casing and flags.
          --  GPR2's Main_Part prefers the body, so select the part explicitly.
          --  All parts are listed below, regardless of this choice.
          if Unit.Has_Part (S_Spec) then
@@ -249,14 +256,29 @@ package body LSP.Ada_Handlers.Unit_Hierarchy_Commands is
             Decl := Declaration (Unit.Main_Body);
          end if;
 
+         --  Use the declaration's spelling for labels. Keep canonical names
+         --  for unit identity and for sources without a declaration.
+         if not Decl.Is_Null then
+            declare
+               Def_Name : constant Defining_Name := Decl.P_Defining_Name;
+            begin
+               if not Def_Name.Is_Null then
+                  Simple_Name :=
+                    VSS.Strings.To_Virtual_String
+                      (Def_Name.P_Relative_Name.Text);
+               end if;
+            exception
+               when E : Property_Error =>
+                  Handler.Trace_Exception (E);
+            end;
+         end if;
+
          Append ((Kind => Start_Object));
          String_Field
            ("namespace-id", String (GPR2.View_Ids.Image (Unit.Root_View.Id)));
          String_Field ("name", Name);
-         String_Field
-           ("simple-name",
-            (if Parent = "" then Name
-             else Name (Name'First + Parent'Length + 1 .. Name'Last)));
+         Add_Key ("simple-name", Result);
+         To_Any (Simple_Name, Result);
          String_Field ("parent-name", Parent);
 
          if Decl.Is_Null then

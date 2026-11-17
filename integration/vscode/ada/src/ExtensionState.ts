@@ -16,6 +16,7 @@ import {
     CMD_EXT_ANNOTATIONS_REFRESH,
     CMD_EXT_ANNOTATIONS_TOGGLE,
     CMD_PROJECT_VIEW_INFORMATION,
+    CMD_UNIT_HIERARCHY_INFORMATION,
     CMD_SCENARIO_VARIABLES_INFORMATION,
     CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
@@ -31,13 +32,14 @@ import {
     AnnotationTreeItem,
     ExternalAnnotationTreeProvider,
 } from './extAnnotationsTree';
+import { ProjectViewProvider } from './projectViewProvider';
 import {
-    ProjectViewItem,
-    ProjectViewProvider,
     ProjectViewInformation,
     Raw_ProjectViewResponse,
     parseProjectViewResponse,
-} from './projectViewProvider';
+    UnitHierarchyInformation,
+} from './projectViewData';
+import { ProjectViewMode, ProjectViewNode } from './projectViewTree';
 import {
     ScenarioViewItem,
     ScenarioViewProvider,
@@ -116,7 +118,7 @@ export class ExtensionState {
     public readonly testData: Map<vscode.TestItem, object> = new Map();
     public readonly statusBar: vscode.StatusBarItem;
     public projectViewProvider?: ProjectViewProvider;
-    public projectTreeView?: vscode.TreeView<ProjectViewItem>;
+    public projectTreeView?: vscode.TreeView<ProjectViewNode>;
     public scenarioViewProvider?: ScenarioViewProvider;
     public scenarioTreeView?: vscode.TreeView<ScenarioViewItem>;
 
@@ -158,6 +160,9 @@ export class ExtensionState {
     cachedGdb: string | undefined | null = undefined;
     projectAttributeCache: Map<string, Promise<string | string[]>> = new Map();
     private cachedProjectViewInfo: ProjectViewInformation | undefined;
+    private cachedUnitHierarchyInfo: UnitHierarchyInformation | undefined;
+    private unitHierarchyRequest: Promise<void> | undefined;
+    private projectViewRevision = 0;
     private fileLanguageMap: Map<string, string> = new Map();
 
     private adaTaskProvider?: SimpleTaskProvider;
@@ -175,6 +180,9 @@ export class ExtensionState {
         this.cachedGdb = undefined;
         this.projectAttributeCache.clear();
         this.cachedProjectViewInfo = undefined;
+        this.cachedUnitHierarchyInfo = undefined;
+        this.unitHierarchyRequest = undefined;
+        this.projectViewRevision++;
         this.fileLanguageMap = new Map();
     }
 
@@ -895,7 +903,12 @@ export class ExtensionState {
         const treeView = this.projectTreeView;
         if (!provider || !treeView) return false;
 
-        const item = provider.findSourceFileItem(uri);
+        const editor = vscode.window.activeTextEditor;
+        const position =
+            editor?.document.uri.toString() === uri.toString()
+                ? editor.selection.active
+                : undefined;
+        const item = provider.findSourceFileItem(uri, position);
 
         if (!item) {
             void vscode.window.showInformationMessage(
@@ -942,6 +955,10 @@ export class ExtensionState {
      * `getProjectViewInfo()` to tell whether a project is available.
      */
     public async refreshProjectView(): Promise<void> {
+        const revision = ++this.projectViewRevision;
+        this.cachedUnitHierarchyInfo = undefined;
+        this.unitHierarchyRequest = undefined;
+        this.projectViewProvider?.setUnitHierarchyInfo(undefined);
         // Clear the cached project URI to fetch a fresh one
         this.cachedProjectUri = undefined;
 
@@ -967,6 +984,7 @@ export class ExtensionState {
                 },
             );
 
+            if (revision !== this.projectViewRevision) return;
             if (raw?.projects) {
                 this.cachedProjectViewInfo = parseProjectViewResponse(raw);
                 this.buildFileLanguageMap();
@@ -976,28 +994,123 @@ export class ExtensionState {
                 this.fileLanguageMap = new Map();
             }
         } catch (error) {
+            if (revision !== this.projectViewRevision) return;
             logger.error(`Failed to fetch project view information: ${String(error)}`);
             this.cachedProjectViewInfo = undefined;
             this.fileLanguageMap = new Map();
         }
 
+        if (revision !== this.projectViewRevision) return;
         if (this.projectViewProvider) {
             this.projectViewProvider.setProjectViewInfo(this.cachedProjectViewInfo);
         }
 
-        // Show the root project's name as the view's description, next to its
-        // fixed title, like the Timeline view does with the current file name.
+        this.updateProjectViewDescription();
+        if (this.projectTreeView) {
+            const filter = this.projectViewProvider?.getFilter();
+            this.projectTreeView.message = filter ? `Filtered by: "${filter}"` : undefined;
+        }
+
+        // Refresh the unit hierarchy if the Project View is currently in "units" mode.
+        // This ensures that the unit hierarchy is up-to-date with the latest
+        // project information.
+        if (this.projectViewProvider?.mode === ProjectViewMode.UNIT_HIERARCHY)
+            await this.refreshUnitHierarchy();
+
+        // Refresh the status bar to reflect the updated project name.
+        this.updateStatusBarItem();
+    }
+
+    /**
+     * Shows the root project and active layout next to the view's fixed title.
+     */
+    public updateProjectViewDescription(): void {
         if (this.projectTreeView) {
             const rootEntry = this.cachedProjectViewInfo
                 ? this.cachedProjectViewInfo.projects.get(
                       this.cachedProjectViewInfo.root_project_id,
                   )
                 : undefined;
-            this.projectTreeView.description = rootEntry?.project.name;
+            const mode =
+                this.projectViewProvider?.mode === ProjectViewMode.UNIT_HIERARCHY
+                    ? 'Unit Hierarchy'
+                    : 'Files';
+            this.projectTreeView.description = [rootEntry?.project.name, mode]
+                .filter(Boolean)
+                .join(' · ');
         }
+    }
 
-        // Refresh the status bar to reflect the updated project name.
-        this.updateStatusBarItem();
+    /**
+     * Fetches unit metadata on demand and keeps it until the project reloads.
+     * Collecting all units after each source edit would be too costly.
+     * Older requests cannot replace data from a new project.
+     */
+    public async refreshUnitHierarchy(): Promise<void> {
+        // Reuse cached data or a pending request for the current project.
+        if (!this.cachedProjectViewInfo || this.cachedUnitHierarchyInfo) return;
+        if (this.unitHierarchyRequest) return this.unitHierarchyRequest;
+
+        // Remember the project revision and show progress while querying ALS.
+        const revision = this.projectViewRevision;
+        const request = vscode.window.withProgress(
+            { location: { viewId: 'projectView' } },
+            async () => {
+                try {
+                    // Check that the connected server supports the command.
+                    const commands =
+                        this.adaClient.initializeResult?.capabilities.executeCommandProvider
+                            ?.commands;
+                    if (!commands?.includes(CMD_UNIT_HIERARCHY_INFORMATION)) {
+                        throw new Error(
+                            'The Ada language server does not support the unit hierarchy command',
+                        );
+                    }
+                    const info =
+                        await vscode.commands.executeCommand<UnitHierarchyInformation | null>(
+                            CMD_UNIT_HIERARCHY_INFORMATION,
+                        );
+
+                    // Discard results if the project was reloaded during the query.
+                    if (revision !== this.projectViewRevision) return;
+
+                    // Publish the snapshot and restore the filter message in unit mode.
+                    this.cachedUnitHierarchyInfo = info ?? undefined;
+                    this.projectViewProvider?.setUnitHierarchyInfo(this.cachedUnitHierarchyInfo);
+                    if (
+                        this.projectTreeView &&
+                        this.projectViewProvider?.mode === ProjectViewMode.UNIT_HIERARCHY
+                    ) {
+                        const filter = this.projectViewProvider.getFilter();
+                        this.projectTreeView.message = info
+                            ? filter
+                                ? `Filtered by: "${filter}"`
+                                : undefined
+                            : 'No unit hierarchy is available for this project.';
+                    }
+                } catch (error) {
+                    // Ignore failures from older projects, as with successful replies.
+                    if (revision !== this.projectViewRevision) return;
+                    logger.error(`Failed to fetch unit hierarchy information: ${String(error)}`);
+                    if (
+                        this.projectTreeView &&
+                        this.projectViewProvider?.mode === ProjectViewMode.UNIT_HIERARCHY
+                    ) {
+                        this.projectTreeView.message =
+                            'Unable to load the unit hierarchy. See the Ada extension logs.';
+                    }
+                }
+            },
+        );
+
+        // Share this request with concurrent callers until it finishes.
+        this.unitHierarchyRequest = Promise.resolve(request);
+        try {
+            await this.unitHierarchyRequest;
+        } finally {
+            // A reload may have started another request: leave it intact.
+            if (revision === this.projectViewRevision) this.unitHierarchyRequest = undefined;
+        }
     }
 
     /**
