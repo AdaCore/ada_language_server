@@ -51,8 +51,10 @@ package LSP.Ada_Highlighters is
    --  If Span isn't empty then return unit tokens in given Span, otherwise
    --  return all tokens in the Unit.
 
-   function Need_Highlighting return Libadalang.Iterators.Ada_Node_Predicate;
-   --  Predicate to filter node for highlighing
+   function Need_Highlighting
+     (Self : Ada_Highlighter'Class)
+      return Libadalang.Iterators.Ada_Node_Predicate;
+   --  Select nodes needed for the client's semantic token types and modifiers
 
    type Highlights_Holder is limited private;
    --  A holder to keep data about highlighted tokens
@@ -176,12 +178,26 @@ private
       LSP.Enumerations."=",
       "=");
 
+   package Modifier_Vectors is new Ada.Containers.Vectors
+     (Positive,
+      LSP.Enumerations.SemanticTokenModifiers,
+      LSP.Enumerations."=");
+
+   type Modifier_Context is
+     (Defining_Name_Modifiers, Name_Modifiers, Declaration_Modifiers);
+   --  Semantic token modifiers use either a defining name, a name reference,
+   --  or the referenced declaration to determine whether they apply.
+
+   type Modifier_Lists is array (Modifier_Context) of Modifier_Vectors.Vector;
+
    subtype Unbounded_Text_Type is
      Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String;
 
    type Ada_Highlighter is tagged limited record
-      Token_Types     : Token_Type_Maps.Map;
-      Token_Modifiers : Token_Modifier_Maps.Map;
+      Token_Types         : Token_Type_Maps.Map;
+      Token_Modifiers     : Token_Modifier_Maps.Map;
+      Supported_Modifiers : Modifier_Lists;
+      --  Compute only the semantic token modifiers advertised by the client.
    end record;
 
 end LSP.Ada_Highlighters;
