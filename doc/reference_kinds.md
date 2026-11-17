@@ -43,6 +43,9 @@ the code on the fly.
 
 ## VS Code
 
+For the user workflow, see [Navigating references](vscode-ug.md#navigating-references)
+in the VS Code user's guide.
+
 In Ada files, Shift+F12 and **Ada: Find All References** in the Command Palette
 show reference kinds in VS Code's existing References view. Results are grouped
 by file and show labels such as `read`, `write`, and `call`. Plain `reference`

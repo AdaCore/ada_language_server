@@ -312,8 +312,8 @@ values into account, exactly as if the setting had been selected manually.
 
 A **Reset to Default** action is available for any variable that currently
 has a resolved value. Calling it clears the variable from the
-`ada.scenarioVariables` setting associated with the Workspace; if the variable 
-is still resolved afterwards, for example because it is also set at the 
+`ada.scenarioVariables` setting associated with the Workspace; if the variable
+is still resolved afterwards, for example because it is also set at the
 User or Remote scope, that value takes effect instead of falling back to
 `.als.json`, the environment, or the project's default value.
 
@@ -632,24 +632,30 @@ These shortcuts can be customized and new shortcuts can be added for other tasks
 
 ### Navigating references
 
-Navigating references is entirely handled by VS Code itself: the extension only
-provides the underlying language server requests. The commands below are
-therefore the standard ones, contributed by the `Reference Search View`
-extension that is built into VS Code, and they work in Ada files as in any other
-language.
+In an Ada editor, press `Shift+F12` or run **Ada: Find All References** from the
+Command Palette to find uses of the entity under the cursor. Results appear in
+VS Code's `References` view, grouped by file and labelled by kind, such as
+`read`, `write`, and `call`. The search excludes the entity's declaration.
+Ordinary ALS `reference` occurrences are displayed as `read`, following the
+document highlight convention.
 
-They are **not available in GPR files**: the GPR language server does not
-implement reference lookup nor the call and type hierarchies, so VS Code
+The view sits in the Activity Bar and appears as soon as a search is run. Its
+navigation and history controls are provided by the `Reference Search View`
+extension built into VS Code; the Ada extension adds the kind labels and
+filtering described below.
+
+![References Kinds](media/references-kinds.png)
+
+Reference lookup and the call and type hierarchies are **not available in GPR
+files**: the GPR language server does not implement them, so VS Code
 disables these commands in a `.gpr` editor. `Go to Definition` and
 `Go to Declaration` are supported there and remain the way to navigate a project
 file.
 
-Results are displayed in the `References` view, which sits in the Activity Bar
-and appears as soon as a search is run.
-
 | Command                           | Shortcut                                      | Description                                                                    |
 |-----------------------------------|-----------------------------------------------|--------------------------------------------------------------------------------|
-| `References: Find All References` | `Shift+Alt+F12`, and `Shift+F12` (see below)  | Lists the references to the entity under the cursor in the `References` view    |
+| `Ada: Find All References`        | `Shift+F12` in Ada files                       | Lists references with kind labels and filtering in the `References` view        |
+| `References: Find All References` | `Shift+Alt+F12`                                | Lists references using VS Code's standard presentation, without Ada kind labels or filtering |
 | `Go to References`                | `Shift+F12` in other languages (see below)    | Shows the references to the entity under the cursor in the editor's peek widget |
 | `Go to Next Reference`            | `F4`                                          | Moves to the next result of the current search                                  |
 | `Go to Previous Reference`        | `Shift+F4`                                    | Moves to the previous result of the current search                              |
@@ -664,6 +670,23 @@ on purpose: `Go to Next Reference` and `Go to Previous Reference` are never
 listed there and are reachable only through `F4` / `Shift+F4`, and
 `References: Show History` is listed only once a search has been run — see
 [Going back to a previous search](#going-back-to-a-previous-search) below.
+
+#### Filtering references
+
+For an Ada search, click the outline funnel button, **Filter by Reference
+Kind...**, in the `References` view's toolbar to show only writes, reads, or
+another kind. The picker shows the count for each kind in the full results.
+Above the results, the view shows the selected kind and the visible and total
+reference counts, for example `Writes only — 1 of 3 references in 1 file`.
+Files with no matching references are omitted. Navigation with `F4` and
+`Shift+F4`, and source highlights, follow the filtered results.
+
+When a filter is active, the outline funnel changes to a filled funnel: click on it and select **All references** in the picker to clear the filter. Changing or clearing a filter uses the results
+already loaded, without requesting references again.
+
+Refreshing the view or rerunning a search from history requests fresh results
+and retains that search's filter. A new **Ada: Find All References** search
+starts with all references visible.
 
 #### Going back to a previous search
 
@@ -709,10 +732,11 @@ closed, and the persistent `References` view described above, which is the only
 one of the two to keep a history. Which of the two you get depends on the
 command invoked, and on nothing else:
 
-- `References: Find All References` always fills the view. In Ada files the
-  extension binds it to `Shift+F12`, so that the customary shortcut lands in the
-  view rather than in the peek widget; elsewhere `Shift+F12` keeps its standard
-  meaning of `Go to References`.
+- `Ada: Find All References` fills the view with kind labels and filtering. In
+  Ada files the extension binds it to `Shift+F12`; elsewhere `Shift+F12` keeps
+  its standard meaning of `Go to References`.
+- `References: Find All References` also fills the view, using VS Code's standard
+  presentation without Ada kind labels or filtering.
 - `Go to References`, and `Peek > Peek References` — also reachable by holding
   `Ctrl` and clicking an entity — always open the peek widget, and leave the
   `References` view and its history untouched.
@@ -722,7 +746,7 @@ To restore the stock VS Code behaviour, remove the key binding with the command
 
 ```json
 {
-    "command": "-references-view.findReferences",
+    "command": "-ada.findReferences",
     "key": "shift+f12",
     "when": "editorHasReferenceProvider && editorTextFocus && editorLangId == ada"
 }
