@@ -96,6 +96,10 @@ abstract project LSP_Common is
 
    package Format is
       for Charset ("Ada") use "utf-8";
+      for Width ("Ada") use "79";
+      for Indentation ("Ada") use "3";
+      for Indentation_Continuation ("Ada") use "2";
+      for Override_Layout ("Ada") use ("gnatformat.json");
    end Format;
 
 end LSP_Common;
