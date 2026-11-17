@@ -80,8 +80,10 @@ String IDs are replaced with `<string>` because they may contain private data.
 Incoming requests use their LSP method name; other messages use their Ada type
 name. Outgoing messages are traced before serialization and transmission.
 
-Exception entries show the operation and exception name. Source text, paths,
-diagnostic details and full exceptions are available through `ALS.MAIN.DEBUG`.
+Exception entries include the operation, exception name and stack trace.
+Exception messages are only logged through `ALS.MAIN.DEBUG`, since they may
+contain source text, URIs, paths or other private data. Symbolic stack traces
+may still include server source paths. Review the logs before sharing them.
 Other trace channels, such as `ALS.PROJECT` and `ALS.CONFIG`, may still log paths
 or configuration values.
 
@@ -89,8 +91,9 @@ or configuration values.
 
 ### `ALS.MAIN.DEBUG` (default: no)
 
-Include detailed server diagnostics, full exceptions and raw messages that failed
-to decode. These can contain source text, URIs, paths and other private data.
+Include exception messages, detailed server diagnostics and raw messages that
+failed to decode.
+These can contain source text, URIs, paths and other private data.
 Review the logs before sharing them.
 
     ALS.MAIN.DEBUG=yes
