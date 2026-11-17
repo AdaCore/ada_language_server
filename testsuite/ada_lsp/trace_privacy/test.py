@@ -16,13 +16,14 @@ def trace_privacy(wd):
         for debug in (False, True):
             run_dir = Path(wd) / f"{language}_{debug}"
             run_dir.mkdir()
+            # Avoid the ':' in Windows drive letters in trace stream paths.
             (run_dir / "traces.cfg").write_text(
-                f">{run_dir / 'trace.log'}:buffer_size=0\n"
-                f"ALS.MAIN=yes >{run_dir / 'main.log'}:buffer_size=0\n"
+                ">trace.log:buffer_size=0\n"
+                "ALS.MAIN=yes >main.log:buffer_size=0\n"
                 "ALS.IN=no\n"
                 "ALS.OUT=no\n" + ("ALS.MAIN.DEBUG=yes\n" if debug else "")
             )
-            command = [os.environ["ALS"], "--tracefile=traces.cfg"]
+            command = [os.environ["ALS"], f"--tracefile={run_dir / 'traces.cfg'}"]
             if language == "gpr":
                 command.append("--language-gpr")
             lsp = LSP(command, str(run_dir), env={"ALS_HOME": str(run_dir)})
