@@ -156,10 +156,22 @@ package body LSP.GNATCOLL_Tracers is
         VSS.Strings.Empty_Virtual_String)
    is
    begin
-      Self.Server_Trace.Trace_Text
-        (if Message.Is_Empty then "Exception:" else Message);
-      Self.Server_Trace.Trace (Ada.Exceptions.Exception_Name (Error));
-      Self.Debug_Trace.Trace_Exception (Error, Message);
+      --  Keep the operation, exception name and stack trace in the main
+      --  trace.
+      if Self.Server_Trace.Is_Active then
+         Self.Server_Trace.Trace_Text
+           (if Message.Is_Empty then "Exception:" else Message);
+         Self.Server_Trace.Trace (Ada.Exceptions.Exception_Name (Error));
+         Self.Server_Trace.Trace
+           (GNAT.Traceback.Symbolic.Symbolic_Traceback (Error));
+      end if;
+
+      --  Exception messages may contain user content, so only log them in
+      --  debug.
+      if Self.Debug_Trace.Is_Active then
+         Self.Debug_Trace.Trace
+           (Ada.Exceptions.Exception_Message (Error));
+      end if;
    end Trace_Exception;
 
    -----------------
