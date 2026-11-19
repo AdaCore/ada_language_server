@@ -979,8 +979,11 @@ package body LSP.Ada_Completions is
             Output      : Unbounded_String;
             S           : Virtual_String;
             Tmp_Unit    : Libadalang.Analysis.Analysis_Unit;
+            --  Reuse the provider to avoid loading the runtime for each snippet.
             Tmp_Context : constant Libadalang.Analysis.Analysis_Context :=
-              Libadalang.Analysis.Create_Context;
+              Libadalang.Analysis.Create_Context
+                (Unit_Provider =>
+                   Libadalang.Analysis.Unit_Provider (Context.LAL_Context));
          begin
             declare
                Full : constant String :=
