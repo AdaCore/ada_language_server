@@ -70,7 +70,7 @@ async def test_help_active_parameter_multiple_signature(lsp: ALSLanguageClient) 
     assert res.active_signature == 1
     assert len(res.signatures) == 2
 
-    text_document_did_change(2, main_adb, Pos(20, 11), Pos(20, 13), ",5,")
+    text_document_did_change(2, main_adb, Pos(20, 10), Pos(20, 10), ",5,")
 
     res.active_signature = 1
     res = await lsp.text_document_signature_help_async(
@@ -84,7 +84,7 @@ async def test_help_active_parameter_multiple_signature(lsp: ALSLanguageClient) 
     assert res.active_signature == 1
     assert len(res.signatures) == 2
 
-    text_document_did_change(3, main_adb, Pos(20, 14), Pos(20, 15), "6,")
+    text_document_did_change(3, main_adb, Pos(20, 13), Pos(20, 13), "6,")
 
     res = await lsp.text_document_signature_help_async(
         SignatureHelpParams(
