@@ -1,0 +1,23 @@
+--
+--  Copyright (C) 2026, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
+
+with "lsp_common";
+
+--  GNATformat cannot load the server project because it uses global -gnateD
+--  symbols. Use a separate project to share the formatting settings without
+--  loading the server's compiler switches or build dependencies.
+
+project Formatting is
+
+   for Source_Dirs use
+     ("../source/**",
+      "../liblsp_base/source/**",
+      "../liblsp_3_17/source/**");
+   for Object_Dir use "../.obj/formatting";
+
+   package Format renames LSP_Common.Format;
+
+end Formatting;

@@ -25,4 +25,6 @@ project LSP_Client_3_17 is
 
    package Compiler renames Lsp_3_17.Compiler;
 
+   package Format renames LSP_3_17.Format;
+
 end LSP_Client_3_17;

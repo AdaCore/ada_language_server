@@ -26,4 +26,6 @@ project LSP_Client_Glib_3_17 is
 
    package Compiler renames LSP_Common.Compiler;
 
+   package Format renames LSP_Common.Format;
+
 end LSP_Client_Glib_3_17;

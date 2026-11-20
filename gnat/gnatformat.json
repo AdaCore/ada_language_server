@@ -1,0 +1,704 @@
+{
+  "node_configs": {
+    "OverridingOverriding": { "node": ["recurse", "whitespace"] },
+    "OverridingNotOverriding": { "node": ["recurse", "whitespace"] },
+    "ParamSpecList": { "table": { "must_break": true }, "sep": "recurse" },
+    "GenericPackageInstantiation": {
+      "node": {
+        "kind": "group",
+        "document": {
+          "kind": "continuationLineIndent",
+          "contents": [
+            { "kind": "text", "text": "package" },
+            "whitespace",
+            { "kind": "recurse_field", "field": "f_name" },
+            "whitespace",
+            { "kind": "text", "text": "is" },
+            "whitespace",
+            { "kind": "text", "text": "new" },
+            {
+              "kind": "group",
+              "id": "generic_name",
+              "document": ["line", { "kind": "recurse_field", "field": "f_generic_pkg_name" }]
+            },
+            {
+              "kind": "ifBreak",
+              "groupId": "generic_name",
+              "breakContents": {
+                "kind": "continuationLineIndent",
+                "contents": [
+                  { "kind": "recurse_field", "field": "f_params" },
+                  { "kind": "recurse_field", "field": "f_aspects" }
+                ]
+              },
+              "flatContents": [
+                { "kind": "recurse_field", "field": "f_params" },
+                { "kind": "recurse_field", "field": "f_aspects" }
+              ]
+            },
+            { "kind": "text", "text": ";" }
+          ]
+        }
+      },
+      "fields": {
+        "f_params": [
+          "line",
+          {
+            "kind": "align",
+            "width": " ",
+            "contents": [
+              { "kind": "text", "text": "(" },
+              "recurse",
+              { "kind": "text", "text": ")" }
+            ]
+          }
+        ]
+      }
+    },
+    "GenericSubpInstantiation": {
+      "node": {
+        "kind": "group",
+        "document": [
+          { "kind": "recurse_field", "field": "f_overriding" },
+          {
+            "kind": "group",
+            "document": {
+              "kind": "continuationLineIndent",
+              "contents": [
+                { "kind": "recurse_field", "field": "f_kind" },
+                "whitespace",
+                { "kind": "recurse_field", "field": "f_subp_name" },
+                "whitespace",
+                { "kind": "text", "text": "is" },
+                "whitespace",
+                { "kind": "text", "text": "new" },
+                {
+                  "kind": "group",
+                  "id": "generic_name",
+                  "document": ["line", { "kind": "recurse_field", "field": "f_generic_subp_name" }]
+                },
+                {
+                  "kind": "ifBreak",
+                  "groupId": "generic_name",
+                  "breakContents": {
+                    "kind": "continuationLineIndent",
+                    "contents": [
+                      { "kind": "recurse_field", "field": "f_params" },
+                      { "kind": "recurse_field", "field": "f_aspects" }
+                    ]
+                  },
+                  "flatContents": [
+                    { "kind": "recurse_field", "field": "f_params" },
+                    { "kind": "recurse_field", "field": "f_aspects" }
+                  ]
+                },
+                { "kind": "text", "text": ";" }
+              ]
+            }
+          }
+        ]
+      },
+      "fields": {
+        "f_params": [
+          "line",
+          {
+            "kind": "align",
+            "width": " ",
+            "contents": [
+              { "kind": "text", "text": "(" },
+              "recurse",
+              { "kind": "text", "text": ")" }
+            ]
+          }
+        ]
+      }
+    },
+    "ParamAssoc": {
+      "node": [
+        {
+          "kind": "if",
+          "condition": {
+            "kind": "is_empty",
+            "node": { "kind": "eval_member", "prefix": "this_node", "member": "f_designator" }
+          },
+          "then": [
+            { "kind": "recurse_field", "field": "f_designator" },
+            { "kind": "recurse_field", "field": "f_r_expr" }
+          ],
+          "else": [
+            { "kind": "recurse_field", "field": "f_designator" },
+            {
+              "kind": "group",
+              "document": {
+                "kind": "continuationLineIndent",
+                "contents": ["line", { "kind": "recurse_field", "field": "f_r_expr" }]
+              }
+            }
+          ]
+        },
+        {
+          "kind": "match",
+          "node": "this_node",
+          "matchers": [
+            {
+              "pattern": {
+                "kind": "node",
+                "type": "ParamAssoc",
+                "members": [
+                  { "member": "f_designator", "pattern": { "kind": "not", "pattern": null } },
+                  {
+                    "member": "parent",
+                    "pattern": {
+                      "kind": "node",
+                      "type": "AssocList",
+                      "members": [
+                        {
+                          "member": "parent",
+                          "pattern": {
+                            "kind": "or",
+                            "patterns": [
+                              { "kind": "node", "type": "CallExpr" },
+                              { "kind": "node", "type": "GenericInstantiation" }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  { "member": "previous_sibling", "pattern": { "kind": "not", "pattern": null } }
+                ]
+              },
+              "document": "breakParent"
+            },
+            {
+              "pattern": {
+                "kind": "node",
+                "type": "ParamAssoc",
+                "members": [
+                  { "member": "f_designator", "pattern": { "kind": "not", "pattern": null } },
+                  {
+                    "member": "parent",
+                    "pattern": {
+                      "kind": "node",
+                      "type": "AssocList",
+                      "members": [
+                        {
+                          "member": "parent",
+                          "pattern": {
+                            "kind": "or",
+                            "patterns": [
+                              { "kind": "node", "type": "CallExpr" },
+                              { "kind": "node", "type": "GenericInstantiation" }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  { "member": "next_sibling", "pattern": { "kind": "not", "pattern": null } }
+                ]
+              },
+              "document": "breakParent"
+            },
+            { "pattern": "*", "document": [] }
+          ]
+        }
+      ],
+      "fields": {
+        "f_designator": ["recurse", "whitespace", { "kind": "tableSeparator", "text": "=>" }]
+      }
+    },
+    "AggregateAssoc": {
+      "node": [
+        { "field": "f_designators", "kind": "recurse_field" },
+        {
+          "kind": "if",
+          "condition": {
+            "kind": "eval_member",
+            "prefix": { "kind": "eval_member", "prefix": "this_node", "member": "f_designators" },
+            "member": "is_empty_list"
+          },
+          "then": {
+            "kind": "group",
+            "document": [{ "field": "f_r_expr", "kind": "recurse_field" }]
+          },
+          "else": {
+            "kind": "group",
+            "document": {
+              "kind": "continuationLineIndent",
+              "contents": [
+                {
+                  "kind": "match",
+                  "node": "this_node",
+                  "matchers": [
+                    {
+                      "pattern": {
+                        "kind": "node",
+                        "type": "AggregateAssoc",
+                        "members": [
+                          {
+                            "member": "f_r_expr",
+                            "pattern": {
+                              "kind": "node",
+                              "type": "UnOp",
+                              "members": [
+                                {
+                                  "member": "f_op",
+                                  "pattern": { "kind": "node", "type": "OpPlus" }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "member": "parent",
+                            "pattern": {
+                              "kind": "node",
+                              "type": "AssocList",
+                              "members": [
+                                {
+                                  "member": "parent",
+                                  "pattern": {
+                                    "kind": "node",
+                                    "type": "Aggregate",
+                                    "members": [
+                                      {
+                                        "member": "parent",
+                                        "pattern": {
+                                          "kind": "node",
+                                          "type": "AspectAssoc",
+                                          "members": [
+                                            {
+                                              "member": "f_id",
+                                              "pattern": {
+                                                "kind": "node",
+                                                "type": "Identifier",
+                                                "members": [
+                                                  {
+                                                    "member": "p_canonical_text",
+                                                    "pattern": {
+                                                      "kind": "symbol_literal",
+                                                      "value": "depends"
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "document": []
+                    },
+                    { "pattern": "*", "document": ["line"] }
+                  ]
+                },
+                "flushLineBreaks",
+                { "field": "f_r_expr", "kind": "recurse_field" }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "match",
+          "node": "this_node",
+          "matchers": [
+            {
+              "pattern": {
+                "kind": "or",
+                "patterns": [
+                  {
+                    "kind": "node",
+                    "type": "AggregateAssoc",
+                    "members": [
+                      {
+                        "member": "parent",
+                        "pattern": {
+                          "kind": "node",
+                          "type": "AssocList",
+                          "members": [
+                            {
+                              "member": "parent",
+                              "pattern": {
+                                "kind": "node",
+                                "type": "BaseAggregate",
+                                "members": [
+                                  {
+                                    "member": "parent",
+                                    "pattern": {
+                                      "kind": "node",
+                                      "type": "AspectAssoc",
+                                      "members": [
+                                        {
+                                          "member": "f_id",
+                                          "pattern": {
+                                            "kind": "node",
+                                            "type": "Identifier",
+                                            "members": [
+                                              {
+                                                "member": "p_canonical_text",
+                                                "pattern": {
+                                                  "kind": "symbol_literal",
+                                                  "value": "depends"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "node",
+                    "type": "AggregateAssoc",
+                    "members": [
+                      {
+                        "member": "parent",
+                        "pattern": {
+                          "kind": "node",
+                          "type": "AssocList",
+                          "members": [
+                            {
+                              "member": "parent",
+                              "pattern": {
+                                "kind": "node",
+                                "type": "BaseAggregate",
+                                "members": [
+                                  {
+                                    "member": "parent",
+                                    "pattern": {
+                                      "kind": "node",
+                                      "type": "AggregateAssoc",
+                                      "members": [
+                                        {
+                                          "member": "parent",
+                                          "pattern": {
+                                            "kind": "node",
+                                            "type": "AssocList",
+                                            "members": [
+                                              {
+                                                "member": "parent",
+                                                "pattern": {
+                                                  "kind": "node",
+                                                  "type": "BaseAggregate",
+                                                  "members": [
+                                                    {
+                                                      "member": "parent",
+                                                      "pattern": {
+                                                        "kind": "node",
+                                                        "type": "AspectAssoc",
+                                                        "members": [
+                                                          {
+                                                            "member": "f_id",
+                                                            "pattern": {
+                                                              "kind": "node",
+                                                              "type": "Identifier",
+                                                              "members": [
+                                                                {
+                                                                  "member": "p_canonical_text",
+                                                                  "pattern": {
+                                                                    "kind": "symbol_literal",
+                                                                    "value": "depends"
+                                                                  }
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "node",
+                    "type": "AggregateAssoc",
+                    "members": [
+                      {
+                        "member": "parent",
+                        "pattern": {
+                          "kind": "node",
+                          "type": "AssocList",
+                          "members": [
+                            {
+                              "member": "parent",
+                              "pattern": {
+                                "kind": "node",
+                                "type": "BaseAggregate",
+                                "members": [
+                                  {
+                                    "member": "parent",
+                                    "pattern": {
+                                      "kind": "node",
+                                      "type": "UnOp",
+                                      "members": [
+                                        {
+                                          "member": "parent",
+                                          "pattern": {
+                                            "kind": "node",
+                                            "type": "AggregateAssoc",
+                                            "members": [
+                                              {
+                                                "member": "parent",
+                                                "pattern": {
+                                                  "kind": "node",
+                                                  "type": "AssocList",
+                                                  "members": [
+                                                    {
+                                                      "member": "parent",
+                                                      "pattern": {
+                                                        "kind": "node",
+                                                        "type": "BaseAggregate",
+                                                        "members": [
+                                                          {
+                                                            "member": "parent",
+                                                            "pattern": {
+                                                              "kind": "node",
+                                                              "type": "AspectAssoc",
+                                                              "members": [
+                                                                {
+                                                                  "member": "f_id",
+                                                                  "pattern": {
+                                                                    "kind": "node",
+                                                                    "type": "Identifier",
+                                                                    "members": [
+                                                                      {
+                                                                        "member": "p_canonical_text",
+                                                                        "pattern": {
+                                                                          "kind": "symbol_literal",
+                                                                          "value": "depends"
+                                                                        }
+                                                                      }
+                                                                    ]
+                                                                  }
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "node",
+                    "type": "AggregateAssoc",
+                    "members": [
+                      {
+                        "member": "parent",
+                        "pattern": {
+                          "kind": "node",
+                          "type": "AssocList",
+                          "members": [
+                            {
+                              "member": "parent",
+                              "pattern": {
+                                "kind": "node",
+                                "type": "BaseAggregate",
+                                "members": [
+                                  {
+                                    "member": "parent",
+                                    "pattern": {
+                                      "kind": "node",
+                                      "type": "AlternativesList",
+                                      "members": [
+                                        {
+                                          "member": "parent",
+                                          "pattern": {
+                                            "kind": "node",
+                                            "type": "AggregateAssoc",
+                                            "members": [
+                                              {
+                                                "member": "parent",
+                                                "pattern": {
+                                                  "kind": "node",
+                                                  "type": "AssocList",
+                                                  "members": [
+                                                    {
+                                                      "member": "parent",
+                                                      "pattern": {
+                                                        "kind": "node",
+                                                        "type": "BaseAggregate",
+                                                        "members": [
+                                                          {
+                                                            "member": "parent",
+                                                            "pattern": {
+                                                              "kind": "node",
+                                                              "type": "AspectAssoc",
+                                                              "members": [
+                                                                {
+                                                                  "member": "f_id",
+                                                                  "pattern": {
+                                                                    "kind": "node",
+                                                                    "type": "Identifier",
+                                                                    "members": [
+                                                                      {
+                                                                        "member": "p_canonical_text",
+                                                                        "pattern": {
+                                                                          "kind": "symbol_literal",
+                                                                          "value": "depends"
+                                                                        }
+                                                                      }
+                                                                    ]
+                                                                  }
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "document": []
+            },
+            {
+              "pattern": {
+                "kind": "node",
+                "type": "AggregateAssoc",
+                "members": [
+                  {
+                    "member": "parent",
+                    "pattern": {
+                      "kind": "node",
+                      "type": "AssocList",
+                      "members": [
+                        {
+                          "member": "parent",
+                          "pattern": { "kind": "node", "type": "BaseAggregate" }
+                        }
+                      ]
+                    }
+                  },
+                  { "member": "previous_sibling", "pattern": { "kind": "not", "pattern": null } },
+                  {
+                    "member": "f_designators",
+                    "pattern": {
+                      "kind": "node",
+                      "type": "AlternativesList",
+                      "members": [{ "member": "is_empty_list", "pattern": false }]
+                    }
+                  }
+                ]
+              },
+              "document": "breakParent"
+            },
+            {
+              "pattern": {
+                "kind": "node",
+                "type": "AggregateAssoc",
+                "members": [
+                  {
+                    "member": "parent",
+                    "pattern": {
+                      "kind": "node",
+                      "type": "AssocList",
+                      "members": [
+                        {
+                          "member": "parent",
+                          "pattern": { "kind": "node", "type": "BaseAggregate" }
+                        }
+                      ]
+                    }
+                  },
+                  { "member": "next_sibling", "pattern": { "kind": "not", "pattern": null } },
+                  {
+                    "member": "f_designators",
+                    "pattern": {
+                      "kind": "node",
+                      "type": "AlternativesList",
+                      "members": [{ "member": "is_empty_list", "pattern": false }]
+                    }
+                  }
+                ]
+              },
+              "document": "breakParent"
+            },
+            { "pattern": "*", "document": [] }
+          ]
+        }
+      ],
+      "fields": {
+        "f_designators": [
+          { "kind": "group", "document": "recurse" },
+          { "kind": "tableSeparator", "text": "" },
+          {
+            "kind": "group",
+            "document": {
+              "kind": "continuationLineIndent",
+              "contents": {
+                "kind": "dedent",
+                "contents": {
+                  "kind": "group",
+                  "document": ["line", { "kind": "text", "text": "=>" }]
+                },
+                "bubbleUpLeadingTrivias": true,
+                "bubbleUpTrailingTrivias": true
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

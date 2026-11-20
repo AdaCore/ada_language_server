@@ -27,7 +27,7 @@ update_gen_json: ${DOC}/metaModel.schema.json header.adt
 	    --holder "#/definitions/MapType:value" \
 	    ${DOC}/metaModel.schema.json > ${TEMP_FILE}
 	gnatchop -w ${TEMP_FILE} ${GEN_JSON_DIR}
-	gnatpp ${LSP_GEN_PRJ} ${GEN_JSON_DIR}/*.ad[sb]
+	gnatformat ${LSP_GEN_PRJ} ${GEN_JSON_DIR}/*.ad[sb]
 
 # Build gen_lsp-run
 build:
@@ -37,4 +37,4 @@ generate: build
 	${LSP_GEN} ${DOC}/metaModel.json config/3_17.json5 > ${TEMP_FILE}
 	sed -i -e '/^use MarkupContent_Or/s/^/--  /' ${TEMP_FILE}
 	gnatchop -gnat2022 -w ${TEMP_FILE} ${LSP317_DIR}
-	gnatpp ${LSP317_PRJ} ${LSP317_DIR}/*.ad[sb]
+	gnatformat ${LSP317_PRJ} ${LSP317_DIR}/*.ad[sb]

@@ -1,6 +1,6 @@
 # Requirements
 
-Have a working Ada environment (with `gnatchop`, `gnatpp` binaries) and
+Have a working Ada environment (with `gnatchop`, `gnatformat` binaries) and
 install the program with `alire`:
 
 ```shell
@@ -11,6 +11,6 @@ alr build
 
 # How to use
 
-One have to be in the `lsp_gen` directory and and have `gnatpp`, `gnatchop`, `gen_json` in the `PATH`.
+One have to be in the `lsp_gen` directory and and have `gnatformat`, `gnatchop`, `gen_json` in the `PATH`.
 
 From there one can generate the code with a single `make` command.
