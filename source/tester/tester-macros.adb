@@ -46,7 +46,9 @@ package body Tester.Macros is
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("\${([\w]+)}|\$URI{([^}]*)}|\$FILE{([^}]*)}");
+     GNAT.Regpat.Compile
+       ("\${([\w]+)}|\$URI{([^}]*)}|\$FILE{([^}]*)}"
+        & "|\$FILE_NORMALIZED{([^}]*)}");
 
    Replace_Slash : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
@@ -88,22 +90,22 @@ package body Tester.Macros is
       -- Expand_In_String --
       ----------------------
 
-      function Expand_In_String (Text : String) return Unbounded_String
-      is
+      function Expand_In_String (Text : String) return Unbounded_String is
          use type GNAT.Regpat.Match_Location;
          Result : Unbounded_String;
          Next   : Positive := 1;
       begin
          while Next < Text'Length loop
             declare
-               Found : GNAT.Regpat.Match_Array (0 .. 3);
+               Found : GNAT.Regpat.Match_Array (0 .. 4);
             begin
                GNAT.Regpat.Match (Pattern, Text, Found, Next);
                exit when Found (0) = GNAT.Regpat.No_Match;
 
                Append (Result, Text (Next .. Found (0).First - 1));
 
-               if Found (1) /= GNAT.Regpat.No_Match then     --  ${NAME}
+               if Found (1) /= GNAT.Regpat.No_Match then
+                  --  ${NAME}
                   declare
                      Name : constant String :=
                        Text (Found (1).First .. Found (1).Last);
@@ -115,18 +117,26 @@ package body Tester.Macros is
                           with Name & " undefined, cannot expand macro";
                      end if;
                   end;
-               elsif Found (2) /= GNAT.Regpat.No_Match then  --  $URI{x}
+               elsif Found (2) /= GNAT.Regpat.No_Match then
+                  --  $URI{x}
                   Append
                     (Result,
                      Expand_URI
-                       (Text (Found (2).First .. Found (2).Last),
-                        Test_Dir));
-               elsif Found (3) /= GNAT.Regpat.No_Match then  --  $FILE{x}
+                       (Text (Found (2).First .. Found (2).Last), Test_Dir));
+               elsif Found (3) /= GNAT.Regpat.No_Match then
+                  --  $FILE{x}
                   Append
                     (Result,
                      Expand_FILE
-                       (Text (Found (3).First .. Found (3).Last),
-                        Test_Dir));
+                       (Text (Found (3).First .. Found (3).Last), Test_Dir));
+               elsif Found (4) /= GNAT.Regpat.No_Match then
+                  --  $FILE_NORMALIZED{x}
+                  Append
+                    (Result,
+                     GNAT.OS_Lib.Normalize_Pathname
+                       (Expand_FILE
+                          (Text (Found (4).First .. Found (4).Last), Test_Dir),
+                        Case_Sensitive => False));
                end if;
 
                Next := Found (0).Last + 1;
@@ -140,15 +150,17 @@ package body Tester.Macros is
 
    begin
       case Value.Kind is
-         when GNATCOLL.JSON.JSON_Null_Type |
-              GNATCOLL.JSON.JSON_Boolean_Type |
-              GNATCOLL.JSON.JSON_Int_Type |
-              GNATCOLL.JSON.JSON_Float_Type =>
+         when GNATCOLL.JSON.JSON_Null_Type
+            | GNATCOLL.JSON.JSON_Boolean_Type
+            | GNATCOLL.JSON.JSON_Int_Type
+            | GNATCOLL.JSON.JSON_Float_Type =>
 
             return Value;
+
          when GNATCOLL.JSON.JSON_String_Type =>
 
             return GNATCOLL.JSON.Create (Expand_In_String (Value.Get));
+
          when GNATCOLL.JSON.JSON_Array_Type =>
             declare
                Result : GNATCOLL.JSON.JSON_Array;
@@ -166,6 +178,7 @@ package body Tester.Macros is
 
                return GNATCOLL.JSON.Create (Result);
             end;
+
          when GNATCOLL.JSON.JSON_Object_Type =>
             declare
                Result : GNATCOLL.JSON.JSON_Value :=
@@ -187,8 +200,7 @@ package body Tester.Macros is
       Env  : Spawn.Environments.Process_Environment;
       Path : VSS.Strings.Virtual_String)
    is
-      File      : constant String :=
-        VSS.Strings.Conversions.To_UTF_8_String (Path);
+      File : constant String := VSS.Strings.Conversions.To_UTF_8_String (Path);
 
       Full_Name : constant String := Ada.Directories.Full_Name (File);
 
@@ -210,23 +222,21 @@ package body Tester.Macros is
      (Path     : String;
       Test_Dir : String) return String
    is
-      Argument : constant String := Ada.Strings.Fixed.Translate
-        (Path, Replace_Slash);
+      Argument  : constant String :=
+        Ada.Strings.Fixed.Translate (Path, Replace_Slash);
+      Directory : constant String := Ada.Directories.Full_Name (Test_Dir);
    begin
       if Path = "" then
          --  Return normalized Test_Dir
-         return Ada.Directories.Full_Name (Test_Dir);
+         return Directory;
 
       elsif Path = "/" then
          --  Return normalized Test_Dir & '/'
-         return Ada.Directories.Full_Name (Test_Dir) &
-           GNAT.OS_Lib.Directory_Separator;
+         return Directory & GNAT.OS_Lib.Directory_Separator;
 
       else
          --  Turn a relative path into absolute path
-         return Ada.Directories.Full_Name (Test_Dir) &
-           GNAT.OS_Lib.Directory_Separator &
-           Argument;
+         return Directory & GNAT.OS_Lib.Directory_Separator & Argument;
       end if;
    end Expand_FILE;
 
@@ -236,8 +246,7 @@ package body Tester.Macros is
 
    function Expand_URI
      (Path     : String;
-      Test_Dir : String) return String
-   is
+      Test_Dir : String) return String is
    begin
       return URIs.Conversions.From_File (Expand_FILE (Path, Test_Dir));
    end Expand_URI;

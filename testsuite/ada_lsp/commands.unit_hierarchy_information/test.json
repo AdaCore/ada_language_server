@@ -106,14 +106,14 @@
                   "namespaces": [
                      "<HAS>",
                      {
-                        "id": "$$FILE{first.gpr}",
+                        "id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "First",
                         "uri": "$URI{first.gpr}",
                         "is-runtime": false,
                         "is-externally-built": false
                      },
                      {
-                        "id": "$$FILE{second.gpr}",
+                        "id": "$$FILE_NORMALIZED{second.gpr}",
                         "name": "Second",
                         "uri": "$URI{second.gpr}",
                         "is-runtime": false,
@@ -123,7 +123,7 @@
                   "units": [
                      "<HAS>",
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "A",
                         "simple-name": "A",
                         "parent-name": "",
@@ -137,7 +137,7 @@
                               "uri": "$URI{first/a.ads}",
                               "unit-index": 0,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -147,7 +147,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "A.B",
                         "simple-name": "B",
                         "parent-name": "A",
@@ -161,7 +161,7 @@
                               "uri": "$URI{first/custom.ada}",
                               "unit-index": 1,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -181,7 +181,7 @@
                               "uri": "$URI{first/custom.ada}",
                               "unit-index": 2,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -201,7 +201,7 @@
                               "uri": "$URI{first/a-b-run.adb}",
                               "unit-index": 0,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -220,7 +220,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{second.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{second.gpr}",
                         "name": "A.B",
                         "simple-name": "B",
                         "parent-name": "A",
@@ -234,7 +234,7 @@
                               "uri": "$URI{second/a-b.ads}",
                               "unit-index": 0,
                               "project": {
-                                 "id": "$$FILE{second.gpr}",
+                                 "id": "$$FILE_NORMALIZED{second.gpr}",
                                  "name": "Second",
                                  "uri": "$URI{second.gpr}",
                                  "is-runtime": false,
@@ -252,7 +252,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "GENERIC_PKG",
                         "simple-name": "GENERIC_PKG",
                         "parent-name": "",
@@ -266,7 +266,7 @@
                               "uri": "$URI{first/custom.ada}",
                               "unit-index": 3,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -280,7 +280,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "INSTANCE_PKG",
                         "simple-name": "INSTANCE_PKG",
                         "parent-name": "",
@@ -294,7 +294,7 @@
                               "uri": "$URI{first/custom.ada}",
                               "unit-index": 4,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -308,7 +308,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "ALIAS_PKG",
                         "simple-name": "ALIAS_PKG",
                         "parent-name": "",
@@ -322,7 +322,7 @@
                               "uri": "$URI{first/custom.ada}",
                               "unit-index": 5,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -336,7 +336,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "MAIN",
                         "simple-name": "MAIN",
                         "parent-name": "",
@@ -350,7 +350,7 @@
                               "uri": "$URI{first/custom.ada}",
                               "unit-index": 6,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
@@ -368,7 +368,7 @@
                         ]
                      },
                      {
-                        "namespace-id": "$$FILE{first.gpr}",
+                        "namespace-id": "$$FILE_NORMALIZED{first.gpr}",
                         "name": "BROKEN",
                         "kind": "unknown",
                         "parts": [
@@ -377,7 +377,7 @@
                               "uri": "$URI{first/broken.ads}",
                               "unit-index": 0,
                               "project": {
-                                 "id": "$$FILE{first.gpr}",
+                                 "id": "$$FILE_NORMALIZED{first.gpr}",
                                  "name": "First",
                                  "uri": "$URI{first.gpr}",
                                  "is-runtime": false,
