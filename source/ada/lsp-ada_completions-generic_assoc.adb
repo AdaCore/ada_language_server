@@ -37,8 +37,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
    function Match_Designators
      (Children : LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
-      Parent   : Laltools.Common.Node_Vectors.Vector)
-      return Boolean;
+      Parent   : Laltools.Common.Node_Vectors.Vector) return Boolean;
    --  Return True if all the designators of Child are also in Parent
 
    function In_Parameters
@@ -55,8 +54,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Sig_Label       : VSS.Strings.Virtual_String;
       Cursor_Position : Integer;
       Designator      : Libadalang.Analysis.Ada_Node;
-      Active_Position : out Integer)
-      return Boolean;
+      Active_Position : out Integer) return Boolean;
    --  Return True if Parameters is valid for the current context.
    --  Active_Position will point to the active parameter inside Parameters.
 
@@ -72,8 +70,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
    function Find_Designator_Position
      (Designator       : Libadalang.Analysis.Ada_Node;
       Spec_Designators : Laltools.Common.Node_Vectors.Vector;
-      Cursor_Position  : Integer)
-      return Integer;
+      Cursor_Position  : Integer) return Integer;
 
    -----------------------
    -- Match_Designators --
@@ -81,8 +78,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
    function Match_Designators
      (Children : LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
-      Parent   : Laltools.Common.Node_Vectors.Vector)
-      return Boolean is
+      Parent   : Laltools.Common.Node_Vectors.Vector) return Boolean is
    begin
       for C of Children loop
          if C.Is_Named
@@ -157,20 +153,20 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Whitespace_Prefix : VSS.Strings.Virtual_String;
       --  Empty if we already have a whitespace before a ","
 
-      Parameters        :
+      Parameters :
         LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
       --  Current list of parameters
 
-      Unnamed_Params    : Natural := 0;
+      Unnamed_Params : Natural := 0;
       --  The number of parameters without designators already present
 
-      Using_Name        : Boolean := False;
+      Using_Name : Boolean := False;
       --  Are we already using name notation
 
-      Prefix      : VSS.Strings.Virtual_String;
+      Prefix : VSS.Strings.Virtual_String;
       --  The whole string before the snippet (including whitespaces)
 
-      Column      : Langkit_Support.Slocs.Column_Number;
+      Column : Langkit_Support.Slocs.Column_Number;
       --  Use Column as the block indentation
 
       Prefix_Span : LSP.Structures.A_Range;
@@ -194,8 +190,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       -- Has_Designator --
       --------------------
 
-      function Has_Designator (Unnamed_Params : out Natural) return Boolean
-      is
+      function Has_Designator (Unnamed_Params : out Natural) return Boolean is
          use type Langkit_Support.Slocs.Source_Location;
       begin
          Unnamed_Params := 0;
@@ -225,19 +220,17 @@ package body LSP.Ada_Completions.Generic_Assoc is
          Completion_Prefix : VSS.Strings.Virtual_String)
       is
          Params_Snippet     : VSS.Strings.Virtual_String;
-         Snippet_Index      : Integer :=
-           Integer (Spec_Designators.Length);
+         Snippet_Index      : Integer := Integer (Spec_Designators.Length);
          Use_Named_Notation : constant Boolean :=
            Using_Name
-           or else (Limit > 0
-                    and then (Snippet_Index = 1
-                              or else Snippet_Index >= Limit));
+           or else
+             (Limit > 0
+              and then (Snippet_Index = 1 or else Snippet_Index >= Limit));
 
-         Nb_Params          : Natural := Unnamed_Params;
+         Nb_Params : Natural := Unnamed_Params;
          --  We already have some unnamed params and we can be prefixed by one
 
-         Total_Params       : constant Natural :=
-           Natural (Spec_Designators.Length);
+         Total_Params : constant Natural := Natural (Spec_Designators.Length);
          --  The maximum number of params
       begin
          if Match_Designators (Parameters, Spec_Designators) then
@@ -250,8 +243,9 @@ package body LSP.Ada_Completions.Generic_Assoc is
                   Snippet   : VSS.Strings.Virtual_String;
                   Type_Text : constant VSS.Strings.Virtual_String :=
                     (if Param_Types.Contains (Desg)
-                     then VSS.Strings.To_Virtual_String
-                       (Param_Types (Desg).Node.Text)
+                     then
+                       VSS.Strings.To_Virtual_String
+                         (Param_Types (Desg).Node.Text)
                      else "");
                   Doc       : VSS.Strings.Virtual_String;
                begin
@@ -285,8 +279,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                           (Is_Set => True,
                            Value  =>
                              LSP.Utils.To_Documentation
-                               (Doc,
-                                Self.Handler.Client.Completion_Doc_Kind));
+                               (Doc, Self.Handler.Client.Completion_Doc_Kind));
                         Unsorted_Res.Append (Item);
 
                      end if;
@@ -306,7 +299,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                            Snippet.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GNATCOLL.Utils.Image
-                                     (Snippet_Index, Min_Width => 1)));
+                                   (Snippet_Index, Min_Width => 1)));
                            if not Type_Text.Is_Empty then
                               Snippet.Append (":");
                               Snippet.Append (Type_Text);
@@ -323,7 +316,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                            Snippet.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GNATCOLL.Utils.Image
-                                     (Snippet_Index, Min_Width => 1)));
+                                   (Snippet_Index, Min_Width => 1)));
                            Snippet.Append (":");
                            Snippet.Append (Name);
                            if not Type_Text.Is_Empty then
@@ -348,9 +341,11 @@ package body LSP.Ada_Completions.Generic_Assoc is
               and then Token_Kind in Ada_Par_Open | Ada_Comma
             then
                declare
-                  Last    : VSS.Strings.Character_Iterators.Character_Iterator
-                    := Params_Snippet.At_Last_Character;
-                  Success : Boolean with Unreferenced;
+                  Last    :
+                    VSS.Strings.Character_Iterators.Character_Iterator :=
+                      Params_Snippet.At_Last_Character;
+                  Success : Boolean
+                  with Unreferenced;
 
                begin
                   --  Remove the last 2 characters which are ", " and
@@ -380,8 +375,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                      Context                 => Self.Context.all,
                      Name                    => Name,
                      Item                    => Item,
-                     Compute_Doc_And_Details =>
-                       Self.Compute_Doc_And_Details);
+                     Compute_Doc_And_Details => Self.Compute_Doc_And_Details);
 
                   Pretty_Print_Snippet
                     (Context  => Self.Context.all,
@@ -425,14 +419,12 @@ package body LSP.Ada_Completions.Generic_Assoc is
          Completion_Prefix : constant VSS.Strings.Virtual_String :=
            VSS.Strings.To_Virtual_String (Node.Text);
       begin
-         for Spec of Get_Spec_Designators
-           (E             => Elem_Node,
-            Context       => Self.Context,
-            For_Signature => False)
+         for Spec of
+           Get_Spec_Designators
+             (E => Elem_Node, Context => Self.Context, For_Signature => False)
          loop
             --  Too many params to match Spec
-            if Natural (Spec.Param_Vector.Length)
-              > Natural (Parameters.Length)
+            if Natural (Spec.Param_Vector.Length) > Natural (Parameters.Length)
             then
                Generate_Snippets
                  (Spec_Designators  => Spec.Param_Vector,
@@ -460,29 +452,39 @@ package body LSP.Ada_Completions.Generic_Assoc is
    is
       use LSP.Ada_Completions.Generic_Assoc_Utils;
 
-      Elem_Node        : constant Element := Search_Element (Node);
+      Elem_Node : constant Element := Search_Element (Node);
 
-      Parameters       :
+      Parameters :
         LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
       --  Current list of designators
 
-      Prefixed         : Boolean;
+      Prefixed : Boolean;
       --  Are we prefixed by a parameter? (for example: dot call)
 
-      Prev_Active      : Integer :=
+      Prev_Active : Integer :=
         (if Prev_Signatures.Is_Set
-         and then Prev_Signatures.Value.activeSignatureHelp.Is_Set
-         and then Prev_Signatures.Value.activeSignatureHelp.
-           Value.activeSignature.Is_Set
-         then Prev_Signatures.Value.activeSignatureHelp.
-           Value.activeSignature.Value
+           and then Prev_Signatures.Value.activeSignatureHelp.Is_Set
+           and then
+             Prev_Signatures
+               .Value
+               .activeSignatureHelp
+               .Value
+               .activeSignature
+               .Is_Set
+         then
+           Prev_Signatures
+             .Value
+             .activeSignatureHelp
+             .Value
+             .activeSignature
+             .Value
          else 0);
 
       Cursor_Position    : Integer := 0;
       Current_Designator : Libadalang.Analysis.Ada_Node :=
         Libadalang.Analysis.No_Ada_Node;
 
-      Signature_Added    : Boolean := False;
+      Signature_Added : Boolean := False;
 
       procedure Add_Signature (Spec : Assoc_Data);
 
@@ -494,8 +496,8 @@ package body LSP.Ada_Completions.Generic_Assoc is
       -------------------
 
       procedure Add_Signature (Spec : Assoc_Data) is
-         Signature : LSP.Structures.SignatureInformation :=
-           (label          => <>,
+         Signature          : LSP.Structures.SignatureInformation :=
+           (label           => <>,
             activeParameter =>
               (Is_Set => True,
                Value  =>
@@ -503,8 +505,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                    (Designator       => Current_Designator,
                     Spec_Designators => Spec.Param_Vector,
                     Cursor_Position  => Cursor_Position)),
-            others          => <>
-           );
+            others          => <>);
          Declaration_Text   : VSS.Strings.Virtual_String;
          Qualifier_Text     : VSS.Strings.Virtual_String;
          Location_Text      : VSS.Strings.Virtual_String;
@@ -536,9 +537,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                     (Is_Virtual_String => True,
                      Virtual_String    =>
                        VSS.Strings.To_Virtual_String (Param.Text)),
-                  documentation =>
-                    (Is_Set => False)
-                 );
+                  documentation => (Is_Set => False));
             begin
                Signature.parameters.Append (P);
             end;
@@ -560,18 +559,17 @@ package body LSP.Ada_Completions.Generic_Assoc is
          begin
             for S of Signatures.signatures loop
                if Is_Signature_Active
-                 (Parameters      => S.parameters,
-                  Sig_Label       => S.label,
-                  Cursor_Position => Cursor_Position,
-                  Designator      => Current_Designator,
-                  Active_Position => Active_Position)
+                    (Parameters      => S.parameters,
+                     Sig_Label       => S.label,
+                     Cursor_Position => Cursor_Position,
+                     Designator      => Current_Designator,
+                     Active_Position => Active_Position)
                then
                   declare
                      Signature : LSP.Structures.SignatureInformation := S;
                   begin
                      Signature.activeParameter :=
-                       (Is_Set => True,
-                        Value  => Active_Position);
+                       (Is_Set => True, Value => Active_Position);
                      Res.signatures.Append (Signature);
                   end;
                elsif Index = Prev_Active then
@@ -600,8 +598,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
          Current_Designator => Current_Designator);
 
       if Me_Debug.Active then
-         GNATCOLL.Traces.Trace
-           (Me_Debug, "Cursor: " & Cursor'Image);
+         GNATCOLL.Traces.Trace (Me_Debug, "Cursor: " & Cursor'Image);
          GNATCOLL.Traces.Trace
            (Me_Debug, "Designators:" & Parameters.Length'Image);
          for Param of Parameters loop
@@ -618,19 +615,16 @@ package body LSP.Ada_Completions.Generic_Assoc is
          Filter_Previous_Signatures
            (Prev_Signatures.Value.activeSignatureHelp.Value);
       else
-         for Spec of Get_Spec_Designators
-           (E             => Elem_Node,
-            Context       => Context,
-            For_Signature => True)
+         for Spec of
+           Get_Spec_Designators
+             (E => Elem_Node, Context => Context, For_Signature => True)
          loop
             if
               --  Enough params in Spec
-              Natural (Parameters.Length)
-              <= Natural (Spec.Param_Vector.Length)
+              Natural (Parameters.Length) <= Natural (Spec.Param_Vector.Length)
               --  Cursor can't point to Length (Spec), it starts at 0
               and then Cursor_Position /= -1
-              and then Cursor_Position <
-                Integer (Spec.Param_Vector.Length)
+              and then Cursor_Position < Integer (Spec.Param_Vector.Length)
               --  The designators matched
               and then Match_Designators (Parameters, Spec.Param_Vector)
             then
@@ -658,8 +652,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       --  Another generic_assoc can already set the active signature then
       --  keep it
       if not Res.activeSignature.Is_Set
-        or else (Res.activeSignature.Value = 0
-                 and then Prev_Active /= 0)
+        or else (Res.activeSignature.Value = 0 and then Prev_Active /= 0)
       then
          Res.activeSignature := (Is_Set => True, Value => Prev_Active);
       end if;
@@ -674,8 +667,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Sig_Label       : VSS.Strings.Virtual_String;
       Cursor_Position : Integer;
       Designator      : Libadalang.Analysis.Ada_Node;
-      Active_Position : out Integer)
-      return Boolean
+      Active_Position : out Integer) return Boolean
    is
       use Libadalang.Analysis;
       use type VSS.Strings.Virtual_String;
@@ -701,12 +693,13 @@ package body LSP.Ada_Completions.Generic_Assoc is
                   use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
                   First   :
-                  VSS.Strings.Character_Iterators.Character_Iterator
-                    := Sig_Label.At_First_Character;
+                    VSS.Strings.Character_Iterators.Character_Iterator :=
+                      Sig_Label.At_First_Character;
                   Last    :
-                  VSS.Strings.Character_Iterators.Character_Iterator
-                    := Sig_Label.At_First_Character;
-                  Success : Boolean with Unreferenced;
+                    VSS.Strings.Character_Iterators.Character_Iterator :=
+                      Sig_Label.At_First_Character;
+                  Success : Boolean
+                  with Unreferenced;
 
                begin
                   if Param.label.Is_Virtual_String then
@@ -717,15 +710,17 @@ package body LSP.Ada_Completions.Generic_Assoc is
                      --  The code below check that:
                      --  Sig_Label [label.From .. label.Till - 1] = Name
 
-                     while First.First_UTF16_Offset < VSS.Unicode.
-                       UTF16_Code_Unit_Index (Param.label.Natural_Tuple (1))
+                     while First.First_UTF16_Offset
+                       < VSS.Unicode.UTF16_Code_Unit_Index
+                           (Param.label.Natural_Tuple (1))
                        and then First.Forward
                      loop
                         null;
                      end loop;
 
-                     while Last.First_UTF16_Offset < VSS.Unicode.
-                       UTF16_Code_Unit_Index (Param.label.Natural_Tuple (2))
+                     while Last.First_UTF16_Offset
+                       < VSS.Unicode.UTF16_Code_Unit_Index
+                           (Param.label.Natural_Tuple (2))
                        and then Last.Forward
                      loop
                         null;
@@ -762,15 +757,13 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Current_Designator : out Libadalang.Analysis.Ada_Node)
    is
       use Langkit_Support.Slocs;
+      use Libadalang.Common;
 
-      Is_New_Param  : Boolean  := False;
+      After_Comma  : Boolean;
+      In_Parameter : Boolean := False;
 
       function Cursor_On_Last_Par return Boolean;
       --  Return True when the cursor is located on the last ')'
-
-      function Cursor_In_Node
-        (N : Libadalang.Analysis.Ada_Node'Class) return Boolean;
-      --  Check if N contains the cursor
 
       ------------------------
       -- Cursor_On_Last_Par --
@@ -787,45 +780,12 @@ package body LSP.Ada_Completions.Generic_Assoc is
             elsif C = ')' then
                Close_Cpt := Close_Cpt + 1;
             end if;
-
-            --  Monitor if we are finishing by ", *"
-            if C = ',' then
-               Is_New_Param := True;
-            elsif C = ' ' then
-               null;
-            else
-               Is_New_Param := False;
-            end if;
          end loop;
 
-         return Langkit_Support.Slocs.End_Sloc (Elem_Node.Sloc_Range) = Cursor
+         return
+           Langkit_Support.Slocs.End_Sloc (Elem_Node.Sloc_Range) = Cursor
            and then Open_Cpt = Close_Cpt;
       end Cursor_On_Last_Par;
-
-      --------------------
-      -- Cursor_In_Node --
-      --------------------
-
-      function Cursor_In_Node
-        (N : Libadalang.Analysis.Ada_Node'Class) return Boolean is
-      begin
-         case Libadalang.Analysis.Compare (N, Cursor) is
-            when Inside =>
-               return True;
-            when Before =>
-               --  Case to handle:
-               --      Foo (1, |
-               --      Bar (1, 2);
-               --  LAL error recovery will assume that Bar (1, 2); is the
-               --  second param of Foo. At this point we are in the Assoc_List
-               --  and we need to stop going through the list of parameters.
-               return True;
-            when After =>
-               --  Case to handle: Foo (A => 1|
-               return Cursor.Line = N.Sloc_Range.End_Line
-                 and then Cursor.Column = N.Sloc_Range.End_Column;
-         end case;
-      end Cursor_In_Node;
 
    begin
       Current_Designator := Libadalang.Analysis.No_Ada_Node;
@@ -835,49 +795,74 @@ package body LSP.Ada_Completions.Generic_Assoc is
          return;
       end if;
 
-      Cursor_Position := 0;
-
-      for Param of Parameters loop
-         if Param.Is_Named then
-            declare
-               Parent : Libadalang.Analysis.Ada_Node := Param.Node.Parent;
-            begin
-               if Parent.Kind in Libadalang.Common.Ada_Alternatives_List_Range
-               then
-                  --  Special case for aggregate:
-                  --  Aggr_Assoc : X => Y
-                  --     AlternativesList : X
-                  --        Identifier : X
-                  Parent := Parent.Parent;
-               end if;
-
-               if Cursor_In_Node (Parent) then
-                  Current_Designator := Param.Node;
-                  exit;
-               end if;
-            end;
-         else
-            if Compare (Param.Loc, Cursor) = Inside then
-               --  The cursor is inside an unnamed param
-               Current_Designator := Libadalang.Analysis.No_Ada_Node;
-               exit;
-            end if;
+      --  Check the token immediately before the cursor excluding trivia.
+      declare
+         Token : Token_Reference := Elem_Node.Unit.Lookup_Token (Cursor);
+      begin
+         if Token /= No_Token
+           and then
+             (Is_Trivia (Token)
+              or else Cursor <= Start_Sloc (Sloc_Range (Data (Token))))
+         then
+            Token := Previous (Token, Exclude_Trivia => True);
          end if;
 
-         Cursor_Position := Cursor_Position + 1;
+         After_Comma :=
+           Token /= No_Token and then Kind (Data (Token)) = Ada_Comma;
+      end;
+
+      for Param of Parameters loop
+         declare
+            Param_Range : Source_Location_Range;
+         begin
+            if Param.Is_Named then
+               declare
+                  Parent : Libadalang.Analysis.Ada_Node := Param.Node.Parent;
+               begin
+                  if Parent.Kind in Ada_Alternatives_List_Range then
+                     --  For aggregates the designator is in an alternatives
+                     --  list within the association.
+                     Parent := Parent.Parent;
+                  end if;
+
+                  Param_Range := Parent.Sloc_Range;
+               end;
+            else
+               Param_Range := Param.Loc;
+            end if;
+
+            --  The whitespaces before the comma are part of the previous
+            --  parameter. The comma and the whitespaces after are part of the
+            --  current parameter.
+            --  List the parameter position at the |
+            --  "Foo (A| , B" => 0
+            --  "Foo (A |, B" => 0
+            --  "Foo (A ,| B" => 1
+            --  "Foo (A , |B" => 1
+            --  "Foo (A , B|" => 1
+            exit when
+              Cursor_Position >= 0
+              and then Cursor < Start_Sloc (Param_Range)
+              and then not After_Comma;
+
+            Cursor_Position := Cursor_Position + 1;
+            Current_Designator :=
+              (if Param.Is_Named
+               then Param.Node
+               else Libadalang.Analysis.No_Ada_Node);
+
+            In_Parameter := Cursor <= End_Sloc (Param_Range);
+            exit when In_Parameter;
+         end;
       end loop;
 
-      --  New param is only considered if we are using all the previous params
-      if Integer (Parameters.Length) = Cursor_Position
-        and then Is_New_Param
-      then
+      --  A trailing separator starts an argument with no association yet.
+      if After_Comma and then not In_Parameter then
          Cursor_Position := Cursor_Position + 1;
+         Current_Designator := Libadalang.Analysis.No_Ada_Node;
       end if;
 
-      --  Cursor_Positon starts at 0
-      if Cursor_Position > 0 then
-         Cursor_Position := Cursor_Position - 1;
-      end if;
+      Cursor_Position := Integer'Max (Cursor_Position, 0);
 
       if Prefixed then
          Cursor_Position := Cursor_Position + 1;
@@ -892,8 +877,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
    function Find_Designator_Position
      (Designator       : Libadalang.Analysis.Ada_Node;
       Spec_Designators : Laltools.Common.Node_Vectors.Vector;
-      Cursor_Position  : Integer)
-      return Integer
+      Cursor_Position  : Integer) return Integer
    is
       use type Libadalang.Analysis.Ada_Node;
       Index : Integer := 0;
