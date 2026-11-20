@@ -37,5 +37,8 @@ package Tester.Macros is
    --
    --  * $FILE{x} - rewrite as "/path" or "C:/path", treat x as relative to
    --  test directory (Path)
+   --
+   --  * $FILE_NORMALIZED{x} - like $FILE{x}, but resolve symbolic links and
+   --  normalize path casing on case-insensitive file systems
 
 end Tester.Macros;
