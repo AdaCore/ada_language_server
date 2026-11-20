@@ -24,7 +24,9 @@ import Transport from 'winston-transport';
 import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
-import { ProjectViewDragAndDropController, ProjectViewProvider } from './projectViewProvider';
+import { ProjectViewProvider } from './projectViewProvider';
+import { ProjectViewMode } from './projectViewTree';
+import { ProjectViewDragAndDropController } from './projectViewDragAndDrop';
 import { ScenarioViewProvider } from './scenarioViewProvider';
 import { autoReloadProject, registerCommands } from './commands';
 import { CMD_RELOAD_PROJECT } from './constants';
@@ -214,16 +216,32 @@ async function activateExtension(context: vscode.ExtensionContext) {
     /**
      * Create the Project View.
      */
-    const projectViewProvider = new ProjectViewProvider();
+    const projectViewProvider = new ProjectViewProvider(
+        adaExtState.adaClient.protocol2CodeConverter,
+    );
     adaExtState.projectViewProvider = projectViewProvider;
-    const projectViewDnD = new ProjectViewDragAndDropController(async () => {
-        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
-    });
+    const projectViewDnD = new ProjectViewDragAndDropController(
+        async () => {
+            await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+        },
+        () => projectViewProvider.mode === ProjectViewMode.FILES,
+    );
     adaExtState.projectTreeView = vscode.window.createTreeView('projectView', {
         treeDataProvider: projectViewProvider,
         showCollapseAll: true,
         dragAndDropController: projectViewDnD,
     });
+    context.subscriptions.push(
+        projectViewProvider,
+        adaExtState.projectTreeView,
+        projectViewProvider.onDidChangeMode(() => {
+            adaExtState.updateProjectViewDescription();
+            const filter = projectViewProvider.getFilter();
+            adaExtState.projectTreeView!.message = filter ? `Filtered by: "${filter}"` : undefined;
+            if (projectViewProvider.mode === ProjectViewMode.UNIT_HIERARCHY)
+                void adaExtState.refreshUnitHierarchy();
+        }),
+    );
 
     /**
      * Create the Scenario View.

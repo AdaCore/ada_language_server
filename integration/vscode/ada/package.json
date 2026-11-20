@@ -394,6 +394,24 @@
                 "title": "Project View",
                 "order": 1,
                 "properties": {
+                    "ada.projectView.mode": {
+                        "scope": "window",
+                        "type": "string",
+                        "enum": [
+                            "files",
+                            "units"
+                        ],
+                        "enumItemLabels": [
+                            "Files",
+                            "Unit Hierarchy"
+                        ],
+                        "default": "files",
+                        "enumDescriptions": [
+                            "Group source files by GPR project and directory.",
+                            "Group Ada sources by library unit and show other sources as files."
+                        ],
+                        "description": "Choose the layout of the Project view."
+                    },
                     "ada.projectView.flatMode": {
                         "scope": "window",
                         "type": "boolean",
@@ -410,7 +428,7 @@
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
-                        "description": "Show the Ada runtime project and its source files in the Project view."
+                        "description": "Show Ada runtime sources in the Project view."
                     }
                 }
             },
@@ -1424,8 +1442,7 @@
             {
                 "command": "ada.projectView.viewOptions",
                 "title": "View Options",
-                "category": "Ada",
-                "icon": "$(ellipsis)"
+                "category": "Ada"
             },
             {
                 "command": "als-open-project-file",
@@ -1659,6 +1676,24 @@
                 "command": "ada.issueReporter",
                 "category": "Ada",
                 "title": "Report Issue"
+            },
+            {
+                "command": "ada.projectView.showFiles",
+                "title": "Files",
+                "category": "Ada Project View",
+                "enablement": "config.ada.projectView.mode != files"
+            },
+            {
+                "command": "ada.projectView.showUnitHierarchy",
+                "title": "Unit Hierarchy",
+                "category": "Ada Project View",
+                "enablement": "config.ada.projectView.mode != units"
+            }
+        ],
+        "submenus": [
+            {
+                "id": "ada.projectView.viewAs",
+                "label": "View As"
             }
         ],
         "keybindings": [
@@ -1705,6 +1740,16 @@
             }
         ],
         "menus": {
+            "ada.projectView.viewAs": [
+                {
+                    "command": "ada.projectView.showFiles",
+                    "group": "1_layout@1"
+                },
+                {
+                    "command": "ada.projectView.showUnitHierarchy",
+                    "group": "1_layout@2"
+                }
+            ],
             "commandPalette": [
                 {
                     "command": "ada.references.filterByKind",
@@ -1898,7 +1943,12 @@
                 },
                 {
                     "command": "ada.projectView.viewOptions",
-                    "group": "navigation",
+                    "group": "1_layout@2",
+                    "when": "view == projectView && ADA_PROJECT_CONTEXT"
+                },
+                {
+                    "submenu": "ada.projectView.viewAs",
+                    "group": "1_layout@1",
                     "when": "view == projectView && ADA_PROJECT_CONTEXT"
                 }
             ],

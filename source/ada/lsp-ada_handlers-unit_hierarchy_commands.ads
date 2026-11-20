@@ -62,9 +62,11 @@ package LSP.Ada_Handlers.Unit_Hierarchy_Commands is
    --  Each unit is identified by its namespace-id and qualified name. Its
    --  namespace-id refers to a project in namespaces. Shared dependencies can
    --  appear in more than one namespace, so names alone do not identify units.
-   --  Names come from GPR2 and use its canonical casing. For A.B.C, simple-name
-   --  is C and parent-name is A.B. Root units have an empty parent-name, and
-   --  a parent unit need not have source files in the result.
+   --  Name and parent-name come from GPR2 and use its canonical casing.
+   --  Simple-name uses the declaration's casing when available, or GPR2's
+   --  casing otherwise. For A.B.C, simple-name is C and parent-name is A.B.
+   --  Root units have an empty parent-name. A parent unit need not have
+   --  source files in the result.
    --  Namespaces keep unrelated definitions in aggregate projects distinct.
    --  GPR2 selects the visible source parts, including project extensions
    --  and runtime overrides. Runtime and externally built units are included.

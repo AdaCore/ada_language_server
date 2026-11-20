@@ -222,64 +222,141 @@ A status bar item displaying the project-loading status and various useful comma
 
 ## Project View
 
-The Ada & SPARK extension contributes a **Project** view in the VS Code Explorer sidebar. It shows the structure of the loaded GPR project as a tree, grouping source files by their project and source directory.
-
-![Project View](media/project-view.png)
+The Ada & SPARK extension contributes a **Project** view in the VS Code Explorer
+sidebar. It shows the loaded GPR project in one of two layouts:
+[Files](#files-layout), the default, or [Unit Hierarchy](#unit-hierarchy-layout).
+Use [View As](#view-as) to switch layouts. The view description shows the
+project name and active layout.
 
 The **Project** view also exposes a toolbar with the following buttons:
 
-* **Filter** — filters the tree view to show only projects, directories, and files whose names contain the filter string.
+* **Filter** — narrows the tree by name or path (see [Filtering](#filtering)).
+* **Go to File in Project** — searches project source files (see [Navigation](#navigation)).
 * **Open Project...** — opens a dialog to select a new GPR project file to load.
-* **Refresh** — reloads the project and updates the tree view.
-* **View Options** — toggles the display of object directories and runtime files, and allows to switch between flat and hierarchical view modes.
+* **Refresh** — [reloads the project](#ada-reload-project) and updates the tree.
+* **Collapse All** — collapses the expanded tree nodes.
 
-![Project View Toolbar](media/project-view-toolbar.png)
+The **⋯** menu contains [View As](#view-as) for choosing a layout and
+[View Options](#display-options) for adjusting its display settings.
 
 ### Tree Structure
 
-The tree reflects the GPR project hierarchy:
+#### Files Layout
+
+The **Files** layout groups source files by GPR project and source directory:
 
 * **Root project** — the top-level `.gpr` project file.
 * **Sub-projects** — projects imported, aggregated, or extended by the root project, shown as children.
 * **Source directories** — each project's source directories are shown as folder nodes. Directories declared in the project file are always shown, even when empty.
 * **Source files** — source files are listed under their containing directory. Clicking a file opens it in the editor.
-* **Object directory** — optionally displayed under each project (see [View Options](#view-options) below).
-* **Runtime project** — optionally shown at the bottom of the tree, listing the GNAT runtime source files (see [View Options](#view-options) below).
+* **Object directory** — optionally displayed under each project (see [Display Options](#display-options)).
+* **Runtime project** — optionally shown at the bottom of the tree, listing the GNAT runtime source files (see [Display Options](#display-options)).
+
+![Project view in Files layout](media/project-view.png)
+
+Source files can be moved between directories in this layout (see
+[File Management](#file-management)).
+
+#### Unit Hierarchy Layout
+
+The **Unit Hierarchy** layout groups Ada library units by their qualified
+names across projects. Expand a unit to see its specification, body, separates,
+and child units. Source parts open at their declaration, including when several
+units share a file. Generic units, instantiations, and renamings are identified
+beside the unit name. Nested declarations are not listed.
+
+![Project view in Unit Hierarchy layout](media/project-view-unit-hierarchy.png)
+
+An aggregate project's compilation namespaces are shown separately so units
+with the same name remain distinct. Sources without a library unit, including
+other languages, remain accessible under **Other Sources**, grouped by directory.
+The [runtime display option](#display-options), [filtering](#filtering), and
+[navigation commands](#navigation) also apply in this layout.
+
+The hierarchy and its navigation ranges are captured when the layout is first
+shown. Use [Refresh](#ada-reload-project) after source changes to reload the
+project and update this snapshot.
 
 ### Navigation
 
-* **Reveal Active File** (`Ada: Reveal in Project View`) — locates and selects the currently open editor file in the Project view tree. This command is also available as an editor context menu.
-* **Go to File in Project** (`Ada: Go to File in Project...`, `Ctrl+Alt+P` / `Cmd+Alt+P` on macOS) — opens a quick-pick search restricted to the source files of the loaded GPR project, and opens the selected file in the editor. Unlike the native `Go to File...` command, it lists exactly the files that the project declares, including sources located outside the workspace folders, and excluding files that do not belong to the project. Type part of a file name, of a directory, or of a project name to narrow the list; each entry also offers a button to reveal the file in the Project view tree. The command is available from the Command Palette and from the Project view toolbar. Runtime sources are listed only when the `ada.projectView.showRuntimeFiles` setting is enabled. Note that `Ctrl+Alt+P` coincides with `AltGr+P` on some keyboard layouts; the shortcut can be changed from `Preferences: Open Keyboard Shortcuts`.
+These commands work in both [layouts](#tree-structure):
+
+* **Reveal Active File** (`Ada: Reveal in Project View`) — selects the currently open editor file in the tree. This command is also available in the editor context menu. In Unit Hierarchy, the cursor position identifies the unit part in a multi-unit source file.
+* **Go to File in Project** (`Ada: Go to File in Project...`, `Ctrl+Alt+P` / `Cmd+Alt+P` on macOS) — searches the loaded project's source files and opens the selected file. The command is available from the Command Palette and the Project view toolbar. Each search result also has a button to reveal the file in the tree.
 * **Reveal in Explorer** — available via right-click on a source file or a project file node; opens the VS Code Explorer and selects the item there.
+
+Go to File in Project includes project sources outside the workspace folders
+and excludes files that do not belong to the project. Type part of a file name,
+directory, or project name to narrow the list. Runtime sources are included
+only when [Show Runtime Files](#display-options) is enabled.
+
+`Ctrl+Alt+P` coincides with `AltGr+P` on some keyboard layouts. Change the
+shortcut through **Preferences: Open Keyboard Shortcuts** if needed.
 
 ### File Management
 
-Source files can be **moved between source directories** by dragging them from one directory node and dropping them onto another. A confirmation dialog is shown before any move is performed, and name collisions are detected and reported.
+In the [Files layout](#files-layout), source files can be **moved between source
+directories** by dragging them from one directory node onto another. A
+confirmation dialog is shown before any move, and name collisions are detected
+and reported. To move a file while browsing Unit Hierarchy, first switch to
+Files through [View As](#view-as).
 
 ### Filtering
 
-The Project view toolbar provides a filter button (funnel icon). When active, only projects, directories, and files whose names contain the filter string are shown. Clear the filter by clicking the filled funnel icon that replaces it.
+Use the **Filter** button (funnel icon) in the Project view toolbar to narrow
+the tree. Matching ignores case, and the filter is kept when
+[switching layouts](#view-as):
+
+* In [Files](#files-layout), the filter matches project names, directory paths, and source file names.
+* In [Unit Hierarchy](#unit-hierarchy-layout), it also matches qualified unit names, such as `Ada.Text_IO`. A matching unit keeps its source parts and child units visible.
+
+Ancestors of matching items remain visible so that you can reach them. Clear
+the filter by clicking the filled funnel icon that replaces the filter button.
 
 ### View Options
 
-Click the **View Options** button (`···`) in the Project view toolbar to toggle the following display settings:
+The Project view's **⋯** menu offers **View As** to choose the tree layout and
+**View Options** to adjust the display settings for that layout.
 
-| Option | Setting | Description |
-|--------|---------|-------------|
-| Flat Mode | `ada.projectView.flatMode` | Show all projects as a flat list rather than a hierarchy |
-| Show Object directories | `ada.projectView.showObjectDirectories` | Show each project's object directory |
-| Show Runtime files | `ada.projectView.showRuntimeFiles` | Show GNAT runtime source files |
+#### View As
 
-These options can also be set permanently via the corresponding [VS Code settings](./settings.md).
+Open **⋯ → View As**, then choose [Files](#files-layout) or
+[Unit Hierarchy](#unit-hierarchy-layout). The same choices are available in the
+Command Palette as **Ada Project View: Files** and **Ada Project View: Unit
+Hierarchy**.
+
+The selection is saved for the current workspace through
+[`ada.projectView.mode`](./settings.md#projectviewmode). Other workspaces keep
+their own choices. Set this in **User Settings** for a default across
+workspaces; workspace settings take precedence. Switching layouts keeps the
+current [filter](#filtering) and [display settings](#display-options).
+
+#### Display Options
+
+Choose **⋯ → View Options** to toggle the settings available in the current
+layout:
+
+| Option | Layout | Setting | Description |
+| --- | --- | --- | --- |
+| Flat Mode | Files | [`ada.projectView.flatMode`](./settings.md#projectviewflatmode) | Show all projects as a flat list rather than a hierarchy |
+| Show Object Directories | Files | [`ada.projectView.showObjectDirectories`](./settings.md#projectviewshowobjectdirectories) | Show each project's object directory |
+| Show Runtime Files | Both | [`ada.projectView.showRuntimeFiles`](./settings.md#projectviewshowruntimefiles) | Show GNAT runtime source files |
+
+Unit Hierarchy offers only **Show Runtime Files**. The file layout's Flat Mode
+and Show Object Directories values are preserved when switching layouts.
+These options can also be changed through the corresponding
+[VS Code settings](./settings.md).
 
 ### Context Menu Commands
 
 Right-clicking a node in the Project view exposes additional commands:
 
-* **Show File Dependencies Graph** — opens an interactive graph of Ada file dependencies for the selected file. Only available for source files.
-* **Show GPR Dependencies Graph** — opens an interactive graph of GPR project dependencies. Only available for GPR project files.
+* **Show File Dependencies Graph** — opens an interactive graph of Ada file dependencies for the selected file. Available for source files in both layouts.
+* **Show GPR Dependencies Graph** — opens an interactive graph of GPR project dependencies. Available for GPR project files in the Files layout.
 
-Project file items also have a context menu with commands to build, analyze, and clean the project, among others.
+See [Code Visualizer](#code-visualizer) for details about these graphs. Project
+file items in the [Files layout](#files-layout) also offer commands to build,
+analyze, and clean the project (see [Tasks](#tasks)).
 
 ## Scenario View
 

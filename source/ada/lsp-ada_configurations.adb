@@ -494,6 +494,7 @@ package body LSP.Ada_Configurations is
                null;
 
             elsif Name = "projectView.flatMode"
+              or else Name = "projectView.mode"
               or else Name = "projectView.showObjectDirectories"
               or else Name = "projectView.showRuntimeFiles"
             then

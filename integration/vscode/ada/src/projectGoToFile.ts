@@ -9,7 +9,8 @@
 
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
-import { ProjectEntry, ProjectViewInformation, normalizeFsPath } from './projectViewProvider';
+import { ProjectEntry, ProjectViewInformation } from './projectViewData';
+import { normalizeFsPath } from './projectViewTree';
 
 /**
  * A quick-pick item standing for one source file of the project.
